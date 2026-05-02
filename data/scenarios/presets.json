@@ -1,0 +1,171 @@
+[
+  {
+    "id": "winter",
+    "title": "Зима",
+    "description": "Низкая наружная температура, штатная подача и высокий нагрев.",
+    "purpose": "Проверка работы нагревателя и рекуперации при холодном наружном воздухе.",
+    "key_parameters": [
+      "outdoor_temp_c=-22.0 °C",
+      "airflow_m3_h=3600 м³/ч",
+      "heater_power_kw=42.0 кВт",
+      "heat_recovery_efficiency=0.62"
+    ],
+    "expected_effect": "Нагреватель работает в рабочем диапазоне, а температура притока удерживается около уставки.",
+    "parameters": {
+      "outdoor_temp_c": -22.0,
+      "airflow_m3_h": 3600.0,
+      "supply_temp_setpoint_c": 21.0,
+      "heat_recovery_efficiency": 0.62,
+      "heater_power_kw": 42.0,
+      "filter_contamination": 0.22,
+      "fan_speed_ratio": 1.0,
+      "room_temp_c": 20.5,
+      "room_heat_gain_kw": 3.5
+    }
+  },
+  {
+    "id": "summer",
+    "title": "Лето",
+    "description": "Теплый наружный воздух и минимальная потребность в нагреве.",
+    "purpose": "Демонстрация летнего режима с умеренной подачей и сниженной тепловой нагрузкой нагревателя.",
+    "key_parameters": [
+      "outdoor_temp_c=30.0 °C",
+      "airflow_m3_h=3300 м³/ч",
+      "heater_power_kw=8.0 кВт",
+      "filter_contamination=0.12"
+    ],
+    "expected_effect": "Потребление нагревателя близко к минимуму, а приток стабилизируется за счет рекуперации и уставки.",
+    "parameters": {
+      "outdoor_temp_c": 30.0,
+      "airflow_m3_h": 3300.0,
+      "supply_temp_setpoint_c": 18.5,
+      "heat_recovery_efficiency": 0.38,
+      "heater_power_kw": 8.0,
+      "filter_contamination": 0.12,
+      "fan_speed_ratio": 0.9,
+      "room_temp_c": 24.5,
+      "room_heat_gain_kw": 6.0
+    }
+  },
+  {
+    "id": "peak_load",
+    "title": "Пик нагрузки",
+    "description": "Повышенная нагрузка: высокий расход, значимые теплопритоки и заметное загрязнение фильтра.",
+    "purpose": "Стресс-проверка энергетики установки при близких к предельным рабочих параметрах.",
+    "key_parameters": [
+      "airflow_m3_h=6500 м³/ч",
+      "room_heat_gain_kw=14.0 кВт",
+      "filter_contamination=0.60",
+      "fan_speed_ratio=1.12"
+    ],
+    "expected_effect": "Растут суммарная мощность и потери на фильтре, режим может переходить в зону предупреждений.",
+    "parameters": {
+      "outdoor_temp_c": -8.0,
+      "airflow_m3_h": 6500.0,
+      "supply_temp_setpoint_c": 22.0,
+      "heat_recovery_efficiency": 0.5,
+      "heater_power_kw": 70.0,
+      "filter_contamination": 0.6,
+      "fan_speed_ratio": 1.12,
+      "room_temp_c": 23.5,
+      "room_heat_gain_kw": 14.0
+    }
+  },
+  {
+    "id": "midseason",
+    "title": "Межсезонье",
+    "description": "Умеренная наружная температура и сниженная нагрузка на нагреватель.",
+    "purpose": "Базовый учебный режим для демонстрации стабильной работы без экстремальных факторов.",
+    "key_parameters": [
+      "outdoor_temp_c=6.0 °C",
+      "airflow_m3_h=3000 м³/ч",
+      "heater_power_kw=18.0 кВт",
+      "fan_speed_ratio=0.86"
+    ],
+    "expected_effect": "Установка работает близко к номиналу с умеренным энергопотреблением и без критических тревог.",
+    "parameters": {
+      "outdoor_temp_c": 6.0,
+      "airflow_m3_h": 3000.0,
+      "supply_temp_setpoint_c": 19.0,
+      "heat_recovery_efficiency": 0.45,
+      "heater_power_kw": 18.0,
+      "filter_contamination": 0.15,
+      "fan_speed_ratio": 0.86,
+      "room_temp_c": 21.2,
+      "room_heat_gain_kw": 4.2
+    }
+  },
+  {
+    "id": "reduced_flow",
+    "title": "Снижение подачи",
+    "description": "Пониженная скорость вентилятора и сжатый расход воздуха.",
+    "purpose": "Показать влияние снижения подачи на расход, тепловой баланс и комфорт помещения.",
+    "key_parameters": [
+      "fan_speed_ratio=0.68",
+      "airflow_m3_h=2600 м³/ч",
+      "outdoor_temp_c=-4.0 °C",
+      "filter_contamination=0.38"
+    ],
+    "expected_effect": "Расход и мощность вентилятора снижаются, а температура помещения становится более чувствительной к теплопритокам.",
+    "parameters": {
+      "outdoor_temp_c": -4.0,
+      "airflow_m3_h": 2600.0,
+      "supply_temp_setpoint_c": 20.0,
+      "heat_recovery_efficiency": 0.55,
+      "heater_power_kw": 28.0,
+      "filter_contamination": 0.38,
+      "fan_speed_ratio": 0.68,
+      "room_temp_c": 21.0,
+      "room_heat_gain_kw": 5.0
+    }
+  },
+  {
+    "id": "dirty_filter",
+    "title": "Загрязнение фильтра",
+    "description": "Сильное загрязнение фильтра с ростом сопротивления и падением расхода.",
+    "purpose": "Проверка диагностики фильтра и перехода в аварийные/предупредительные состояния.",
+    "key_parameters": [
+      "filter_contamination=0.92",
+      "airflow_m3_h=3400 м³/ч",
+      "fan_speed_ratio=0.94",
+      "heater_power_kw=34.0 кВт"
+    ],
+    "expected_effect": "Перепад давления на фильтре заметно возрастает, а в диагностике появляются профильные тревоги.",
+    "parameters": {
+      "outdoor_temp_c": -12.0,
+      "airflow_m3_h": 3400.0,
+      "supply_temp_setpoint_c": 21.0,
+      "heat_recovery_efficiency": 0.58,
+      "heater_power_kw": 34.0,
+      "filter_contamination": 0.92,
+      "fan_speed_ratio": 0.94,
+      "room_temp_c": 20.8,
+      "room_heat_gain_kw": 3.2
+    }
+  },
+  {
+    "id": "manual_mode",
+    "title": "Ручной режим",
+    "description": "Ручное управление с предупреждением о вмешательстве оператора и умеренным снижением расхода.",
+    "purpose": "Показ сценария ручного вмешательства и связанных предупреждений в контроле и журнале событий.",
+    "key_parameters": [
+      "control_mode=manual",
+      "airflow_m3_h=3200 м³/ч",
+      "fan_speed_ratio=0.82",
+      "outdoor_temp_c=-18.0 °C"
+    ],
+    "expected_effect": "Сценарий фиксируется как ручной, появляется предупреждение MANUAL_MODE и снижается целевой расход.",
+    "parameters": {
+      "outdoor_temp_c": -18.0,
+      "airflow_m3_h": 3200.0,
+      "supply_temp_setpoint_c": 22.0,
+      "heat_recovery_efficiency": 0.5,
+      "heater_power_kw": 20.0,
+      "filter_contamination": 0.35,
+      "fan_speed_ratio": 0.82,
+      "room_temp_c": 21.0,
+      "room_heat_gain_kw": 2.5,
+      "control_mode": "manual"
+    }
+  }
+]

@@ -1,0 +1,74 @@
+%PDF-1.4
+%‚„œ”
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Count 1 /Kids [4 0 R] >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+4 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 5 0 R >>
+endobj
+5 0 obj
+<< /Length 2401 >>
+stream
+BT
+/F1 11 Tf
+72 760 Td
+14 TL
+(AHU Run Comparison) Tj
+T* () Tj
+T* (Comparison ID: pvu-comparison-20260418-204616) Tj
+T* (Before: Scenario Archive  Zagryaznenie filtra \(dirty_filter\)) Tj
+T* (Before status: Avariya) Tj
+T* (After: Active Run  Pik nagruzki \(peak_load\)) Tj
+T* (After status: Norma) Tj
+T* (Compatibility: Sovmestimost podtverzhdena: shag vremeni sovpadaet \(10 min\), gorizont sovpadaet \(120 min\), kolichestvo tochek sovpadaet \(13\), vremennaya setka trenda sovpadaet, nabor KPI i diagnosticheskikh metrik sovpadaet.) Tj
+T* () Tj
+T* (Metric Deltas) Tj
+T* (Pritochnyy vozdukh: 21.00 -> 22.00 \(+1.00 C\)) Tj
+T* (Temperatura pomeshcheniya: 20.77 -> 23.56 \(+2.79 C\)) Tj
+T* (Fakticheskiy raskhod: 2166.89 -> 5751.20 \(+3584.31 m3/ch\)) Tj
+T* (Moshchnost nagrevatelya: 10.15 -> 27.45 \(+17.30 kVt\)) Tj
+T* (Moshchnost ventilyatora: 0.91 -> 11.78 \(+10.87 kVt\)) Tj
+T* (Summarnaya moshchnost: 11.06 -> 39.23 \(+28.17 kVt\)) Tj
+T* (P filtra: 388.06 -> 270.53 \(-117.53 Pa\)) Tj
+T* (Udelnaya moshchnost: 5.10 -> 6.82 \(+1.72 kVt/1000 m3/ch\)) Tj
+T* (Teplovoy balans: -2.56 -> 5.44 \(+8.00 kVt\)) Tj
+T* (Smesitelnaya kamera: -12.00 -> -8.00 \(+4.00 C\)) Tj
+T* (Posle rekuperatsii: 7.02 -> 7.75 \(+0.73 C\)) Tj
+T* (Kolichestvo trevog: 2.00 -> 0.00 \(-2.00 sht\)) Tj
+T* () Tj
+T* (Trend Deltas) Tj
+T* (t=0: supply +1.00 C, room +2.70 C, power +28.17 kW, airflow +3584.31 m3/h.) Tj
+T* (t=10: supply +1.00 C, room +2.79 C, power +28.17 kW, airflow +3584.31 m3/h.) Tj
+T* (t=20: supply +1.00 C, room +2.88 C, power +28.10 kW, airflow +3584.31 m3/h.) Tj
+T* (t=30: supply +1.00 C, room +2.97 C, power +28.04 kW, airflow +3584.31 m3/h.) Tj
+T* (t=40: supply +1.00 C, room +3.06 C, power +27.96 kW, airflow +3584.31 m3/h.) Tj
+T* (t=50: supply +1.00 C, room +3.15 C, power +27.89 kW, airflow +3584.31 m3/h.) Tj
+T* (t=60: supply +1.00 C, room +3.24 C, power +27.82 kW, airflow +3584.31 m3/h.) Tj
+T* (t=70: supply +1.00 C, room +3.33 C, power +27.76 kW, airflow +3584.31 m3/h.) Tj
+T* (t=80: supply +1.00 C, room +3.41 C, power +27.68 kW, airflow +3584.31 m3/h.) Tj
+T* (t=90: supply +1.00 C, room +3.49 C, power +27.62 kW, airflow +3584.31 m3/h.) Tj
+T* (t=100: supply +1.00 C, room +3.57 C, power +27.56 kW, airflow +3584.31 m3/h.) Tj
+T* (t=110: supply +1.00 C, room +3.65 C, power +27.49 kW, airflow +3584.31 m3/h.) Tj
+T* (t=120: supply +1.00 C, room +3.73 C, power +27.43 kW, airflow +3584.31 m3/h.) Tj
+ET
+endstream
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000015 00000 n 
+0000000064 00000 n 
+0000000121 00000 n 
+0000000191 00000 n 
+0000000317 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+2770
+%%EOF

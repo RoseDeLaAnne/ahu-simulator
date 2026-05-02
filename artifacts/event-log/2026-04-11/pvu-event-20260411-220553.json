@@ -1,0 +1,28 @@
+{
+  "event_id": "pvu-event-20260411-220553",
+  "captured_at": "2026-04-11T19:05:53.383057Z",
+  "category": "simulation",
+  "level": "info",
+  "title": "Пересчитан пользовательский режим",
+  "summary": "Пользовательский режим: приток 19.5 °C, расход 2612 м³/ч, суммарная мощность 7.1 кВт.",
+  "source_type": "dashboard",
+  "source_label": "Пользовательский режим",
+  "trigger": "outdoor-temp",
+  "scenario_id": null,
+  "scenario_title": null,
+  "control_mode": "auto",
+  "status": "normal",
+  "details": [
+    "Триггер dashboard/API: outdoor-temp.",
+    "Режим управления: auto.",
+    "Статус: normal.",
+    "Тревоги: нет активных тревог.",
+    "Контур: Автоматический режим удерживает температуру притока около уставки; доступный запас нагревателя можно использовать как резерв.",
+    "Смена статуса: warning -> normal.",
+    "Δ притока: +0.5 °C.",
+    "Δ расхода: +476 м³/ч.",
+    "Δ мощности: +1.6 кВт."
+  ],
+  "artifact_path": null,
+  "file_path": "artifacts/event-log/2026-04-11/pvu-event-20260411-220553.json"
+}

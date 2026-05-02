@@ -1,0 +1,23 @@
+{
+  "event_id": "pvu-event-20260502-125311-4",
+  "captured_at": "2026-05-02T09:53:11.424196Z",
+  "category": "simulation",
+  "level": "info",
+  "title": "Скорость сессии симуляции обновлена",
+  "summary": "Пользовательский режим: 5 из 120 мин, тик 1 из 24.",
+  "source_type": "api",
+  "source_label": "Пользовательский режим",
+  "trigger": "simulation.session.speed",
+  "scenario_id": null,
+  "scenario_title": null,
+  "control_mode": "auto",
+  "status": "normal",
+  "details": [
+    "Состояние сессии: running.",
+    "Скорость воспроизведения: x2.",
+    "Горизонт достигнут: нет.",
+    "Действие: speed."
+  ],
+  "artifact_path": null,
+  "file_path": "artifacts/event-log/2026-05-02/pvu-event-20260502-125311-4.json"
+}

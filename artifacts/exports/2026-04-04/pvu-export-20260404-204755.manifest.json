@@ -1,0 +1,15 @@
+{
+  "export_id": "pvu-export-20260404-204755",
+  "captured_at": "2026-04-04T17:47:55.440488Z",
+  "source_type": "scenario",
+  "source_label": "Загрязнение фильтра (dirty_filter)",
+  "scenario_id": "dirty_filter",
+  "scenario_title": "Загрязнение фильтра",
+  "status": "alarm",
+  "alarm_count": 2,
+  "trend_points": 13,
+  "csv_path": "artifacts/exports/2026-04-04/pvu-export-20260404-204755.csv",
+  "xlsx_path": "artifacts/exports/2026-04-04/pvu-export-20260404-204755.xlsx",
+  "pdf_path": "artifacts/exports/2026-04-04/pvu-export-20260404-204755.pdf",
+  "manifest_path": "artifacts/exports/2026-04-04/pvu-export-20260404-204755.manifest.json"
+}

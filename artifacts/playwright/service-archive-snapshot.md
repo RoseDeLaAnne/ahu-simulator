@@ -1,0 +1,45 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e4]:
+    - navigation [ref=e5]:
+      - generic [ref=e6]:
+        - link "Симулятор ПВУ" [ref=e7] [cursor=pointer]:
+          - /url: /dashboard/?page=main
+        - generic [ref=e8]:
+          - link "Симулятор" [ref=e9] [cursor=pointer]:
+            - /url: /dashboard/?page=main#section-monitoring
+          - link "2D / 3D" [ref=e10] [cursor=pointer]:
+            - /url: /dashboard/?page=main#section-visualization
+          - link "Результаты" [ref=e11] [cursor=pointer]:
+            - /url: /dashboard/?page=main#section-analytics
+          - link "Техцентр" [ref=e12] [cursor=pointer]:
+            - /url: /dashboard/?page=service-index
+          - link "API" [ref=e13] [cursor=pointer]:
+            - /url: /docs
+    - text: − + + + + − + + − + + − + + + + − + + + + + − − + + − −
+    - generic [ref=e14]:
+      - generic [ref=e15]: Технический раздел
+      - generic [ref=e16]:
+        - link "← На главную" [ref=e17] [cursor=pointer]:
+          - /url: /dashboard/?page=main
+        - link "Технический центр" [ref=e18] [cursor=pointer]:
+          - /url: /dashboard/?page=service-index
+      - generic [ref=e19]:
+        - generic [ref=e20]:
+          - heading "Архив сценариев" [level=2] [ref=e21]
+          - generic [ref=e22]: Локальные снимки
+        - group [ref=e24]:
+          - generic "− Сохранённые прогоны 1 записей" [ref=e25] [cursor=pointer]
+          - generic [ref=e28]
+    - text: −
+    - generic [ref=e68]:
+      - generic [ref=e69]: Симулятор ПВУ
+      - generic [ref=e70]: MVP-маршрут для показа модели приточной вентиляционной установки
+      - generic [ref=e71]:
+        - link "Технический центр" [ref=e72] [cursor=pointer]:
+          - /url: /dashboard/?page=service-index
+        - link "Документация API" [ref=e73] [cursor=pointer]:
+          - /url: /docs
+        - link "Здоровье системы" [ref=e74] [cursor=pointer]:
+          - /url: /health
+  - contentinfo
+  - img [ref=e75]

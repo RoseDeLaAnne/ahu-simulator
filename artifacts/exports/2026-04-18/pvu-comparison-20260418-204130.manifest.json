@@ -1,0 +1,287 @@
+{
+  "generated_at": "2026-04-18T17:41:30.366796Z",
+  "entry": {
+    "comparison_id": "pvu-comparison-20260418-204130",
+    "captured_at": "2026-04-18T17:41:30.366796Z",
+    "before_label": "Scenario Archive — Зима (winter)",
+    "after_label": "Active Run — Лето (summer)",
+    "metric_count": 12,
+    "trend_points": 13,
+    "csv_path": "artifacts/exports/2026-04-18/pvu-comparison-20260418-204130.csv",
+    "pdf_path": "artifacts/exports/2026-04-18/pvu-comparison-20260418-204130.pdf",
+    "manifest_path": "artifacts/exports/2026-04-18/pvu-comparison-20260418-204130.manifest.json"
+  },
+  "comparison": {
+    "generated_at": "2026-04-18T17:41:30.366796Z",
+    "comparison_id": "pvu-comparison-20260418-204130",
+    "summary": "Scenario Archive — Зима (winter) -> Active Run — Лето (summer)",
+    "note": "Все численные дельты рассчитаны как after - before.",
+    "before_source": {
+      "reference_id": "archive:pvu-run-20260418-204130",
+      "source_type": "archive",
+      "source_label": "Зима (winter)",
+      "display_label": "Scenario Archive — Зима (winter)",
+      "captured_at": "2026-04-18T17:41:30.323848Z",
+      "scenario_id": "winter",
+      "scenario_title": "Зима",
+      "control_mode": "auto",
+      "status": "normal",
+      "alarm_count": 0,
+      "step_minutes": 10,
+      "horizon_minutes": 120,
+      "point_count": 13
+    },
+    "after_source": {
+      "reference_id": "active-run",
+      "source_type": "active",
+      "source_label": "Лето (summer)",
+      "display_label": "Active Run — Лето (summer)",
+      "captured_at": "2026-04-18T17:41:30.333028Z",
+      "scenario_id": "summer",
+      "scenario_title": "Лето",
+      "control_mode": "auto",
+      "status": "normal",
+      "alarm_count": 0,
+      "step_minutes": 10,
+      "horizon_minutes": 120,
+      "point_count": 13
+    },
+    "compatibility": {
+      "is_compatible": true,
+      "status": "normal",
+      "summary": "Совместимость подтверждена: шаг времени совпадает (10 мин), горизонт совпадает (120 мин), количество точек совпадает (13), временная сетка тренда совпадает, набор KPI и диагностических метрик совпадает.",
+      "issues": [],
+      "validated_rules": [
+        "шаг времени совпадает (10 мин)",
+        "горизонт совпадает (120 мин)",
+        "количество точек совпадает (13)",
+        "временная сетка тренда совпадает",
+        "набор KPI и диагностических метрик совпадает"
+      ]
+    },
+    "metric_deltas": [
+      {
+        "metric_id": "supply_temp_c",
+        "title": "Приточный воздух",
+        "unit": "°C",
+        "before_value": 21.0,
+        "after_value": 27.91,
+        "delta_value": 6.91
+      },
+      {
+        "metric_id": "room_temp_c",
+        "title": "Температура помещения",
+        "unit": "°C",
+        "before_value": 20.46,
+        "after_value": 24.62,
+        "delta_value": 4.16
+      },
+      {
+        "metric_id": "actual_airflow_m3_h",
+        "title": "Фактический расход",
+        "unit": "м³/ч",
+        "before_value": 3322.8,
+        "after_value": 2845.26,
+        "delta_value": -477.53999999999996
+      },
+      {
+        "metric_id": "heating_power_kw",
+        "title": "Мощность нагревателя",
+        "unit": "кВт",
+        "before_value": 18.53,
+        "after_value": 0.0,
+        "delta_value": -18.53
+      },
+      {
+        "metric_id": "fan_power_kw",
+        "title": "Мощность вентилятора",
+        "unit": "кВт",
+        "before_value": 2.27,
+        "after_value": 1.49,
+        "delta_value": -0.78
+      },
+      {
+        "metric_id": "total_power_kw",
+        "title": "Суммарная мощность",
+        "unit": "кВт",
+        "before_value": 20.8,
+        "after_value": 1.49,
+        "delta_value": -19.310000000000002
+      },
+      {
+        "metric_id": "filter_pressure_drop_pa",
+        "title": "ΔP фильтра",
+        "unit": "Па",
+        "before_value": 158.85,
+        "after_value": 137.14,
+        "delta_value": -21.710000000000008
+      },
+      {
+        "metric_id": "energy_intensity_kw_per_1000_m3_h",
+        "title": "Удельная мощность",
+        "unit": "кВт/1000 м³/ч",
+        "before_value": 6.26,
+        "after_value": 0.52,
+        "delta_value": -5.74
+      },
+      {
+        "metric_id": "heat_balance_kw",
+        "title": "Тепловой баланс",
+        "unit": "кВт",
+        "before_value": -3.59,
+        "after_value": 10.24,
+        "delta_value": 13.83
+      },
+      {
+        "metric_id": "mixed_air_temp_c",
+        "title": "Смесительная камера",
+        "unit": "°C",
+        "before_value": -22.0,
+        "after_value": 30.0,
+        "delta_value": 52.0
+      },
+      {
+        "metric_id": "recovered_air_temp_c",
+        "title": "После рекуперации",
+        "unit": "°C",
+        "before_value": 4.35,
+        "after_value": 27.91,
+        "delta_value": 23.560000000000002
+      },
+      {
+        "metric_id": "alarm_count",
+        "title": "Количество тревог",
+        "unit": "шт",
+        "before_value": 0.0,
+        "after_value": 0.0,
+        "delta_value": 0.0
+      }
+    ],
+    "trend_deltas": [
+      {
+        "minute": 0,
+        "supply_temp_delta_c": 6.91,
+        "room_temp_delta_c": 4.0,
+        "total_power_delta_kw": -19.310000000000002,
+        "airflow_delta_m3_h": -477.53999999999996,
+        "filter_pressure_drop_delta_pa": -21.710000000000008
+      },
+      {
+        "minute": 10,
+        "supply_temp_delta_c": 6.91,
+        "room_temp_delta_c": 4.16,
+        "total_power_delta_kw": -19.310000000000002,
+        "airflow_delta_m3_h": -477.53999999999996,
+        "filter_pressure_drop_delta_pa": -21.710000000000008
+      },
+      {
+        "minute": 20,
+        "supply_temp_delta_c": 6.960000000000001,
+        "room_temp_delta_c": 4.319999999999997,
+        "total_power_delta_kw": -19.34,
+        "airflow_delta_m3_h": -477.53999999999996,
+        "filter_pressure_drop_delta_pa": -21.710000000000008
+      },
+      {
+        "minute": 30,
+        "supply_temp_delta_c": 7.0,
+        "room_temp_delta_c": 4.48,
+        "total_power_delta_kw": -19.37,
+        "airflow_delta_m3_h": -477.53999999999996,
+        "filter_pressure_drop_delta_pa": -21.710000000000008
+      },
+      {
+        "minute": 40,
+        "supply_temp_delta_c": 7.050000000000001,
+        "room_temp_delta_c": 4.640000000000001,
+        "total_power_delta_kw": -19.400000000000002,
+        "airflow_delta_m3_h": -477.53999999999996,
+        "filter_pressure_drop_delta_pa": -21.710000000000008
+      },
+      {
+        "minute": 50,
+        "supply_temp_delta_c": 7.09,
+        "room_temp_delta_c": 4.800000000000001,
+        "total_power_delta_kw": -19.42,
+        "airflow_delta_m3_h": -477.53999999999996,
+        "filter_pressure_drop_delta_pa": -21.710000000000008
+      },
+      {
+        "minute": 60,
+        "supply_temp_delta_c": 7.140000000000001,
+        "room_temp_delta_c": 4.959999999999997,
+        "total_power_delta_kw": -19.450000000000003,
+        "airflow_delta_m3_h": -477.53999999999996,
+        "filter_pressure_drop_delta_pa": -21.710000000000008
+      },
+      {
+        "minute": 70,
+        "supply_temp_delta_c": 7.18,
+        "room_temp_delta_c": 5.120000000000001,
+        "total_power_delta_kw": -19.48,
+        "airflow_delta_m3_h": -477.53999999999996,
+        "filter_pressure_drop_delta_pa": -21.710000000000008
+      },
+      {
+        "minute": 80,
+        "supply_temp_delta_c": 7.23,
+        "room_temp_delta_c": 5.27,
+        "total_power_delta_kw": -19.51,
+        "airflow_delta_m3_h": -477.53999999999996,
+        "filter_pressure_drop_delta_pa": -21.710000000000008
+      },
+      {
+        "minute": 90,
+        "supply_temp_delta_c": 7.27,
+        "room_temp_delta_c": 5.419999999999998,
+        "total_power_delta_kw": -19.540000000000003,
+        "airflow_delta_m3_h": -477.53999999999996,
+        "filter_pressure_drop_delta_pa": -21.710000000000008
+      },
+      {
+        "minute": 100,
+        "supply_temp_delta_c": 7.309999999999999,
+        "room_temp_delta_c": 5.57,
+        "total_power_delta_kw": -19.560000000000002,
+        "airflow_delta_m3_h": -477.53999999999996,
+        "filter_pressure_drop_delta_pa": -21.710000000000008
+      },
+      {
+        "minute": 110,
+        "supply_temp_delta_c": 7.350000000000001,
+        "room_temp_delta_c": 5.720000000000002,
+        "total_power_delta_kw": -19.59,
+        "airflow_delta_m3_h": -477.53999999999996,
+        "filter_pressure_drop_delta_pa": -21.710000000000008
+      },
+      {
+        "minute": 120,
+        "supply_temp_delta_c": 7.399999999999999,
+        "room_temp_delta_c": 5.870000000000001,
+        "total_power_delta_kw": -19.62,
+        "airflow_delta_m3_h": -477.53999999999996,
+        "filter_pressure_drop_delta_pa": -21.710000000000008
+      }
+    ]
+  },
+  "artifacts": [
+    {
+      "artifact_id": "csv",
+      "label": "CSV сравнения",
+      "path": "artifacts/exports/2026-04-18/pvu-comparison-20260418-204130.csv",
+      "exists": true
+    },
+    {
+      "artifact_id": "pdf",
+      "label": "PDF сравнения",
+      "path": "artifacts/exports/2026-04-18/pvu-comparison-20260418-204130.pdf",
+      "exists": true
+    },
+    {
+      "artifact_id": "manifest",
+      "label": "Manifest",
+      "path": "artifacts/exports/2026-04-18/pvu-comparison-20260418-204130.manifest.json",
+      "exists": true
+    }
+  ]
+}

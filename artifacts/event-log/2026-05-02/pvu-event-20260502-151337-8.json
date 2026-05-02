@@ -1,0 +1,22 @@
+{
+  "event_id": "pvu-event-20260502-151337-8",
+  "captured_at": "2026-05-02T12:13:37.151757Z",
+  "category": "export",
+  "level": "info",
+  "title": "Собран сценарный отчёт",
+  "summary": "Текущий прогон сохранён в CSV/PDF с манифестом для повторяемой офлайн-проверки.",
+  "source_type": "api",
+  "source_label": "Зима (winter)",
+  "trigger": null,
+  "scenario_id": "winter",
+  "scenario_title": "Зима",
+  "control_mode": "auto",
+  "status": "normal",
+  "details": [
+    "Статус режима: Норма.",
+    "Количество тревог: 0.",
+    "Манифест: artifacts/exports/2026-05-02/pvu-report-20260502-151337.manifest.json."
+  ],
+  "artifact_path": "artifacts/exports/2026-05-02/pvu-report-20260502-151337.manifest.json",
+  "file_path": "artifacts/event-log/2026-05-02/pvu-event-20260502-151337-8.json"
+}

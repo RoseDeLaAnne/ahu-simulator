@@ -1,0 +1,22 @@
+{
+  "event_id": "pvu-event-20260502-135540",
+  "captured_at": "2026-05-02T10:55:40.379738Z",
+  "category": "export",
+  "level": "warning",
+  "title": "Собран сценарный отчёт",
+  "summary": "Текущий прогон сохранён в CSV/PDF с манифестом для повторяемой офлайн-проверки.",
+  "source_type": "dashboard",
+  "source_label": "Пользовательский режим",
+  "trigger": null,
+  "scenario_id": null,
+  "scenario_title": null,
+  "control_mode": "auto",
+  "status": "warning",
+  "details": [
+    "Статус режима: Риск.",
+    "Количество тревог: 1.",
+    "Манифест: artifacts/exports/2026-05-02/pvu-report-20260502-135540.manifest.json."
+  ],
+  "artifact_path": "artifacts/exports/2026-05-02/pvu-report-20260502-135540.manifest.json",
+  "file_path": "artifacts/event-log/2026-05-02/pvu-event-20260502-135540.json"
+}

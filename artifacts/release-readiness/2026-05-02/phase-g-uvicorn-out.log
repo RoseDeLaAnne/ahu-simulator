@@ -1,0 +1,20 @@
+INFO:     127.0.0.1:60521 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55894 - "GET /readiness/demo HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55895 - "GET /scenarios HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55896 - "GET /readiness/package HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55897 - "GET /dashboard HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:55897 - "GET /dashboard/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61989 - "GET /scenarios HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61990 - "POST /simulation/session/reset HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61991 - "POST /simulation/session/start HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61992 - "POST /simulation/session/speed HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61993 - "POST /simulation/session/pause HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61994 - "POST /simulation/session/tick HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61995 - "POST /simulation/session/reset HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61996 - "POST /exports/result/preview HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61997 - "POST /exports/result/build HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61998 - "POST /simulation/run HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61999 - "POST /comparison/runs/before HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62000 - "POST /simulation/run HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62001 - "POST /comparison/runs/after HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62002 - "POST /comparison/runs/build HTTP/1.1" 200 OK

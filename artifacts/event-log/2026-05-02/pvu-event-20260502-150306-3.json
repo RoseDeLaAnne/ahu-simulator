@@ -1,0 +1,23 @@
+{
+  "event_id": "pvu-event-20260502-150306-3",
+  "captured_at": "2026-05-02T12:03:06.370960Z",
+  "category": "simulation",
+  "level": "info",
+  "title": "Скорость сессии симуляции обновлена",
+  "summary": "Межсезонье (midseason): 0 из 120 мин, тик 0 из 12.",
+  "source_type": "api",
+  "source_label": "Межсезонье (midseason)",
+  "trigger": "simulation.session.speed",
+  "scenario_id": "midseason",
+  "scenario_title": "Межсезонье",
+  "control_mode": "auto",
+  "status": "normal",
+  "details": [
+    "Состояние сессии: running.",
+    "Скорость воспроизведения: x2.",
+    "Горизонт достигнут: нет.",
+    "Действие: speed."
+  ],
+  "artifact_path": null,
+  "file_path": "artifacts/event-log/2026-05-02/pvu-event-20260502-150306-3.json"
+}

@@ -1,0 +1,32 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e4]:
+    - navigation [ref=e5]:
+      - generic [ref=e6]:
+        - link "Симулятор ПВУ" [ref=e7] [cursor=pointer]:
+          - /url: /dashboard/?page=main
+        - generic [ref=e8]
+    - generic [ref=e14]:
+      - generic [ref=e15]: Технический раздел
+      - generic [ref=e16]:
+        - link "← На главную" [ref=e17] [cursor=pointer]:
+          - /url: /dashboard/?page=main
+        - link "Технический центр" [ref=e18] [cursor=pointer]:
+          - /url: /dashboard/?page=service-index
+      - generic [ref=e19]:
+        - generic [ref=e20]
+        - generic [ref=e86]
+        - generic [ref=e227]
+        - generic [ref=e295]
+    - text: − + + + + − + + + + + − − + + − − − −
+    - generic [ref=e410]:
+      - generic [ref=e411]: Симулятор ПВУ
+      - generic [ref=e412]: MVP-маршрут для показа модели приточной вентиляционной установки
+      - generic [ref=e413]:
+        - link "Технический центр" [ref=e414] [cursor=pointer]:
+          - /url: /dashboard/?page=service-index
+        - link "Документация API" [ref=e415] [cursor=pointer]:
+          - /url: /docs
+        - link "Здоровье системы" [ref=e416] [cursor=pointer]:
+          - /url: /health
+  - contentinfo
+  - img [ref=e417]

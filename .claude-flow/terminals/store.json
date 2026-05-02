@@ -1,0 +1,62 @@
+{
+  "sessions": {
+    "term-1775751627581-jkgrpy": {
+      "id": "term-1775751627581-jkgrpy",
+      "name": "pvu-app",
+      "status": "active",
+      "createdAt": "2026-04-09T16:20:27.581Z",
+      "lastActivity": "2026-04-09T16:20:42.796Z",
+      "workingDir": "C:\\My\\Work\\Diploma\\pvu_diploma_project",
+      "history": [
+        {
+          "command": ".\\.venv\\Scripts\\python.exe -m uvicorn app.main:app --app-dir src --host 127.0.0.1 --port 8000",
+          "output": "[STATE TRACKING] Command recorded: .\\.venv\\Scripts\\python.exe -m uvicorn app.main:app --app-dir src --host 127.0.0.1 --port 8000",
+          "timestamp": "2026-04-09T16:20:34.973Z",
+          "exitCode": 0
+        },
+        {
+          "command": "$p = Start-Process '.\\.venv\\Scripts\\python.exe' -ArgumentList '-m','uvicorn','app.main:app','--app-dir','src','--host','127.0.0.1','--port','8000' -PassThru; $p.Id",
+          "output": "[STATE TRACKING] Command recorded: $p = Start-Process '.\\.venv\\Scripts\\python.exe' -ArgumentList '-m','uvicorn','app.main:app','--app-dir','src','--host','127.0.0.1','--port','8000' -PassThru; $p.Id",
+          "timestamp": "2026-04-09T16:20:42.796Z",
+          "exitCode": 0
+        }
+      ],
+      "env": {}
+    },
+    "term-1776694323506-o07yfv": {
+      "id": "term-1776694323506-o07yfv",
+      "name": "ahu-app",
+      "status": "active",
+      "createdAt": "2026-04-20T14:12:03.506Z",
+      "lastActivity": "2026-04-20T14:12:08.724Z",
+      "workingDir": "C:\\My\\Work\\Diploma\\ahu-simulator",
+      "history": [
+        {
+          "command": ".\\.venv\\Scripts\\python.exe -m uvicorn app.main:app --app-dir src --host 127.0.0.1 --port 8000",
+          "output": "[STATE TRACKING] Command recorded: .\\.venv\\Scripts\\python.exe -m uvicorn app.main:app --app-dir src --host 127.0.0.1 --port 8000",
+          "timestamp": "2026-04-20T14:12:08.724Z",
+          "exitCode": 0
+        }
+      ],
+      "env": {}
+    },
+    "term-1776694323523-nopwlz": {
+      "id": "term-1776694323523-nopwlz",
+      "name": "ahu-ref",
+      "status": "active",
+      "createdAt": "2026-04-20T14:12:03.523Z",
+      "lastActivity": "2026-04-20T14:12:08.730Z",
+      "workingDir": "C:\\My\\Work\\Diploma\\ahu-simulator\\references\\home-remodeling-68.aura.build\\clean",
+      "history": [
+        {
+          "command": "python -m http.server 8765",
+          "output": "[STATE TRACKING] Command recorded: python -m http.server 8765",
+          "timestamp": "2026-04-20T14:12:08.730Z",
+          "exitCode": 0
+        }
+      ],
+      "env": {}
+    }
+  },
+  "version": "3.0.0"
+}

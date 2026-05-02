@@ -1,0 +1,22 @@
+{
+  "event_id": "pvu-event-20260418-204604",
+  "captured_at": "2026-04-18T17:46:04.607377Z",
+  "category": "archive",
+  "level": "info",
+  "title": "Сохранён прогон в Scenario Archive",
+  "summary": "Текущий прогон зафиксирован как отдельный JSON-снимок для повторного разбора или защиты.",
+  "source_type": "dashboard",
+  "source_label": "Пик нагрузки (peak_load)",
+  "trigger": null,
+  "scenario_id": "peak_load",
+  "scenario_title": "Пик нагрузки",
+  "control_mode": "auto",
+  "status": "normal",
+  "details": [
+    "Статус режима: normal.",
+    "Количество тревог: 0.",
+    "Файл архива: artifacts/scenario-archive/2026-04-18/pvu-run-20260418-204604.json."
+  ],
+  "artifact_path": "artifacts/scenario-archive/2026-04-18/pvu-run-20260418-204604.json",
+  "file_path": "artifacts/event-log/2026-04-18/pvu-event-20260418-204604.json"
+}

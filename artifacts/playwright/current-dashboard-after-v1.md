@@ -1,0 +1,161 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - navigation [ref=e4]:
+      - generic [ref=e5]:
+        - link "Симулятор ПВУ" [ref=e6] [cursor=pointer]:
+          - /url: /dashboard/?page=main
+        - generic [ref=e7]:
+          - link "Симулятор" [ref=e8] [cursor=pointer]:
+            - /url: /dashboard/?page=main#section-monitoring
+          - link "2D / 3D" [ref=e9] [cursor=pointer]:
+            - /url: /dashboard/?page=main#section-visualization
+          - link "Результаты" [ref=e10] [cursor=pointer]:
+            - /url: /dashboard/?page=main#section-analytics
+          - link "Техцентр" [ref=e11] [cursor=pointer]:
+            - /url: /dashboard/?page=service-index
+          - link "API" [ref=e12] [cursor=pointer]:
+            - /url: /docs
+    - generic [ref=e13]:
+      - generic [ref=e14]:
+        - paragraph [ref=e15]: MVP ДИПЛОМНОГО ПРОЕКТА
+        - heading "Моделирование работы приточной вентиляционной установки" [level=1] [ref=e16]
+        - paragraph [ref=e17]: "Главный маршрут оставляет только то, что нужно для демонстрации MVP: выбор сценария, запуск симуляции, цифровой двойник и понятные результаты по установке и помещению."
+        - generic [ref=e18]:
+          - link "Открыть симулятор" [ref=e19] [cursor=pointer]:
+            - /url: /dashboard/?page=main#section-monitoring
+          - link "Технический центр" [ref=e20] [cursor=pointer]:
+            - /url: /dashboard/?page=service-index
+        - generic [ref=e21]:
+          - generic [ref=e22]:
+            - text: Текущий сценарий
+            - strong [ref=e23]: Межсезонье
+            - paragraph [ref=e24]: Базовый учебный режим для демонстрации стабильной работы без экстремальных факторов.
+          - generic [ref=e25]:
+            - text: Статус сессии
+            - strong [ref=e26]: Готово
+            - paragraph [ref=e27]: Шаг интегрирования 10 мин
+          - generic [ref=e28]:
+            - text: История модели
+            - strong [ref=e29]: 1 точек
+            - paragraph [ref=e30]: Установка работает близко к номиналу с умеренным энергопотреблением и без критических тревог.
+      - generic [ref=e31]:
+        - generic [ref=e32]:
+          - heading "Фокус демонстрации" [level=2] [ref=e33]
+          - generic [ref=e34]: Готово
+        - paragraph [ref=e35]: Сначала запускается понятный сценарий, затем пользователь смотрит на KPI, 2D/3D-сцену и тренды. Всё техническое сопровождение вынесено в отдельный раздел.
+        - generic [ref=e36]:
+          - generic [ref=e37]:
+            - generic [ref=e38]: Сценарий
+            - strong [ref=e39]: Межсезонье
+          - generic [ref=e40]:
+            - generic [ref=e41]: Источник параметров
+            - strong [ref=e42]: Пресет
+          - generic [ref=e43]:
+            - generic [ref=e44]: Точка запуска
+            - strong [ref=e45]: Симулятор MVP
+        - generic [ref=e46]:
+          - generic [ref=e47]: outdoor_temp_c=6.0 °C
+          - generic [ref=e48]: airflow_m3_h=3000 м³/ч
+          - generic [ref=e49]: heater_power_kw=18.0 кВт
+        - link "Открыть 3D-студию" [ref=e50] [cursor=pointer]:
+          - /url: /dashboard/?page=main#3d-studio
+    - generic [ref=e51]:
+      - generic [ref=e52]: 01 — Симулятор MVP
+      - generic [ref=e53]:
+        - heading "Покажите работу установки за один сценарий." [level=2] [ref=e54]
+        - paragraph [ref=e55]: В первом экране оставлены базовые элементы управления и ключевые показатели. Расширенные настройки доступны, но не мешают первому запуску и живой демонстрации.
+      - generic [ref=e56]:
+        - generic [ref=e57]:
+          - generic [ref=e58]:
+            - heading "Сценарий и основные параметры" [level=2] [ref=e59]
+            - generic [ref=e60]: MVP
+          - text: Сценарий
+          - generic [ref=e247]:
+            - generic
+          - generic [ref=e61]:
+            - button "Зима" [ref=e62] [cursor=pointer]
+            - button "Лето" [ref=e63] [cursor=pointer]
+            - button "Пик нагрузки" [ref=e64] [cursor=pointer]
+          - paragraph [ref=e65]: "Умеренная наружная температура и сниженная нагрузка на нагреватель. Назначение: Базовый учебный режим для демонстрации стабильной работы без экстремальных факторов.. Ключевые параметры: outdoor_temp_c=6.0 °C; airflow_m3_h=3000 м³/ч; heater_power_kw=18.0 кВт; fan_speed_ratio=0.86. Ожидаемый эффект: Установка работает близко к номиналу с умеренным энергопотреблением и без критических тревог."
+          - generic [ref=e66]:
+            - generic [ref=e67]
+            - generic [ref=e69]
+            - generic [ref=e71]
+            - generic [ref=e73]
+          - text: Режим
+          - generic [ref=e254]:
+            - generic
+          - group [ref=e75]:
+            - generic "Расширенные параметры по запросу" [ref=e76] [cursor=pointer]
+        - generic [ref=e79]:
+          - generic [ref=e80]:
+            - generic [ref=e81]
+            - paragraph [ref=e84]: Шесть KPI показывают температуру, расход, нагрев и сопротивление фильтра без перехода в технические разделы.
+            - generic [ref=e85]
+            - generic [ref=e92]
+          - generic [ref=e107]:
+            - generic [ref=e108]
+            - generic [ref=e111]: Сессия sim-b3e4e3dfa7fb подготовлена к запуску; текущий шаг интегрирования 10 мин.
+            - generic [ref=e112]
+            - generic [ref=e128]
+          - generic [ref=e133]:
+            - generic [ref=e134]
+            - generic [ref=e137]
+    - generic [ref=e147]:
+      - generic [ref=e148]: 02 — 2D и 3D
+      - generic [ref=e149]:
+        - heading "Цифровой двойник для наглядной демонстрации." [level=2] [ref=e150]
+        - paragraph [ref=e151]: 2D остаётся базовым режимом контроля, а 3D используется как наглядный режим показа потоков, узлов и реакции системы на изменения.
+      - generic [ref=e152]:
+        - generic [ref=e153]:
+          - heading "2D-мнемосхема" [level=2] [ref=e154]
+          - link "Развернуть студию →" [ref=e155] [cursor=pointer]:
+            - /url: "#3d-studio"
+          - generic [ref=e156]: Привязки v2
+        - generic [ref=e157]:
+          - generic [ref=e159]:
+            - heading "2D-мониторинг" [level=3] [ref=e161]
+            - paragraph [ref=e162]: 2D-мнемосхема остаётся базовым режимом контроля и защиты. Она использует тот же словарь визуальных сигналов, что и 3D-сцена, поэтому оба представления синхронизированы по расчётному ядру.
+          - group [ref=e164]:
+            - generic "Техдиагностика отображения по запросу" [ref=e165] [cursor=pointer]
+    - generic [ref=e168]:
+      - generic [ref=e169]: 03 — Результаты
+      - generic [ref=e170]:
+        - heading "Тревоги, сводка и тренды в одном блоке." [level=2] [ref=e171]
+        - paragraph [ref=e172]: "Этот раздел завершает MVP-поток: пользователь видит итоговое состояние, активные риски и историю поведения модели во времени."
+      - generic [ref=e173]:
+        - generic [ref=e174]:
+          - generic [ref=e175]:
+            - heading "Риски и аварии" [level=2] [ref=e176]
+            - generic [ref=e177]: live
+          - generic [ref=e284]:
+            - generic [ref=e285]: Риск
+            - generic [ref=e286]
+        - generic [ref=e178]:
+          - generic [ref=e179]:
+            - heading "Сводка" [level=2] [ref=e180]
+            - generic [ref=e181]: для защиты
+          - generic [ref=e289]: "Пользовательский режим: авто, приток 19.0 °C, расход 1830 м³/ч, суммарная мощность 4.0 кВт, помещение 250 м³, режим тихий рабочий день. Комната в зелёной зоне: воздуха на человека достаточно, локальные датчики спокойны."
+      - generic [ref=e182]:
+        - generic [ref=e183]:
+          - heading "Тренды процесса" [level=2] [ref=e184]
+          - generic [ref=e185]: История 0 мин / шаг 10 мин
+        - generic [ref=e293]:
+          - img:
+            - generic
+          - img:
+            - generic
+          - img
+    - text: − + + + + − + + − + + − + + + + − + + + + + − − + + − − − −
+    - generic [ref=e238]:
+      - generic [ref=e239]: Симулятор ПВУ
+      - generic [ref=e240]: MVP-маршрут для показа модели приточной вентиляционной установки
+      - generic [ref=e241]:
+        - link "Технический центр" [ref=e242] [cursor=pointer]:
+          - /url: /dashboard/?page=service-index
+        - link "Документация API" [ref=e243] [cursor=pointer]:
+          - /url: /docs
+        - link "Здоровье системы" [ref=e244] [cursor=pointer]:
+          - /url: /health
+  - contentinfo
+  - img [ref=e339]

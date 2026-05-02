@@ -1,0 +1,118 @@
+[
+  {
+    "id": "winter_supply_heating",
+    "title": "Зима, штатный нагрев",
+    "parameters": {
+      "outdoor_temp_c": -22.0,
+      "airflow_m3_h": 3600.0,
+      "supply_temp_setpoint_c": 21.0,
+      "heat_recovery_efficiency": 0.62,
+      "heater_power_kw": 42.0,
+      "filter_contamination": 0.22,
+      "fan_speed_ratio": 1.0,
+      "room_temp_c": 20.5,
+      "room_heat_gain_kw": 3.5
+    },
+    "expected": {
+      "status": "normal",
+      "supply_temp_c": [20.9, 21.1],
+      "room_temp_c": [20.4, 20.6],
+      "actual_airflow_m3_h": [3320.0, 3325.0],
+      "total_power_kw": [20.7, 20.9],
+      "alarm_codes": []
+    }
+  },
+  {
+    "id": "midseason_low_load",
+    "title": "Межсезонье, сниженная тепловая нагрузка",
+    "parameters": {
+      "outdoor_temp_c": 6.0,
+      "airflow_m3_h": 3000.0,
+      "supply_temp_setpoint_c": 19.0,
+      "heat_recovery_efficiency": 0.45,
+      "heater_power_kw": 18.0,
+      "filter_contamination": 0.15,
+      "fan_speed_ratio": 0.86,
+      "room_temp_c": 21.2,
+      "room_heat_gain_kw": 4.2
+    },
+    "expected": {
+      "status": "normal",
+      "supply_temp_c": [18.9, 19.1],
+      "room_temp_c": [21.1, 21.3],
+      "actual_airflow_m3_h": [2443.0, 2446.0],
+      "total_power_kw": [6.0, 6.2],
+      "alarm_codes": []
+    }
+  },
+  {
+    "id": "reduced_flow_alarm",
+    "title": "Снижение подачи, авария по расходу",
+    "parameters": {
+      "outdoor_temp_c": -4.0,
+      "airflow_m3_h": 2600.0,
+      "supply_temp_setpoint_c": 20.0,
+      "heat_recovery_efficiency": 0.55,
+      "heater_power_kw": 28.0,
+      "filter_contamination": 0.38,
+      "fan_speed_ratio": 0.68,
+      "room_temp_c": 21.0,
+      "room_heat_gain_kw": 5.0
+    },
+    "expected": {
+      "status": "alarm",
+      "supply_temp_c": [19.9, 20.1],
+      "room_temp_c": [20.9, 21.1],
+      "actual_airflow_m3_h": [1531.0, 1535.0],
+      "total_power_kw": [5.6, 5.9],
+      "alarm_codes": ["AIRFLOW_CRITICAL"]
+    }
+  },
+  {
+    "id": "dirty_filter_alarm",
+    "title": "Загрязнение фильтра, сервисная тревога",
+    "parameters": {
+      "outdoor_temp_c": -12.0,
+      "airflow_m3_h": 3400.0,
+      "supply_temp_setpoint_c": 21.0,
+      "heat_recovery_efficiency": 0.58,
+      "heater_power_kw": 34.0,
+      "filter_contamination": 0.92,
+      "fan_speed_ratio": 0.94,
+      "room_temp_c": 20.8,
+      "room_heat_gain_kw": 3.2
+    },
+    "expected": {
+      "status": "alarm",
+      "supply_temp_c": [20.9, 21.1],
+      "room_temp_c": [20.7, 20.9],
+      "actual_airflow_m3_h": [2165.0, 2169.0],
+      "total_power_kw": [10.9, 11.2],
+      "alarm_codes": ["AIRFLOW_WARNING", "FILTER_SERVICE_NOW"]
+    }
+  },
+  {
+    "id": "manual_mode_warning",
+    "title": "Ручной режим, предупреждение и сниженный расход",
+    "parameters": {
+      "outdoor_temp_c": -18.0,
+      "airflow_m3_h": 3200.0,
+      "supply_temp_setpoint_c": 22.0,
+      "heat_recovery_efficiency": 0.5,
+      "heater_power_kw": 20.0,
+      "filter_contamination": 0.35,
+      "fan_speed_ratio": 0.82,
+      "room_temp_c": 21.0,
+      "room_heat_gain_kw": 2.5,
+      "control_mode": "manual"
+    },
+    "expected": {
+      "status": "warning",
+      "supply_temp_c": [21.9, 22.1],
+      "room_temp_c": [20.9, 21.1],
+      "actual_airflow_m3_h": [2301.0, 2305.0],
+      "total_power_kw": [16.6, 16.9],
+      "alarm_codes": ["AIRFLOW_WARNING", "MANUAL_MODE"]
+    }
+  }
+]

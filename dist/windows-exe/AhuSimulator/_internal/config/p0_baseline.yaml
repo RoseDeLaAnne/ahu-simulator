@@ -1,0 +1,229 @@
+baseline_version: 1
+subject:
+  subject_id: generalized_supply_ahu
+  title: Учебно-обобщенная приточная вентиляционная установка
+  scope_summary: >-
+    Для текущей ВКР фиксируется учебно-обобщенная ПВУ с рекуперацией,
+    нагревателем, фильтром, вентилятором и однозонной моделью помещения, а не
+    паспортная цифровая копия конкретного агрегата предприятия.
+  note: >-
+    Эта базовая конфигурация закрывает P0 для кодирования и защиты: дальнейшие внешние
+    уточнения возможны, но не блокируют MVP и должны оформляться как отдельные
+    изменения базовой конфигурации.
+locked_decisions:
+  - decision_id: subject_scope
+    title: Тип моделируемой установки
+    summary: Учебно-обобщенная ПВУ вместо конкретной паспортной установки предприятия.
+    rationale: >-
+      В проекте нет подтвержденного комплекта паспортных данных и внешней
+      калибровки под реальный объект, поэтому безопасный контур для MVP — общая
+      инженерная схема приточного тракта с прозрачными допущениями.
+    evidence_paths:
+      - docs/06_todo.md
+      - docs/11_open_questions.md
+      - docs/19_p0_baseline.md
+  - decision_id: first_release_dynamics
+    title: Обязательный расчетный режим первой версии
+    summary: >-
+      Основой MVP остается стационарный интерактивный расчет приточного тракта с
+      упрощенным дискретным шагом по помещению; отдельный переходный режим не
+      входит в обязательный контур.
+    rationale: >-
+      Такой контур объясним на защите, повторяем в автотестах и не требует
+      перехода к более тяжелому динамическому моделированию до завершения
+      базовой валидации.
+    evidence_paths:
+      - docs/03_architecture.md
+      - docs/06_todo.md
+      - docs/19_p0_baseline.md
+  - decision_id: pid_scope
+    title: ПИД-регулятор
+    summary: ПИД-регулятор не входит в первую обязательную версию и остается улучшением второго этапа.
+    rationale: >-
+      Для MVP достаточно продемонстрировать причинно-следственные связи между
+      параметрами, режимом и состоянием. Автоматика следующего уровня добавляется
+      после завершения базовой матрицы валидации.
+    evidence_paths:
+      - docs/06_todo.md
+      - docs/07_backlog.md
+      - docs/11_open_questions.md
+  - decision_id: data_policy
+    title: Политика данных
+    summary: Используются только синтетические или обезличенные данные.
+    rationale: >-
+      Это сохраняет проект воспроизводимым и безопасным для демонстрации без
+      раскрытия чувствительных производственных материалов.
+    evidence_paths:
+      - docs/06_todo.md
+      - docs/14_defense_pack.md
+operator_inputs:
+  - parameter_id: outdoor_temp_c
+    title: Наружная температура
+    unit: °C
+    why_required: Главный внешний возмущающий фактор для рекуперации и нагрева.
+  - parameter_id: airflow_m3_h
+    title: Заданный расход воздуха
+    unit: м³/ч
+    why_required: Базовый технологический параметр приточного тракта и трендов.
+  - parameter_id: supply_temp_setpoint_c
+    title: Уставка температуры притока
+    unit: °C
+    why_required: Целевая величина для расчета нагрева и приточного состояния.
+  - parameter_id: heat_recovery_efficiency
+    title: Эффективность рекуперации
+    unit: доля
+    why_required: Определяет долю возврата теплоты от вытяжного воздуха.
+  - parameter_id: heater_power_kw
+    title: Доступная мощность нагревателя
+    unit: кВт
+    why_required: Ограничивает возможный догрев приточного воздуха.
+  - parameter_id: filter_contamination
+    title: Степень загрязнения фильтра
+    unit: доля
+    why_required: Нужна для расчета перепада давления, падения расхода и тревог.
+  - parameter_id: fan_speed_ratio
+    title: Относительная скорость вентилятора
+    unit: доля
+    why_required: Определяет фактический расход и вентиляторную мощность.
+  - parameter_id: room_temp_c
+    title: Текущая температура помещения
+    unit: °C
+    why_required: Исходное состояние однозонной модели помещения.
+  - parameter_id: room_heat_gain_kw
+    title: Внутренние теплопритоки помещения
+    unit: кВт
+    why_required: Учитываются в тепловом балансе и динамике температуры помещения.
+  - parameter_id: control_mode
+    title: Режим управления
+    unit: перечисление
+    why_required: Нужен для различения автоматического и ручного режима защиты.
+fixed_model_inputs:
+  - parameter_id: room_volume_m3
+    title: Объем помещения
+    unit: м³
+    why_fixed: Зафиксирован как инженерная константа MVP и не выводится на главную панель.
+  - parameter_id: room_thermal_capacity_kwh_per_k
+    title: Тепловая емкость помещения
+    unit: кВт·ч/К
+    why_fixed: Используется только во внутреннем упрощенном шаге модели помещения.
+  - parameter_id: room_loss_coeff_kw_per_k
+    title: Коэффициент теплопотерь помещения
+    unit: кВт/К
+    why_fixed: Остается калибровочным параметром базовой конфигурации до внешней калибровки.
+  - parameter_id: horizon_minutes
+    title: Горизонт тренда
+    unit: мин
+    why_fixed: Определяет длину трендов и артефактов валидации/экспорта по умолчанию.
+  - parameter_id: step_minutes
+    title: Шаг тренда
+    unit: мин
+    why_fixed: Определяет дискретизацию прогноза и ручной инженерной сверки.
+outputs:
+  - output_id: supply_temp_c
+    title: Температура притока
+    unit: °C
+    location: state
+    why_required: Главный технологический результат и базовая контрольная точка.
+  - output_id: room_temp_c
+    title: Температура помещения
+    unit: °C
+    location: state
+    why_required: Показывает влияние притока на целевую зону помещения.
+  - output_id: actual_airflow_m3_h
+    title: Фактический расход воздуха
+    unit: м³/ч
+    location: state
+    why_required: Нужен для интерпретации режима вентилятора, фильтра и тревог.
+  - output_id: heating_power_kw
+    title: Мощность нагрева
+    unit: кВт
+    location: state
+    why_required: Объясняет энергетическую нагрузку нагревателя в текущем режиме.
+  - output_id: total_power_kw
+    title: Суммарная мощность
+    unit: кВт
+    location: state
+    why_required: Используется для сравнений режимов и объяснения энергопотребления.
+  - output_id: filter_pressure_drop_pa
+    title: Перепад давления на фильтре
+    unit: Па
+    location: state
+    why_required: Ключевой диагностический индикатор загрязнения фильтра.
+  - output_id: heat_balance_kw
+    title: Тепловой баланс помещения
+    unit: кВт
+    location: state
+    why_required: Делает комнатную часть модели инженерно объяснимой.
+  - output_id: status
+    title: Интегральный статус режима
+    unit: перечисление
+    location: state
+    why_required: Нужен для визуального итогового статуса на защите.
+  - output_id: alarms
+    title: Предупреждения и аварии
+    unit: список
+    location: result
+    why_required: Показывают интерпретацию рисков по текущему состоянию.
+  - output_id: trend
+    title: Трендовый прогноз
+    unit: временной ряд
+    location: result
+    why_required: Поддерживает наглядное объяснение изменений во времени.
+defense_scenarios:
+  - scenario_id: midseason
+    category: базовый
+    purpose: Базовый устойчивый режим для первого показа интерфейса и нормального статуса.
+    key_demo_point: Комфортный штатный режим без тревог и с умеренной нагрузкой.
+  - scenario_id: winter
+    category: нагрев
+    purpose: Демонстрация работы рекуперации и нагревателя при низкой наружной температуре.
+    key_demo_point: Рост мощности нагрева и удержание приточной температуры около уставки.
+  - scenario_id: reduced_flow
+    category: расход
+    purpose: Демонстрация падения расхода и аварийной реакции системы на подачу воздуха.
+    key_demo_point: Явная связка между скоростью вентилятора, расходом и аварийным статусом.
+  - scenario_id: dirty_filter
+    category: обслуживание
+    purpose: Демонстрация сервисной тревоги по фильтру и роста перепада давления.
+    key_demo_point: Объяснимый аварийный кейс для защиты и матрицы валидации.
+  - scenario_id: manual_mode
+    category: оператор
+    purpose: Демонстрация ручного режима и логики предупреждений при вмешательстве оператора.
+    key_demo_point: Показывает, что базовая конфигурация учитывает не только физику, но и режим управления.
+validation_layers:
+  - layer_id: validation_pack
+    title: Пакет валидации
+    artifact: Дашборд `Пакет валидации`; GET /validation/matrix
+    purpose: Внутренняя регрессионная матрица по эталонным режимам и диапазонам результата.
+    evidence_paths:
+      - data/validation/reference_points.json
+      - docs/12_validation_matrix.md
+      - src/app/services/validation_service.py
+  - layer_id: validation_agreement
+    title: Протокол согласия
+    artifact: Дашборд `Протокол согласия`; GET /validation/agreement
+    purpose: Согласованные контрольные точки, допуски шагов и границы применимости текущего контура валидации.
+    evidence_paths:
+      - data/validation/validation_agreement.json
+      - docs/12_validation_matrix.md
+      - docs/10_sources.md
+  - layer_id: manual_check
+    title: Ручная инженерная сверка
+    artifact: Дашборд `Ручная инженерная сверка`; POST /validation/manual-check
+    purpose: Пошаговое сравнение активного режима с ручным инженерным расчетом по формулам модели.
+    evidence_paths:
+      - src/app/services/validation_service.py
+      - src/app/ui/viewmodels/manual_check.py
+      - docs/12_validation_matrix.md
+  - layer_id: validation_basis
+    title: Основания валидации
+    artifact: Дашборд `Основания валидации`; GET /validation/basis
+    purpose: Трассировка шагов и сценариев к внешним методическим источникам и осознанным MVP-допущениям.
+    evidence_paths:
+      - data/validation/reference_basis.json
+      - src/app/ui/viewmodels/validation_basis.py
+      - docs/10_sources.md
+follow_up_items:
+  - После MVP отдельной задачей остаётся не общий договор валидации, а калибровка под паспортные данные конкретной установки.
+  - После MVP можно обсуждать только дополнительный 3D-визуализатор поверх подтвержденного профиля браузера/WebGL; переход к обязательному WebGL требует новой фиксации базовой конфигурации.
+  - Любое появление подтвержденных паспортных данных конкретной установки должно оформляться как новая версия базовой конфигурации, а не как тихая замена текущего контура.

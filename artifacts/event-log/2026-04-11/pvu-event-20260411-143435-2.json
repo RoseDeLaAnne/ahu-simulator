@@ -1,0 +1,28 @@
+{
+  "event_id": "pvu-event-20260411-143435-2",
+  "captured_at": "2026-04-11T11:34:35.810953Z",
+  "category": "simulation",
+  "level": "critical",
+  "title": "Пересчитан пользовательский режим",
+  "summary": "Пользовательский режим: приток 9.9 °C, расход 4237 м³/ч, суммарная мощность 22.0 кВт.",
+  "source_type": "dashboard",
+  "source_label": "Пользовательский режим",
+  "trigger": "airflow",
+  "scenario_id": null,
+  "scenario_title": null,
+  "control_mode": "auto",
+  "status": "alarm",
+  "details": [
+    "Триггер dashboard/API: airflow.",
+    "Режим управления: auto.",
+    "Статус: alarm.",
+    "Тревоги: SUPPLY_TEMP_LOW, HEATER_SATURATION.",
+    "Контур: Автоматический режим пытается удерживать уставку, но упирается в доступную мощность нагревателя или текущие ограничения режима.",
+    "Смена статуса: normal -> alarm.",
+    "Δ притока: -9.1 °C.",
+    "Δ расхода: +1793 м³/ч.",
+    "Δ мощности: +3.3 кВт."
+  ],
+  "artifact_path": null,
+  "file_path": "artifacts/event-log/2026-04-11/pvu-event-20260411-143435-2.json"
+}

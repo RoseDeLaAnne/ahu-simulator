@@ -1,0 +1,50 @@
+section,key,value
+metadata,comparison_id,pvu-comparison-20260418-204130
+metadata,generated_at,2026-04-18T17:41:30.366796+00:00
+metadata,before_reference_id,archive:pvu-run-20260418-204130
+metadata,before_label,Scenario Archive — Зима (winter)
+metadata,before_status,normal
+metadata,before_status_label,Норма
+metadata,after_reference_id,active-run
+metadata,after_label,Active Run — Лето (summer)
+metadata,after_status,normal
+metadata,after_status_label,Норма
+metadata,compatible,true
+metadata,compatibility_status,normal
+
+section,status,summary
+compatibility,normal,"Совместимость подтверждена: шаг времени совпадает (10 мин), горизонт совпадает (120 мин), количество точек совпадает (13), временная сетка тренда совпадает, набор KPI и диагностических метрик совпадает."
+compatibility_rule,rule,шаг времени совпадает (10 мин)
+compatibility_rule,rule,горизонт совпадает (120 мин)
+compatibility_rule,rule,количество точек совпадает (13)
+compatibility_rule,rule,временная сетка тренда совпадает
+compatibility_rule,rule,набор KPI и диагностических метрик совпадает
+
+metric_id,title,unit,before_value,after_value,delta_value
+supply_temp_c,Приточный воздух,°C,21.00,27.91,6.91
+room_temp_c,Температура помещения,°C,20.46,24.62,4.16
+actual_airflow_m3_h,Фактический расход,м³/ч,3322.80,2845.26,-477.54
+heating_power_kw,Мощность нагревателя,кВт,18.53,0.00,-18.53
+fan_power_kw,Мощность вентилятора,кВт,2.27,1.49,-0.78
+total_power_kw,Суммарная мощность,кВт,20.80,1.49,-19.31
+filter_pressure_drop_pa,ΔP фильтра,Па,158.85,137.14,-21.71
+energy_intensity_kw_per_1000_m3_h,Удельная мощность,кВт/1000 м³/ч,6.26,0.52,-5.74
+heat_balance_kw,Тепловой баланс,кВт,-3.59,10.24,13.83
+mixed_air_temp_c,Смесительная камера,°C,-22.00,30.00,52.00
+recovered_air_temp_c,После рекуперации,°C,4.35,27.91,23.56
+alarm_count,Количество тревог,шт,0.00,0.00,0.00
+
+minute,supply_temp_delta_c,room_temp_delta_c,total_power_delta_kw,airflow_delta_m3_h,filter_pressure_drop_delta_pa
+0,6.91,4.00,-19.31,-477.54,-21.71
+10,6.91,4.16,-19.31,-477.54,-21.71
+20,6.96,4.32,-19.34,-477.54,-21.71
+30,7.00,4.48,-19.37,-477.54,-21.71
+40,7.05,4.64,-19.40,-477.54,-21.71
+50,7.09,4.80,-19.42,-477.54,-21.71
+60,7.14,4.96,-19.45,-477.54,-21.71
+70,7.18,5.12,-19.48,-477.54,-21.71
+80,7.23,5.27,-19.51,-477.54,-21.71
+90,7.27,5.42,-19.54,-477.54,-21.71
+100,7.31,5.57,-19.56,-477.54,-21.71
+110,7.35,5.72,-19.59,-477.54,-21.71
+120,7.40,5.87,-19.62,-477.54,-21.71

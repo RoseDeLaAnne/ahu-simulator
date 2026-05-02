@@ -1,0 +1,97 @@
+%PDF-1.4
+%‚„œ”
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Count 2 /Kids [4 0 R 5 0 R] >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+4 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 6 0 R >>
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 7 0 R >>
+endobj
+6 0 obj
+<< /Length 1455 >>
+stream
+BT
+/F1 11 Tf
+72 760 Td
+14 TL
+(PVU Export Report) Tj
+T* () Tj
+T* (Export ID: pvu-export-20260404-204755) Tj
+T* (Generated: 2026-04-04T17:47:55.440488+00:00) Tj
+T* (Source type: scenario) Tj
+T* (Source label: Zagryaznenie filtra \(dirty_filter\)) Tj
+T* (Scenario ID: dirty_filter) Tj
+T* (Scenario title: Zagryaznenie filtra) Tj
+T* (Status: alarm) Tj
+T* (Alarm count: 2) Tj
+T* () Tj
+T* (Parameters) Tj
+T* (outdoor_temp_c = -12.0) Tj
+T* (airflow_m3_h = 3400.0) Tj
+T* (supply_temp_setpoint_c = 21.0) Tj
+T* (heat_recovery_efficiency = 0.58) Tj
+T* (heater_power_kw = 34.0) Tj
+T* (filter_contamination = 0.92) Tj
+T* (fan_speed_ratio = 0.94) Tj
+T* (room_temp_c = 20.8) Tj
+T* (room_heat_gain_kw = 3.2) Tj
+T* (control_mode = auto) Tj
+T* () Tj
+T* (State) Tj
+T* (actual_airflow_m3_h = 2166.9) Tj
+T* (mixed_air_temp_c = -12.00) Tj
+T* (recovered_air_temp_c = 7.02) Tj
+T* (supply_temp_c = 21.00) Tj
+T* (room_temp_c = 20.77) Tj
+T* (heating_power_kw = 10.15) Tj
+T* (fan_power_kw = 0.91) Tj
+T* (total_power_kw = 11.06) Tj
+T* (filter_pressure_drop_pa = 388.1) Tj
+T* (heat_balance_kw = -2.56) Tj
+T* () Tj
+T* (Alarms) Tj
+T* (- AIRFLOW_WARNING: warning / Raskhod vozdukha nizhe ozhidaemogo rezhima.) Tj
+T* (- FILTER_SERVICE_NOW: critical / Filtr trebuet nemedlennogo obsluzhivaniya.) Tj
+T* () Tj
+T* (Trend Summary) Tj
+T* (horizon_minutes = 120) Tj
+T* (step_minutes = 10) Tj
+T* (trend_points = 13) Tj
+T* (first_point = minute 0, supply 21.00, room 20.80, total_power 11.06) Tj
+ET
+endstream
+endobj
+7 0 obj
+<< /Length 105 >>
+stream
+BT
+/F1 11 Tf
+72 760 Td
+14 TL
+(last_point = minute 120, supply 21.00, room 20.44, total_power 11.20) Tj
+ET
+endstream
+endobj
+xref
+0 8
+0000000000 65535 f 
+0000000015 00000 n 
+0000000064 00000 n 
+0000000127 00000 n 
+0000000197 00000 n 
+0000000323 00000 n 
+0000000449 00000 n 
+0000001956 00000 n 
+trailer
+<< /Size 8 /Root 1 0 R >>
+startxref
+2112
+%%EOF

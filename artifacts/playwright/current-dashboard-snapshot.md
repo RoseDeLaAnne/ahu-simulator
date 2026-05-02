@@ -1,0 +1,265 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e4]:
+    - navigation [ref=e5]:
+      - generic [ref=e6]:
+        - link "Симулятор ПВУ" [ref=e7] [cursor=pointer]:
+          - /url: /dashboard/?page=main
+        - generic [ref=e8]:
+          - link "Мониторинг" [ref=e9] [cursor=pointer]:
+            - /url: /dashboard/?page=main#section-monitoring
+          - link "3D Студия" [ref=e10] [cursor=pointer]:
+            - /url: /dashboard/?page=main#3d-studio
+          - link "Аналитика" [ref=e11] [cursor=pointer]:
+            - /url: /dashboard/?page=main#section-analytics
+          - link "Валидация" [ref=e12] [cursor=pointer]:
+            - /url: /dashboard/?page=main#section-validation
+          - link "Инфраструктура" [ref=e13] [cursor=pointer]:
+            - /url: /dashboard/?page=main#section-infrastructure
+          - link "Служебные" [ref=e14] [cursor=pointer]:
+            - /url: /dashboard/?page=service-index
+          - link "Справка API" [ref=e15] [cursor=pointer]:
+            - /url: /docs
+    - generic [ref=e16]:
+      - generic [ref=e17]:
+        - paragraph [ref=e18]: СИМУЛЯТОР ПВУ — ЦИФРОВОЙ ДВОЙНИК
+        - heading "Модель приточной вентиляционной установки" [level=1] [ref=e19]
+        - paragraph [ref=e20]: Сценарии, тревоги и динамика помещения в одном локальном приложении. Управляйте параметрами установки, исследуйте 3D-модель и валидируйте результаты в реальном времени.
+      - generic [ref=e21]:
+        - link "3D Студия" [ref=e22] [cursor=pointer]:
+          - /url: /dashboard/?page=main#3d-studio
+        - link "Пакет валидации" [ref=e23] [cursor=pointer]:
+          - /url: /dashboard/?page=main#validation-pack
+        - link "Служебные страницы" [ref=e24] [cursor=pointer]:
+          - /url: /dashboard/?page=service-index
+        - link "Экспорт отчётов" [ref=e25] [cursor=pointer]:
+          - /url: /dashboard/?page=service-export
+        - link "Архив сценариев" [ref=e26] [cursor=pointer]:
+          - /url: /dashboard/?page=service-archive
+        - link "API-документация" [ref=e27] [cursor=pointer]:
+          - /url: /docs
+        - link "Здоровье системы" [ref=e28] [cursor=pointer]:
+          - /url: /health
+    - generic [ref=e29]:
+      - generic [ref=e30]: 01 — Мониторинг
+      - generic [ref=e31]:
+        - generic [ref=e32]:
+          - generic [ref=e33]:
+            - heading "Параметры" [level=2] [ref=e34]
+            - generic [ref=e35]: Интерактив
+          - text: Сценарий
+          - generic [ref=e38]:
+            - generic
+          - generic [ref=e43]:
+            - button "Зима" [ref=e44] [cursor=pointer]
+            - button "Лето" [ref=e45] [cursor=pointer]
+            - button "Пик нагрузки" [ref=e46] [cursor=pointer]
+          - paragraph [ref=e47]: "Умеренная наружная температура и сниженная нагрузка на нагреватель. Назначение: Базовый учебный режим для демонстрации стабильной работы без экстремальных факторов.. Ключевые параметры: outdoor_temp_c=6.0 °C; airflow_m3_h=3000 м³/ч; heater_power_kw=18.0 кВт; fan_speed_ratio=0.86. Ожидаемый эффект: Установка работает близко к номиналу с умеренным энергопотреблением и без критических тревог."
+          - generic [ref=e48]:
+            - text: Наружная температура, °C
+            - spinbutton "Наружная температура, °C" [ref=e49]: "8"
+          - generic [ref=e50]:
+            - text: Расход воздуха, м³/ч
+            - spinbutton "Расход воздуха, м³/ч" [ref=e51]: "2600"
+          - generic [ref=e52]:
+            - text: Уставка притока, °C
+            - spinbutton "Уставка притока, °C" [ref=e53]: "19"
+          - generic [ref=e54]:
+            - text: КПД рекуперации
+            - spinbutton "КПД рекуперации" [ref=e55]: "0.42"
+          - generic [ref=e56]:
+            - text: Мощность нагревателя, кВт
+            - spinbutton "Мощность нагревателя, кВт" [ref=e57]: "12"
+          - generic [ref=e58]:
+            - text: Загрязнение фильтра
+            - spinbutton "Загрязнение фильтра" [ref=e59]: "0.14"
+          - generic [ref=e60]:
+            - text: Относительная скорость вентилятора
+            - spinbutton "Относительная скорость вентилятора" [ref=e61]: "0.74"
+          - generic [ref=e62]:
+            - text: Температура помещения, °C
+            - spinbutton "Температура помещения, °C" [ref=e63]: "21.1"
+          - generic [ref=e64]:
+            - text: Теплопритоки помещения, кВт
+            - spinbutton "Теплопритоки помещения, кВт" [ref=e65]: "3.6"
+          - generic [ref=e66]:
+            - text: Шаг времени, мин
+            - spinbutton "Шаг времени, мин" [ref=e67]: "10"
+          - text: Режим
+          - generic [ref=e70]:
+            - generic
+          - generic [ref=e75]:
+            - generic [ref=e76]
+            - paragraph [ref=e79]: Автоматический режим удерживает температуру притока около уставки; доступный запас нагревателя можно использовать как резерв.
+            - generic [ref=e80]
+            - generic [ref=e83]
+            - generic [ref=e86]
+            - generic [ref=e89]
+            - generic [ref=e92]
+        - generic [ref=e95]:
+          - generic [ref=e96]:
+            - generic [ref=e97]
+            - generic [ref=e100]
+            - generic [ref=e131]
+          - generic [ref=e146]:
+            - generic [ref=e147]
+            - generic [ref=e150]: Сессия sim-a8c51da58539 подготовлена к запуску; текущий шаг интегрирования 10 мин.
+            - generic [ref=e151]
+            - generic [ref=e167]
+    - generic [ref=e172]:
+      - generic [ref=e173]: 02 — Визуализация
+      - generic [ref=e174]:
+        - generic [ref=e175]:
+          - heading "2D-мнемосхема" [level=2] [ref=e176]
+          - link "Открыть 3D Студию →" [ref=e177] [cursor=pointer]:
+            - /url: "#3d-studio"
+          - generic [ref=e178]: Привязки v2
+        - generic [ref=e179]:
+          - generic [ref=e181]:
+            - heading "2D-мониторинг" [level=3] [ref=e183]
+            - paragraph [ref=e184]: 2D-мнемосхема остаётся базовым режимом контроля и защиты. Она использует тот же словарь визуальных сигналов, что и 3D-сцена, поэтому оба представления синхронизированы по расчётному ядру.
+          - generic [ref=e186]:
+            - generic [ref=e187]
+            - generic [ref=e190]: 3D возможно
+            - generic [ref=e191]
+            - paragraph [ref=e202]: Браузер выглядит пригодным для экспериментального 3D-визуализатора, но расчётный слой и основной демонстрационный сценарий по-прежнему должны опираться на 2D SVG.
+            - generic [ref=e203]
+    - generic [ref=e218]:
+      - generic [ref=e219]: 03 — Аналитика
+      - generic [ref=e220]:
+        - generic [ref=e221]:
+          - generic [ref=e222]:
+            - heading "Риски и аварии" [level=2] [ref=e223]
+            - generic [ref=e224]: Активные
+          - generic [ref=e226]:
+            - generic [ref=e227]: Риск
+            - generic [ref=e775]
+        - generic [ref=e229]:
+          - generic [ref=e230]:
+            - heading "Сводка" [level=2] [ref=e231]
+            - generic [ref=e232]: В реальном времени
+          - generic [ref=e233]: "Пользовательский режим: авто, приток 19.0 °C, расход 1830 м³/ч, суммарная мощность 4.0 кВт, помещение 250 м³, режим тихий рабочий день. Комната в зелёной зоне: воздуха на человека достаточно, локальные датчики спокойны."
+      - generic [ref=e234]:
+        - generic [ref=e235]:
+          - heading "Тренды" [level=2] [ref=e236]
+          - generic [ref=e237]: История 0 мин / шаг 10 мин
+        - generic [ref=e241]:
+          - img:
+            - generic
+          - img:
+            - generic
+          - img
+    - generic [ref=e287]:
+      - generic [ref=e288]: 04 — Валидация
+      - generic [ref=e289]:
+        - generic [ref=e290]:
+          - generic [ref=e291]:
+            - heading "Пакет валидации" [level=2] [ref=e292]
+            - generic [ref=e293]: Справочная матрица
+          - generic [ref=e294]:
+            - generic [ref=e295]: 5 / 5 эталонных режимов проходят
+            - paragraph [ref=e296]: "Пакет валидации показывает, как текущая MVP-модель воспроизводит согласованную матрицу из `data/validation/reference_points.json`."
+            - paragraph [ref=e297]: "Протокол согласия: 5 контрольных точек и 9 шагов ручной инженерной сверки согласованы для учебно-обобщённой ПВУ текущего MVP."
+            - paragraph [ref=e298]: Матрица удерживает регрессионный диапазон для всех согласованных контрольных режимов текущей учебно-обобщённой ПВУ. Источники, допуски и ручной вывод формул вынесены в Протокол согласия и Основания валидации.
+            - paragraph [ref=e299]: "Снимок матрицы: 2026-04-20T14:12:39.271366+00:00"
+          - generic [ref=e300]:
+            - group [ref=e301]
+            - group [ref=e340]
+            - group [ref=e344]
+            - group [ref=e348]
+            - group [ref=e352]
+        - generic [ref=e356]:
+          - generic [ref=e357]:
+            - heading "Протокол согласия" [level=2] [ref=e358]
+            - generic [ref=e359]: Этап 6 — закрытие
+          - generic [ref=e360]:
+            - generic [ref=e361]: 5 контрольных точек и 9 шагов ручной инженерной сверки согласованы для учебно-обобщённой ПВУ текущего MVP.
+            - paragraph [ref=e362]: Литературно-методическое согласование автора ВКР по DOE/NREL, DOE Better Buildings, DOE FEMP и NIST V&V.
+            - paragraph [ref=e363]: "Численные диапазоны в reference_points.json трактуются как согласованные инженерные окна: они выведены из ручного вывода по явной теплоте, эффективности и законам подобия вентилятора, а затем зафиксированы как регрессионный контракт для фазы 6. Это закрывает качество P1 для текущего обобщённого контура, но не подменяет будущую калибровку конкретной установки."
+            - paragraph [ref=e364]: "Согласовано: 2026-04-04"
+            - paragraph [ref=e365]: "Снимок протокола: 2026-04-20T14:12:39.271595+00:00"
+          - generic [ref=e366]:
+            - group [ref=e367]
+            - group [ref=e489]
+            - group [ref=e493]
+        - generic [ref=e497]:
+          - generic [ref=e498]:
+            - heading "Основания валидации" [level=2] [ref=e499]
+            - generic [ref=e500]: Внешнее обоснование
+          - generic [ref=e501]:
+            - generic [ref=e502]: 4 внешних источника, 9 шагов и 5 контрольных точек привязаны
+            - paragraph [ref=e503]: "По шагам: 3 внешних, 4 смешанных, 1 производный, 1 допущение."
+            - paragraph [ref=e504]: "Протокол согласия: 5 контрольных точек и 9 шагов ручной инженерной сверки согласованы для учебно-обобщённой ПВУ текущего MVP."
+            - paragraph [ref=e505]: "Внешние источники привязаны к формулам и сценариям, а согласованные контрольные точки и допуски шагов зафиксированы в `validation_agreement.json`. Для обобщённого MVP это закрывает фазу 6; отдельным следующим шагом остаётся только калибровка конкретной установки."
+            - paragraph [ref=e506]: "Снимок методической базы: 2026-04-20T14:12:39.271615+00:00"
+          - generic [ref=e507]:
+            - group [ref=e508]
+            - group [ref=e557]
+            - group [ref=e561]
+        - generic [ref=e565]:
+          - generic [ref=e566]:
+            - heading "Ручная проверка" [level=2] [ref=e567]
+            - generic [ref=e568]: Живые формулы
+          - generic [ref=e569]:
+            - generic [ref=e570]
+            - table [ref=e578]
+    - generic [ref=e679]:
+      - generic [ref=e680]: 05 — Инфраструктура
+      - generic [ref=e682]:
+        - generic [ref=e683]:
+          - heading "Базовые показатели P0" [level=2] [ref=e684]
+          - generic [ref=e685]: Базовая версия 1
+        - generic [ref=e686]:
+          - generic [ref=e687]: "Базовая конфигурация P0 зафиксирована: 10 обязательных входов, 10 обязательных выходов, 5 сценариев защиты и 4 слоя валидации."
+          - paragraph [ref=e688]: Учебно-обобщенная приточная вентиляционная установка
+          - paragraph [ref=e689]: Для текущей ВКР фиксируется учебно-обобщенная ПВУ с рекуперацией, нагревателем, фильтром, вентилятором и однозонной моделью помещения, а не паспортная цифровая копия конкретного агрегата предприятия.
+          - paragraph [ref=e690]: "Эта базовая конфигурация закрывает P0 для кодирования и защиты: дальнейшие внешние уточнения возможны, но не блокируют MVP и должны оформляться как отдельные изменения базовой конфигурации."
+          - paragraph [ref=e691]: "Снимок базового профиля: 2026-04-20T14:12:39.286112+00:00"
+        - generic [ref=e692]:
+          - group [ref=e693]:
+            - generic "− Зафиксированные решения 4 решения" [ref=e694] [cursor=pointer]
+            - table [ref=e698]
+          - group [ref=e730]:
+            - generic "+ Входные параметры 10 операторских + 5 фиксированных" [ref=e731] [cursor=pointer]
+          - group [ref=e734]:
+            - generic "+ Обязательные выходы 10 выходов" [ref=e735] [cursor=pointer]
+          - group [ref=e738]:
+            - generic "+ Сценарии защиты 5 сценариев" [ref=e739] [cursor=pointer]
+          - group [ref=e742]:
+            - generic "+ Формат валидации и дальнейшие шаги 4 слоя" [ref=e743] [cursor=pointer]
+    - generic [ref=e746]:
+      - generic [ref=e747]: 06 — Служебные страницы
+      - generic [ref=e748]:
+        - generic [ref=e749]:
+          - heading "Дополнительные разделы" [level=2] [ref=e750]
+          - generic [ref=e751]: История и артефакты
+        - paragraph [ref=e752]: "Разделы ниже вынесены с главной страницы: они полезны для технического разбора, архивирования и сопровождения, но обычно не нужны обычному пользователю."
+        - list [ref=e753]:
+          - listitem [ref=e754]:
+            - link "Пакет защиты" [ref=e755] [cursor=pointer]:
+              - /url: /dashboard/?page=service-defense
+          - listitem [ref=e756]:
+            - link "Готовность к демо" [ref=e757] [cursor=pointer]:
+              - /url: /dashboard/?page=service-readiness
+          - listitem [ref=e758]:
+            - link "Экспорт отчётов" [ref=e759] [cursor=pointer]:
+              - /url: /dashboard/?page=service-export
+          - listitem [ref=e760]:
+            - link "Сравнение прогонов" [ref=e761] [cursor=pointer]:
+              - /url: /dashboard/?page=service-comparison
+          - listitem [ref=e762]:
+            - link "Архив сценариев" [ref=e763] [cursor=pointer]:
+              - /url: /dashboard/?page=service-archive
+          - listitem [ref=e764]:
+            - link "Журнал событий" [ref=e765] [cursor=pointer]:
+              - /url: /dashboard/?page=service-event-log
+    - text: − + + + + + − − + + − − − −
+    - generic [ref=e767]:
+      - generic [ref=e768]: Симулятор ПВУ
+      - generic [ref=e769]: Модель приточной вентиляционной установки — Дипломный проект
+      - generic [ref=e770]:
+        - link "Документация API" [ref=e771] [cursor=pointer]:
+          - /url: /docs
+        - link "Здоровье системы" [ref=e772] [cursor=pointer]:
+          - /url: /health
+  - contentinfo
+  - img [ref=e773]

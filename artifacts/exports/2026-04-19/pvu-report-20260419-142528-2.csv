@@ -1,0 +1,113 @@
+section,key,value
+metadata,report_id,pvu-report-20260419-142528-2
+metadata,generated_at,2026-04-19T11:25:28.884598Z
+metadata,source_type,custom
+metadata,source_label,Пользовательский режим
+metadata,scenario_id,
+metadata,scenario_title,
+metadata,control_mode,auto
+metadata,status,warning
+metadata,alarm_count,1
+metadata,trend_points,13
+metadata,horizon_minutes,120
+metadata,step_minutes,10
+metadata,session_id,sim-0454adf841cc
+metadata,session_status,idle
+metadata,elapsed_minutes,0
+
+section,finding_id,title,severity,conclusion
+finding,operating-status,Общий режим установки,warning,Статус режима: warning; активных тревог: 1.
+finding,supply-gap,Отклонение притока от уставки,normal,"Фактический приток 19.00 °C, уставка 19.00 °C, отклонение +0.00 °C."
+finding,energy-balance,Энергетическая нагрузка,warning,"Суммарная мощность 3.95 кВт, нагреватель 3.37 кВт, вентилятор 0.58 кВт."
+finding,room-trend,Динамика помещения,normal,Температура помещения изменилась на +0.00 °C за 120 мин при шаге 10 мин.
+
+table,summary,Сводка прогона
+Показатель,Значение
+report_id,pvu-report-20260419-142528-2
+generated_at,2026-04-19T11:25:28.884598+00:00
+source_type,custom
+source_label,Пользовательский режим
+scenario_id,-
+scenario_title,-
+control_mode,auto
+status,warning
+alarm_count,1
+trend_points,13
+horizon_minutes,120
+step_minutes,10
+session_id,sim-0454adf841cc
+session_status,idle
+elapsed_minutes,0
+
+table,status,Статусы KPI и alert-блока
+Зона,Статус,Основание
+overall_status,Риск,Интегральный статус расчёта API/state: warning; активных тревог: 1.
+alert_block,Риск,Alert-блок агрегирует активные alarms и подсвечивает риск/аварию по их уровню.
+supply_temp,Норма,Отклонение от уставки +0.0 °C (цель 19.0 °C)
+room_temp,Норма,Комфортный диапазон 18–27 °C
+heating_power,Норма,Загрузка нагревателя 28% от доступной мощности
+total_power,Норма,Удельная мощность 2.16 кВт/1000 м³/ч
+airflow,Риск,70% от заданного расхода
+filter_pressure,Норма,"Порог риска 280 Па, аварии 360 Па"
+
+table,status_legend,Легенда статусов
+Статус,Цвет,Правило
+Норма,#22c55e,"Приток в пределах 1.5 °C от уставки, расход выше 75% и ΔP фильтра ниже 280 Па."
+Риск,#facc15,"Отклонение притока от 1.5 до 3.0 °C, расход от 60% до 75% или ΔP фильтра от 280 до 360 Па."
+Авария,#ef4444,"Отклонение притока не меньше 3.0 °C, расход не выше 60% или ΔP фильтра не ниже 360 Па."
+
+table,parameters,Параметры сценария
+Параметр,Значение
+outdoor_temp_c,8.00
+airflow_m3_h,2600.00
+supply_temp_setpoint_c,19.00
+heat_recovery_efficiency,0.42
+heater_power_kw,12.00
+filter_contamination,0.14
+fan_speed_ratio,0.74
+room_temp_c,21.10
+room_heat_gain_kw,3.60
+room_volume_m3,250.00
+room_thermal_capacity_kwh_per_k,14.00
+room_loss_coeff_kw_per_k,0.18
+control_mode,auto
+horizon_minutes,120
+step_minutes,10
+
+table,state,Итоговое состояние
+Показатель,Значение
+timestamp,2026-04-19T11:25:28.884026Z
+control_mode,auto
+actual_airflow_m3_h,1829.72
+mixed_air_temp_c,8.00
+recovered_air_temp_c,13.50
+supply_temp_c,19.00
+room_temp_c,21.10
+heating_power_kw,3.37
+heater_load_ratio,0.28
+fan_power_kw,0.58
+total_power_kw,3.95
+energy_intensity_kw_per_1000_m3_h,2.16
+filter_pressure_drop_pa,141.11
+heat_balance_kw,-0.05
+status,warning
+
+table,alarms,Предупреждения и тревоги
+Код,Уровень,Сообщение
+AIRFLOW_WARNING,warning,Расход воздуха ниже ожидаемого режима.
+
+table,trend,Тренд по шагам
+Минута,"Наружная, °C","Приток, °C","Помещение, °C","Нагрев, кВт","Суммарная мощность, кВт","Расход, м³/ч","ΔP фильтра, Па"
+0,8.00,19.00,21.10,3.37,3.95,1829.72,141.11
+10,8.00,19.00,21.10,3.37,3.95,1829.72,141.11
+20,8.00,19.00,21.10,3.37,3.95,1829.72,141.11
+30,8.00,19.00,21.10,3.37,3.95,1829.72,141.11
+40,8.00,19.00,21.10,3.37,3.95,1829.72,141.11
+50,8.00,19.00,21.10,3.37,3.95,1829.72,141.11
+60,8.00,19.00,21.10,3.37,3.95,1829.72,141.11
+70,8.00,19.00,21.10,3.37,3.95,1829.72,141.11
+80,8.00,19.00,21.10,3.37,3.95,1829.72,141.11
+90,8.00,19.00,21.10,3.37,3.95,1829.72,141.11
+100,8.00,19.00,21.10,3.37,3.95,1829.72,141.11
+110,8.00,19.00,21.10,3.37,3.95,1829.72,141.11
+120,8.00,19.00,21.10,3.37,3.95,1829.72,141.11

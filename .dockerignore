@@ -1,0 +1,7 @@
+.git
+.pytest_cache
+.venv
+.playwright-mcp
+__pycache__/
+*.pyc
+artifacts/

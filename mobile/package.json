@@ -1,0 +1,27 @@
+{
+  "name": "ahu-simulator-mobile",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Android Capacitor shell for AHU Simulator dashboard",
+  "scripts": {
+    "doctor": "npx cap doctor",
+    "add:android": "npx cap add android",
+    "sync": "npx cap sync android",
+    "copy": "npx cap copy android",
+    "open:android": "npx cap open android",
+    "run:android": "npx cap run android",
+    "build:debug": "pwsh -NoProfile -ExecutionPolicy Bypass -File ./scripts/build-android.ps1 -Debug",
+    "build:debug:offline": "pwsh -NoProfile -ExecutionPolicy Bypass -File ./scripts/build-android.ps1 -Debug -SkipBackendProbe",
+    "build:release:apk": "pwsh -NoProfile -ExecutionPolicy Bypass -File ./scripts/build-android.ps1 -ReleaseApk",
+    "build:release:aab": "pwsh -NoProfile -ExecutionPolicy Bypass -File ./scripts/build-android.ps1 -ReleaseAab",
+    "check:devices": "pwsh -NoProfile -ExecutionPolicy Bypass -File ./scripts/check-target-device.ps1"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.0.0",
+    "@capacitor/core": "^8.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.0.0",
+    "typescript": "^5.9.3"
+  }
+}

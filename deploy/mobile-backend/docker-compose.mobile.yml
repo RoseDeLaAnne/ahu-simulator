@@ -1,0 +1,77 @@
+name: ahu-mobile-backend
+
+services:
+  api:
+    build:
+      context: ../..
+      dockerfile: deploy/Dockerfile
+    container_name: ahu-mobile-api
+    restart: unless-stopped
+    command:
+      - python
+      - -m
+      - uvicorn
+      - app.main:app
+      - --app-dir
+      - src
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8000"
+      - --proxy-headers
+      - --forwarded-allow-ips=*
+    environment:
+      PYTHONDONTWRITEBYTECODE: "1"
+      PYTHONUNBUFFERED: "1"
+      AHU_SIMULATOR_SETTINGS_FILE: "config/defaults.mobile.yaml"
+      AHU_SIMULATOR_CORS_ALLOW_ORIGINS: "${MOBILE_CORS_ORIGINS}"
+      AHU_SIMULATOR_TRUSTED_HOSTS: "${MOBILE_TRUSTED_HOSTS}"
+      AHU_SIMULATOR_ENFORCE_HTTPS_REDIRECT: "true"
+    volumes:
+      - ../../artifacts:/app/artifacts
+      - ../../config:/app/config:ro
+      - ../../data:/app/data:ro
+      - ../../models:/app/models:ro
+      - ../../images-of-models:/app/images-of-models:ro
+    expose:
+      - "8000"
+    networks:
+      - mobile-net
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - from urllib.request import urlopen; urlopen('http://127.0.0.1:8000/health').read()
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  caddy:
+    image: caddy:2.10-alpine
+    container_name: ahu-mobile-caddy
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      MOBILE_PUBLIC_HOST: "${MOBILE_PUBLIC_HOST}"
+      MOBILE_TLS_EMAIL: "${MOBILE_TLS_EMAIL}"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - mobile-net
+
+networks:
+  mobile-net:
+    driver: bridge
+
+volumes:
+  caddy_data:
+  caddy_config:

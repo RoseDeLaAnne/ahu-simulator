@@ -1,0 +1,9 @@
+.pytest_cache/
+.venv/
+__pycache__/
+*.pyc
+.playwright-mcp/
+artifacts/playwright/manual/
+artifacts/playwright/ci/
+.env
+config/local.env

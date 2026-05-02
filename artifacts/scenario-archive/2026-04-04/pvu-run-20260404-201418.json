@@ -1,0 +1,183 @@
+{
+  "archive_id": "pvu-run-20260404-201418",
+  "captured_at": "2026-04-04T17:14:18.617068Z",
+  "source_type": "scenario",
+  "source_label": "Межсезонье (midseason)",
+  "note": "Снимок сохранён из готового сценария.",
+  "result": {
+    "timestamp": "2026-04-04T17:14:18.616645Z",
+    "scenario_id": "midseason",
+    "scenario_title": "Межсезонье",
+    "parameters": {
+      "outdoor_temp_c": 6.0,
+      "airflow_m3_h": 3000.0,
+      "supply_temp_setpoint_c": 19.0,
+      "heat_recovery_efficiency": 0.45,
+      "heater_power_kw": 18.0,
+      "filter_contamination": 0.15,
+      "fan_speed_ratio": 0.86,
+      "room_temp_c": 21.2,
+      "room_heat_gain_kw": 4.2,
+      "room_volume_m3": 250.0,
+      "room_thermal_capacity_kwh_per_k": 14.0,
+      "room_loss_coeff_kw_per_k": 0.18,
+      "control_mode": "auto",
+      "horizon_minutes": 120,
+      "step_minutes": 10
+    },
+    "state": {
+      "timestamp": "2026-04-04T17:14:18.616645Z",
+      "control_mode": "auto",
+      "actual_airflow_m3_h": 2444.55,
+      "mixed_air_temp_c": 6.0,
+      "recovered_air_temp_c": 12.84,
+      "supply_temp_c": 19.0,
+      "room_temp_c": 21.2,
+      "heating_power_kw": 5.04,
+      "heater_load_ratio": 0.28,
+      "fan_power_kw": 1.04,
+      "total_power_kw": 6.08,
+      "energy_intensity_kw_per_1000_m3_h": 2.49,
+      "filter_pressure_drop_pa": 143.17,
+      "heat_balance_kw": -0.34,
+      "status": "normal"
+    },
+    "alarms": [],
+    "trend": {
+      "horizon_minutes": 120,
+      "step_minutes": 10,
+      "points": [
+        {
+          "minute": 0,
+          "outdoor_temp_c": 6.0,
+          "supply_temp_c": 19.0,
+          "room_temp_c": 21.2,
+          "heating_power_kw": 5.04,
+          "total_power_kw": 6.08,
+          "airflow_m3_h": 2444.55,
+          "filter_pressure_drop_pa": 143.17
+        },
+        {
+          "minute": 10,
+          "outdoor_temp_c": 6.0,
+          "supply_temp_c": 19.0,
+          "room_temp_c": 21.2,
+          "heating_power_kw": 5.04,
+          "total_power_kw": 6.08,
+          "airflow_m3_h": 2444.55,
+          "filter_pressure_drop_pa": 143.17
+        },
+        {
+          "minute": 20,
+          "outdoor_temp_c": 6.0,
+          "supply_temp_c": 19.0,
+          "room_temp_c": 21.2,
+          "heating_power_kw": 5.04,
+          "total_power_kw": 6.08,
+          "airflow_m3_h": 2444.55,
+          "filter_pressure_drop_pa": 143.17
+        },
+        {
+          "minute": 30,
+          "outdoor_temp_c": 6.0,
+          "supply_temp_c": 19.0,
+          "room_temp_c": 21.2,
+          "heating_power_kw": 5.04,
+          "total_power_kw": 6.08,
+          "airflow_m3_h": 2444.55,
+          "filter_pressure_drop_pa": 143.17
+        },
+        {
+          "minute": 40,
+          "outdoor_temp_c": 6.0,
+          "supply_temp_c": 19.0,
+          "room_temp_c": 21.2,
+          "heating_power_kw": 5.04,
+          "total_power_kw": 6.08,
+          "airflow_m3_h": 2444.55,
+          "filter_pressure_drop_pa": 143.17
+        },
+        {
+          "minute": 50,
+          "outdoor_temp_c": 6.0,
+          "supply_temp_c": 19.0,
+          "room_temp_c": 21.2,
+          "heating_power_kw": 5.04,
+          "total_power_kw": 6.08,
+          "airflow_m3_h": 2444.55,
+          "filter_pressure_drop_pa": 143.17
+        },
+        {
+          "minute": 60,
+          "outdoor_temp_c": 6.0,
+          "supply_temp_c": 19.0,
+          "room_temp_c": 21.2,
+          "heating_power_kw": 5.04,
+          "total_power_kw": 6.08,
+          "airflow_m3_h": 2444.55,
+          "filter_pressure_drop_pa": 143.17
+        },
+        {
+          "minute": 70,
+          "outdoor_temp_c": 6.0,
+          "supply_temp_c": 19.0,
+          "room_temp_c": 21.2,
+          "heating_power_kw": 5.04,
+          "total_power_kw": 6.08,
+          "airflow_m3_h": 2444.55,
+          "filter_pressure_drop_pa": 143.17
+        },
+        {
+          "minute": 80,
+          "outdoor_temp_c": 6.0,
+          "supply_temp_c": 19.0,
+          "room_temp_c": 21.2,
+          "heating_power_kw": 5.04,
+          "total_power_kw": 6.08,
+          "airflow_m3_h": 2444.55,
+          "filter_pressure_drop_pa": 143.17
+        },
+        {
+          "minute": 90,
+          "outdoor_temp_c": 6.0,
+          "supply_temp_c": 19.0,
+          "room_temp_c": 21.2,
+          "heating_power_kw": 5.04,
+          "total_power_kw": 6.08,
+          "airflow_m3_h": 2444.55,
+          "filter_pressure_drop_pa": 143.17
+        },
+        {
+          "minute": 100,
+          "outdoor_temp_c": 6.0,
+          "supply_temp_c": 19.0,
+          "room_temp_c": 21.2,
+          "heating_power_kw": 5.04,
+          "total_power_kw": 6.08,
+          "airflow_m3_h": 2444.55,
+          "filter_pressure_drop_pa": 143.17
+        },
+        {
+          "minute": 110,
+          "outdoor_temp_c": 6.0,
+          "supply_temp_c": 19.0,
+          "room_temp_c": 21.2,
+          "heating_power_kw": 5.04,
+          "total_power_kw": 6.08,
+          "airflow_m3_h": 2444.55,
+          "filter_pressure_drop_pa": 143.17
+        },
+        {
+          "minute": 120,
+          "outdoor_temp_c": 6.0,
+          "supply_temp_c": 19.0,
+          "room_temp_c": 21.2,
+          "heating_power_kw": 5.04,
+          "total_power_kw": 6.08,
+          "airflow_m3_h": 2444.55,
+          "filter_pressure_drop_pa": 143.17
+        }
+      ]
+    }
+  }
+}

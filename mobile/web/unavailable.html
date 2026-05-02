@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>AHU Simulator недоступен</title>
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: radial-gradient(circle at 20% 20%, #3b2218, #0f0b0a 62%);
+        color: #f7ede8;
+        font-family: "Segoe UI", Tahoma, sans-serif;
+        padding: 20px;
+      }
+      .card {
+        width: min(460px, 100%);
+        border-radius: 18px;
+        border: 1px solid rgba(247, 237, 232, 0.2);
+        background: rgba(19, 12, 10, 0.82);
+        padding: 22px;
+        line-height: 1.55;
+      }
+      h1 {
+        margin: 0 0 10px;
+        font-size: 1.35rem;
+      }
+      p {
+        margin: 8px 0;
+        color: rgba(247, 237, 232, 0.86);
+      }
+      code {
+        display: inline-block;
+        margin-top: 6px;
+        padding: 4px 8px;
+        border-radius: 8px;
+        background: rgba(247, 237, 232, 0.09);
+      }
+      .endpoint {
+        margin: 10px 0 4px;
+      }
+      .hint {
+        margin-top: 14px;
+        font-size: 0.95rem;
+        color: rgba(247, 237, 232, 0.72);
+      }
+      .actions {
+        display: grid;
+        gap: 10px;
+        margin-top: 14px;
+      }
+      .field {
+        display: grid;
+        gap: 6px;
+      }
+      .field label {
+        font-size: 0.85rem;
+        color: rgba(247, 237, 232, 0.78);
+      }
+      .field input {
+        border-radius: 10px;
+        border: 1px solid rgba(247, 237, 232, 0.28);
+        background: rgba(247, 237, 232, 0.06);
+        color: #f7ede8;
+        padding: 10px 12px;
+        font-size: 0.95rem;
+      }
+      .buttons {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+      button {
+        border: 0;
+        border-radius: 10px;
+        padding: 10px 12px;
+        font-size: 0.92rem;
+        color: #130c0a;
+        background: #f7ede8;
+        cursor: pointer;
+      }
+      button.secondary {
+        background: rgba(247, 237, 232, 0.15);
+        color: #f7ede8;
+        border: 1px solid rgba(247, 237, 232, 0.24);
+      }
+      .status {
+        margin-top: 12px;
+        border-radius: 10px;
+        padding: 10px 12px;
+        border: 1px solid rgba(247, 237, 232, 0.18);
+        background: rgba(247, 237, 232, 0.08);
+        font-size: 0.9rem;
+      }
+      .status.error {
+        border-color: rgba(248, 113, 113, 0.45);
+        background: rgba(248, 113, 113, 0.16);
+      }
+      .status.ok {
+        border-color: rgba(134, 239, 172, 0.45);
+        background: rgba(134, 239, 172, 0.12);
+      }
+    </style>
+  </head>
+  <body>
+    <main class="card">
+      <h1>Не удается подключиться к серверу</h1>
+      <p>Проверьте сеть, VPN/фаервол и доступность backend.</p>
+      <p>Убедитесь, что endpoint из переменной <code>MOBILE_BACKEND_HTTPS_URL</code> отвечает по HTTPS.</p>
+      <p class="endpoint">Backend URL для этой сборки:</p>
+      <code id="backend-url">(не передан)</code>
+      <div class="actions">
+        <div class="field">
+          <label for="backend-input">Попробовать другой backend URL (HTTPS)</label>
+          <input id="backend-input" type="url" placeholder="https://api.your-domain.tld/dashboard" />
+        </div>
+        <div class="buttons">
+          <button id="probe-btn" type="button" class="secondary">Проверить HTTPS</button>
+          <button id="open-btn" type="button">Открыть dashboard</button>
+        </div>
+      </div>
+      <div id="status" class="status">Ожидание действия.</div>
+      <p class="hint">Если URL пустой или тестовый (example.com/.net/.org, *.example), пересоберите APK после настройки mobile/.env.</p>
+    </main>
+    <script>
+      const PLACEHOLDER_HOSTNAMES = new Set([
+        "api.ahu-simulator.example",
+        "ahu-simulator.example",
+        "example.com",
+        "www.example.com",
+        "example.net",
+        "www.example.net",
+        "example.org",
+        "www.example.org",
+      ]);
+      const RESERVED_HOSTNAME_SUFFIXES = [".example", ".invalid", ".test", ".localhost"];
+      const STORAGE_KEY = "ahu.mobile.backend.last";
+
+      const params = new URLSearchParams(window.location.search);
+      const backend = params.get("backend");
+      const node = document.getElementById("backend-url");
+      const input = document.getElementById("backend-input");
+      const statusNode = document.getElementById("status");
+      const openButton = document.getElementById("open-btn");
+      const probeButton = document.getElementById("probe-btn");
+      const lastBackend = window.localStorage.getItem(STORAGE_KEY);
+
+      function isReservedHostname(hostname) {
+        const normalized = String(hostname || "").trim().toLowerCase();
+        if (!normalized) {
+          return true;
+        }
+        if (PLACEHOLDER_HOSTNAMES.has(normalized)) {
+          return true;
+        }
+        return RESERVED_HOSTNAME_SUFFIXES.some((suffix) => {
+          const suffixToken = suffix.slice(1);
+          return normalized === suffixToken || normalized.endsWith(suffix);
+        });
+      }
+
+      function setStatus(text, mode) {
+        if (!statusNode) {
+          return;
+        }
+        statusNode.textContent = text;
+        statusNode.className = mode ? `status ${mode}` : "status";
+      }
+
+      function normalizeDashboardUrl(rawUrl) {
+        const candidate = String(rawUrl || "").trim();
+        if (!candidate) {
+          return null;
+        }
+        let parsed;
+        try {
+          parsed = new URL(candidate);
+        } catch (_error) {
+          return null;
+        }
+        if (parsed.protocol !== "https:") {
+          return null;
+        }
+        if (isReservedHostname(parsed.hostname)) {
+          return null;
+        }
+        const normalizedPath = parsed.pathname.replace(/\/+$/u, "");
+        if (!normalizedPath || normalizedPath === "/") {
+          parsed.pathname = "/dashboard";
+        }
+        parsed.search = "";
+        parsed.hash = "";
+        return parsed.toString();
+      }
+
+      function healthUrlFromDashboard(dashboardUrl) {
+        const parsed = new URL(dashboardUrl);
+        const path = parsed.pathname.replace(/\/+$/u, "");
+        if (path.endsWith("/dashboard")) {
+          parsed.pathname = `${path.slice(0, -"/dashboard".length)}/health`;
+        } else if (!path || path === "/") {
+          parsed.pathname = "/health";
+        } else {
+          parsed.pathname = `${path}/health`;
+        }
+        parsed.search = "";
+        parsed.hash = "";
+        return parsed.toString();
+      }
+
+      async function probeBackend(rawUrl) {
+        const normalized = normalizeDashboardUrl(rawUrl);
+        if (!normalized) {
+          setStatus("Некорректный URL. Используйте реальный HTTPS endpoint.", "error");
+          return;
+        }
+        const healthUrl = healthUrlFromDashboard(normalized);
+        setStatus(`Проверка HTTPS: ${healthUrl}`, "");
+        try {
+          await fetch(healthUrl, {
+            method: "GET",
+            mode: "no-cors",
+            cache: "no-store",
+          });
+          setStatus(
+            "HTTPS endpoint отвечает на запрос. Если dashboard не откроется, проверьте маршрут /dashboard и CORS/host policy backend.",
+            "ok"
+          );
+        } catch (error) {
+          const message = error && error.message ? error.message : "network/tls failure";
+          setStatus(`Проверка не прошла: ${message}`, "error");
+        }
+      }
+
+      function openBackend(rawUrl) {
+        const normalized = normalizeDashboardUrl(rawUrl);
+        if (!normalized) {
+          setStatus("Некорректный URL. Укажите реальный HTTPS endpoint (не placeholder).", "error");
+          return;
+        }
+        window.localStorage.setItem(STORAGE_KEY, normalized);
+        setStatus(`Открываем ${normalized}`, "ok");
+        window.location.replace(normalized);
+      }
+
+      const initialBackend = normalizeDashboardUrl(backend) || normalizeDashboardUrl(lastBackend);
+      if (node) {
+        node.textContent = initialBackend || "(не передан)";
+      }
+      if (input) {
+        input.value = initialBackend || "";
+      }
+      if (!initialBackend) {
+        setStatus("URL backend не задан или некорректен. Введите HTTPS endpoint вручную.", "error");
+      }
+
+      if (probeButton) {
+        probeButton.addEventListener("click", () => probeBackend(input ? input.value : backend));
+      }
+      if (openButton) {
+        openButton.addEventListener("click", () => openBackend(input ? input.value : backend));
+      }
+    </script>
+  </body>
+</html>

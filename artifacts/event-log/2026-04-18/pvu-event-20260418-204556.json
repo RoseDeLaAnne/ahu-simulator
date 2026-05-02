@@ -1,0 +1,22 @@
+{
+  "event_id": "pvu-event-20260418-204556",
+  "captured_at": "2026-04-18T17:45:56.470870Z",
+  "category": "export",
+  "level": "info",
+  "title": "Собран сценарный отчёт",
+  "summary": "Текущий прогон сохранён в CSV/PDF с manifest для повторяемой офлайн-проверки.",
+  "source_type": "dashboard",
+  "source_label": "Пик нагрузки (peak_load)",
+  "trigger": null,
+  "scenario_id": "peak_load",
+  "scenario_title": "Пик нагрузки",
+  "control_mode": "auto",
+  "status": "normal",
+  "details": [
+    "Статус режима: normal.",
+    "Количество тревог: 0.",
+    "Manifest: artifacts/exports/2026-04-18/pvu-report-20260418-204556.manifest.json."
+  ],
+  "artifact_path": "artifacts/exports/2026-04-18/pvu-report-20260418-204556.manifest.json",
+  "file_path": "artifacts/event-log/2026-04-18/pvu-event-20260418-204556.json"
+}

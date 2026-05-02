@@ -1,0 +1,23 @@
+{
+  "event_id": "pvu-event-20260502-151337-5",
+  "captured_at": "2026-05-02T12:13:37.078064Z",
+  "category": "simulation",
+  "level": "info",
+  "title": "Сессия симуляции поставлена на паузу",
+  "summary": "Пользовательский режим: 0 из 30 мин, тик 0 из 6.",
+  "source_type": "api",
+  "source_label": "Пользовательский режим",
+  "trigger": "simulation.session.pause",
+  "scenario_id": null,
+  "scenario_title": null,
+  "control_mode": "auto",
+  "status": "normal",
+  "details": [
+    "Состояние сессии: paused.",
+    "Скорость воспроизведения: x2.",
+    "Горизонт достигнут: нет.",
+    "Действие: pause."
+  ],
+  "artifact_path": null,
+  "file_path": "artifacts/event-log/2026-05-02/pvu-event-20260502-151337-5.json"
+}

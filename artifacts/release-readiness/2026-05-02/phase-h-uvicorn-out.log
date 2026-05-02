@@ -1,0 +1,423 @@
+INFO:     127.0.0.1:63724 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63725 - "GET /dashboard HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:63725 - "GET /dashboard/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63726 - "GET /readiness/demo HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63727 - "GET /readiness/package HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63728 - "GET /scenarios HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63729 - "POST /simulation/session/reset HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63730 - "POST /simulation/run HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63731 - "POST /simulation/session/start HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63732 - "POST /simulation/session/speed HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63733 - "POST /simulation/session/pause HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63734 - "POST /simulation/session/tick HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63735 - "POST /simulation/session/reset HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63736 - "POST /exports/result/preview HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63737 - "POST /exports/result/build HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63738 - "GET /exports/result/download?path=artifacts%2Fexports%2F2026-05-02%2Fpvu-report-20260502-151337.manifest.json HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63739 - "POST /comparison/runs/before HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63740 - "POST /scenarios/winter/run HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63741 - "POST /comparison/runs/after HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63742 - "POST /comparison/runs/build HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63743 - "POST /comparison/runs/export HTTP/1.1" 409 Conflict
+INFO:     127.0.0.1:63744 - "GET /comparison/runs/download?path= HTTP/1.1" 422 Unprocessable Content
+INFO:     127.0.0.1:63745 - "POST /scenarios/user HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63746 - "POST /scenarios/phase_h_temp_20260502_1513/run HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63747 - "GET /scenarios/user/phase_h_temp_20260502_1513/export HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63748 - "DELETE /scenarios/user/phase_h_temp_20260502_1513 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63749 - "POST /readiness/package/build HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63750 - "GET /readiness/demo HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63751 - "GET /events/log HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63760 - "POST /simulation/session/reset HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63761 - "POST /scenarios/winter/run HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63762 - "POST /comparison/runs/before HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63763 - "POST /scenarios/peak_load/run HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63764 - "POST /comparison/runs/after HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63765 - "POST /comparison/runs/build HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63766 - "POST /comparison/runs/export HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63767 - "GET /comparison/runs/download?path=artifacts%2Fexports%2F2026-05-02%2Fpvu-comparison-20260502-151356.manifest.json HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53621 - "GET /dashboard HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:53621 - "GET /dashboard/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53621 - "GET /dashboard/assets/dashboard.css?m=1777718120.537401 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62365 - "GET /dashboard/assets/z_dashboard_mvp.css?m=1776702959.4180954 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58178 - "GET /dashboard/assets/viewer3d.mjs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57861 - "GET /dashboard/_dash-component-suites/dash/deps/polyfill%407.v3_4_0m1775844806.12.1.min.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56685 - "GET /dashboard/_dash-component-suites/dash/deps/react%4018.v3_4_0m1775844806.3.1.min.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55973 - "GET /dashboard/_dash-component-suites/dash/deps/react-dom%4018.v3_4_0m1775844806.3.1.min.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58178 - "GET /dashboard/assets/visualization.js?m=1775311377.8384397 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62365 - "GET /dashboard/assets/browser_diagnostics.js?m=1776590891.9941976 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57861 - "GET /dashboard/_dash-component-suites/dash/dash-renderer/build/dash_renderer.v3_4_0m1775844805.min.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53621 - "GET /dashboard/_dash-component-suites/dash/deps/prop-types%4015.v3_4_0m1775844806.8.1.min.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56685 - "GET /dashboard/assets/viewer3d_bridge.js?m=1777633832.3368373 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55973 - "GET /dashboard/_dash-component-suites/dash/dcc/dash_core_components.v3_4_0m1775844806.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58178 - "GET /dashboard/_dash-component-suites/dash/dcc/dash_core_components-shared.v3_4_0m1775844806.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53621 - "GET /dashboard/_dash-component-suites/dash/dash_table/bundle.v6_0_6m1775844805.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62365 - "GET /dashboard/_dash-component-suites/dash/html/dash_html_components.v3_0_6m1775844806.min.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62365 - "GET /dashboard/assets/_vendor/three/three.module.min.mjs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53621 - "GET /dashboard/assets/_vendor/three/addons/controls/OrbitControls.mjs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58178 - "GET /dashboard/assets/_vendor/three/addons/loaders/GLTFLoader.mjs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62365 - "GET /dashboard/assets/_vendor/three/addons/utils/BufferGeometryUtils.mjs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58178 - "GET /dashboard/_dash-dependencies HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62365 - "GET /dashboard/_dash-layout HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62365 - "GET /dashboard/_dash-component-suites/dash/dcc/async-dropdown.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62365 - "GET /dashboard/_dash-component-suites/dash/dcc/async-slider.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62365 - "GET /dashboard/_dash-component-suites/dash/dcc/async-graph.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58178 - "GET /dashboard/_dash-component-suites/plotly/package_data/plotly.min.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58178 - "GET /images-of-models/0476a6.jpg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58178 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58178 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58178 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58178 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58178 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58178 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58178 - "GET /dashboard/assets/pvu_mnemonic.svg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62365 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62365 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62365 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58178 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62365 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62365 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58178 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58178 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58178 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58178 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62365 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58178 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50878 - "GET /dashboard/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50878 - "GET /dashboard/assets/dashboard.css?m=1777718120.537401 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:58493 - "GET /dashboard/assets/z_dashboard_mvp.css?m=1776702959.4180954 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:51409 - "GET /dashboard/assets/visualization.js?m=1775311377.8384397 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:56156 - "GET /dashboard/assets/viewer3d_bridge.js?m=1777633832.3368373 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:51397 - "GET /dashboard/assets/viewer3d.mjs HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:50120 - "GET /dashboard/assets/browser_diagnostics.js?m=1776590891.9941976 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:56156 - "GET /dashboard/assets/_vendor/three/addons/loaders/GLTFLoader.mjs HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:50120 - "GET /dashboard/assets/_vendor/three/three.module.min.mjs HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:51397 - "GET /dashboard/assets/_vendor/three/addons/controls/OrbitControls.mjs HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:51397 - "GET /dashboard/_dash-layout HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50120 - "GET /dashboard/_dash-dependencies HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56156 - "GET /dashboard/assets/_vendor/three/addons/utils/BufferGeometryUtils.mjs HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:51397 - "GET /dashboard/_dash-component-suites/dash/dcc/async-dropdown.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:50120 - "GET /dashboard/_dash-component-suites/dash/dcc/async-graph.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:51397 - "GET /dashboard/_dash-component-suites/dash/dcc/async-slider.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:56156 - "GET /dashboard/_dash-component-suites/plotly/package_data/plotly.min.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:51397 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51397 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51397 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51397 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51397 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51397 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51397 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51397 - "GET /dashboard/assets/pvu_mnemonic.svg HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:51397 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51397 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56156 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51397 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51397 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56156 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56156 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56156 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51397 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50120 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56156 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58763 - "GET /dashboard/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58763 - "GET /dashboard/assets/dashboard.css?m=1777718120.537401 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:61716 - "GET /dashboard/assets/z_dashboard_mvp.css?m=1776702959.4180954 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:58293 - "GET /dashboard/assets/viewer3d.mjs HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:52679 - "GET /dashboard/assets/visualization.js?m=1775311377.8384397 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:52195 - "GET /dashboard/assets/browser_diagnostics.js?m=1776590891.9941976 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:57217 - "GET /dashboard/assets/viewer3d_bridge.js?m=1777633832.3368373 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:57217 - "GET /dashboard/assets/_vendor/three/three.module.min.mjs HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:52679 - "GET /dashboard/assets/_vendor/three/addons/loaders/GLTFLoader.mjs HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:52195 - "GET /dashboard/assets/_vendor/three/addons/controls/OrbitControls.mjs HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:52679 - "GET /dashboard/_dash-dependencies HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52195 - "GET /dashboard/_dash-layout HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57217 - "GET /dashboard/assets/_vendor/three/addons/utils/BufferGeometryUtils.mjs HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:52195 - "GET /dashboard/_dash-component-suites/dash/dcc/async-dropdown.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:52195 - "GET /dashboard/_dash-component-suites/dash/dcc/async-slider.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:52195 - "GET /dashboard/_dash-component-suites/dash/dcc/async-graph.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:57217 - "GET /dashboard/_dash-component-suites/plotly/package_data/plotly.min.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:57217 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57217 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57217 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57217 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57217 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57217 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57217 - "GET /dashboard/assets/pvu_mnemonic.svg HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:52195 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52195 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52195 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57217 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52195 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52195 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57217 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57217 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57217 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52195 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52679 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57217 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54067 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54067 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54067 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55189 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54067 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54067 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55189 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55189 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55189 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54067 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55189 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55189 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55189 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55189 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54067 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55189 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55189 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55189 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55189 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54067 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55189 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62033 - "GET /dashboard/?page=service-export HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62033 - "GET /dashboard/assets/dashboard.css?m=1777718120.537401 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:60634 - "GET /dashboard/assets/z_dashboard_mvp.css?m=1776702959.4180954 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:65048 - "GET /dashboard/assets/viewer3d.mjs HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:59858 - "GET /dashboard/assets/visualization.js?m=1775311377.8384397 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:63044 - "GET /dashboard/assets/viewer3d_bridge.js?m=1777633832.3368373 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62033 - "GET /dashboard/assets/browser_diagnostics.js?m=1776590891.9941976 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62033 - "GET /dashboard/assets/_vendor/three/three.module.min.mjs HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:63044 - "GET /dashboard/assets/_vendor/three/addons/controls/OrbitControls.mjs HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:59858 - "GET /dashboard/assets/_vendor/three/addons/loaders/GLTFLoader.mjs HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:59858 - "GET /dashboard/assets/_vendor/three/addons/utils/BufferGeometryUtils.mjs HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:63044 - "GET /dashboard/_dash-dependencies HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59858 - "GET /dashboard/_dash-layout HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59858 - "GET /dashboard/_dash-component-suites/dash/dcc/async-dropdown.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:59858 - "GET /dashboard/_dash-component-suites/dash/dcc/async-slider.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:59858 - "GET /dashboard/_dash-component-suites/dash/dcc/async-graph.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:63044 - "GET /dashboard/_dash-component-suites/plotly/package_data/plotly.min.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:63044 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63044 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63044 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63044 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63044 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63044 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63044 - "GET /dashboard/assets/pvu_mnemonic.svg HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:59858 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59858 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59858 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63044 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59858 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59858 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63044 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63044 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59858 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59858 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63044 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62033 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59858 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59858 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59858 - "GET /dashboard/?page=service-comparison HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59858 - "GET /dashboard/assets/dashboard.css?m=1777718120.537401 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:63044 - "GET /dashboard/assets/viewer3d.mjs HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62033 - "GET /dashboard/assets/z_dashboard_mvp.css?m=1776702959.4180954 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:60722 - "GET /dashboard/assets/browser_diagnostics.js?m=1776590891.9941976 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:53643 - "GET /dashboard/assets/viewer3d_bridge.js?m=1777633832.3368373 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:56451 - "GET /dashboard/assets/visualization.js?m=1775311377.8384397 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:60722 - "GET /dashboard/assets/_vendor/three/addons/loaders/GLTFLoader.mjs HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:56451 - "GET /dashboard/assets/_vendor/three/three.module.min.mjs HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:53643 - "GET /dashboard/assets/_vendor/three/addons/controls/OrbitControls.mjs HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:53643 - "GET /dashboard/assets/_vendor/three/addons/utils/BufferGeometryUtils.mjs HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:56451 - "GET /dashboard/_dash-dependencies HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53643 - "GET /dashboard/_dash-layout HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53643 - "GET /dashboard/_dash-component-suites/dash/dcc/async-dropdown.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:53643 - "GET /dashboard/_dash-component-suites/dash/dcc/async-slider.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:53643 - "GET /dashboard/_dash-component-suites/dash/dcc/async-graph.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:56451 - "GET /dashboard/_dash-component-suites/plotly/package_data/plotly.min.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:56451 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56451 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56451 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56451 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56451 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56451 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56451 - "GET /dashboard/assets/pvu_mnemonic.svg HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:53643 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53643 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53643 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56451 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53643 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53643 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56451 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56451 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56451 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56451 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53643 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56451 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56451 - "GET /dashboard/?page=main HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56451 - "GET /dashboard/assets/dashboard.css?m=1777718120.537401 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:53643 - "GET /dashboard/assets/z_dashboard_mvp.css?m=1776702959.4180954 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:63044 - "GET /dashboard/assets/viewer3d_bridge.js?m=1777633832.3368373 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62033 - "GET /dashboard/assets/browser_diagnostics.js?m=1776590891.9941976 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:59858 - "GET /dashboard/assets/visualization.js?m=1775311377.8384397 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:60722 - "GET /dashboard/assets/viewer3d.mjs HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:60722 - "GET /dashboard/assets/_vendor/three/addons/controls/OrbitControls.mjs HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:59858 - "GET /dashboard/assets/_vendor/three/three.module.min.mjs HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62033 - "GET /dashboard/assets/_vendor/three/addons/loaders/GLTFLoader.mjs HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62033 - "GET /dashboard/_dash-layout HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59858 - "GET /dashboard/_dash-dependencies HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60722 - "GET /dashboard/assets/_vendor/three/addons/utils/BufferGeometryUtils.mjs HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62033 - "GET /dashboard/_dash-component-suites/dash/dcc/async-dropdown.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62033 - "GET /dashboard/_dash-component-suites/dash/dcc/async-slider.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62033 - "GET /dashboard/_dash-component-suites/dash/dcc/async-graph.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:59858 - "GET /dashboard/_dash-component-suites/plotly/package_data/plotly.min.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:59858 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59858 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59858 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59858 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59858 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59858 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59858 - "GET /dashboard/assets/pvu_mnemonic.svg HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62033 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62033 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62033 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59858 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62033 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62033 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59858 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62033 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59858 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59858 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59858 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62033 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59858 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59858 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62033 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60722 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59858 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59858 - "GET /dashboard/?page=service-comparison HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59858 - "GET /dashboard/assets/dashboard.css?m=1777718120.537401 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:60722 - "GET /dashboard/assets/z_dashboard_mvp.css?m=1776702959.4180954 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62033 - "GET /dashboard/assets/viewer3d.mjs HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:56451 - "GET /dashboard/assets/visualization.js?m=1775311377.8384397 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:63044 - "GET /dashboard/assets/browser_diagnostics.js?m=1776590891.9941976 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:53643 - "GET /dashboard/assets/viewer3d_bridge.js?m=1777633832.3368373 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:53643 - "GET /dashboard/assets/_vendor/three/three.module.min.mjs HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:63044 - "GET /dashboard/assets/_vendor/three/addons/controls/OrbitControls.mjs HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:56451 - "GET /dashboard/assets/_vendor/three/addons/loaders/GLTFLoader.mjs HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:63044 - "GET /dashboard/_dash-dependencies HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56451 - "GET /dashboard/_dash-layout HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53643 - "GET /dashboard/assets/_vendor/three/addons/utils/BufferGeometryUtils.mjs HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:56451 - "GET /dashboard/_dash-component-suites/dash/dcc/async-dropdown.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:56451 - "GET /dashboard/_dash-component-suites/dash/dcc/async-slider.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:56451 - "GET /dashboard/_dash-component-suites/dash/dcc/async-graph.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:63044 - "GET /dashboard/_dash-component-suites/plotly/package_data/plotly.min.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:63044 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63044 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63044 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63044 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63044 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63044 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63044 - "GET /dashboard/assets/pvu_mnemonic.svg HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:56451 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56451 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56451 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63044 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56451 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56451 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63044 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63044 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63044 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53643 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56451 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63044 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63044 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63044 - "GET /dashboard/?page=main HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63044 - "GET /dashboard/assets/dashboard.css?m=1777718120.537401 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:56451 - "GET /dashboard/assets/z_dashboard_mvp.css?m=1776702959.4180954 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:53643 - "GET /dashboard/assets/viewer3d.mjs HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:65047 - "GET /dashboard/assets/browser_diagnostics.js?m=1776590891.9941976 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:60863 - "GET /dashboard/assets/viewer3d_bridge.js?m=1777633832.3368373 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:54084 - "GET /dashboard/assets/visualization.js?m=1775311377.8384397 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:54084 - "GET /dashboard/assets/_vendor/three/three.module.min.mjs HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:65047 - "GET /dashboard/assets/_vendor/three/addons/loaders/GLTFLoader.mjs HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:60863 - "GET /dashboard/assets/_vendor/three/addons/controls/OrbitControls.mjs HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:60863 - "GET /dashboard/_dash-layout HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65047 - "GET /dashboard/_dash-dependencies HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54084 - "GET /dashboard/assets/_vendor/three/addons/utils/BufferGeometryUtils.mjs HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:60863 - "GET /dashboard/_dash-component-suites/dash/dcc/async-dropdown.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:60863 - "GET /dashboard/_dash-component-suites/dash/dcc/async-slider.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:60863 - "GET /dashboard/_dash-component-suites/dash/dcc/async-graph.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:65047 - "GET /dashboard/_dash-component-suites/plotly/package_data/plotly.min.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:65047 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65047 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65047 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65047 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65047 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65047 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65047 - "GET /dashboard/assets/pvu_mnemonic.svg HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:60863 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60863 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60863 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65047 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60863 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60863 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65047 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65047 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65047 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60863 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54084 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65047 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65047 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65047 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65047 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65047 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54084 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65047 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65047 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65047 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54084 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65047 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65047 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65047 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65047 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65047 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65047 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65047 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54084 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65047 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65047 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65047 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54084 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65047 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65047 - "GET /dashboard/?page=service-readiness HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54084 - "GET /dashboard/assets/z_dashboard_mvp.css?m=1776702959.4180954 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:65047 - "GET /dashboard/assets/dashboard.css?m=1777718120.537401 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:60565 - "GET /dashboard/assets/viewer3d.mjs HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:54399 - "GET /dashboard/assets/browser_diagnostics.js?m=1776590891.9941976 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:50375 - "GET /dashboard/assets/viewer3d_bridge.js?m=1777633832.3368373 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:53271 - "GET /dashboard/assets/visualization.js?m=1775311377.8384397 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:54399 - "GET /dashboard/assets/_vendor/three/addons/loaders/GLTFLoader.mjs HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:50375 - "GET /dashboard/assets/_vendor/three/addons/controls/OrbitControls.mjs HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:53271 - "GET /dashboard/assets/_vendor/three/three.module.min.mjs HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:53271 - "GET /dashboard/assets/_vendor/three/addons/utils/BufferGeometryUtils.mjs HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:53271 - "GET /dashboard/_dash-layout HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50375 - "GET /dashboard/_dash-dependencies HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53271 - "GET /dashboard/_dash-component-suites/dash/dcc/async-dropdown.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:53271 - "GET /dashboard/_dash-component-suites/dash/dcc/async-slider.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:53271 - "GET /dashboard/_dash-component-suites/dash/dcc/async-graph.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:50375 - "GET /dashboard/_dash-component-suites/plotly/package_data/plotly.min.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:50375 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50375 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50375 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50375 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50375 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50375 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50375 - "GET /dashboard/assets/pvu_mnemonic.svg HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:53271 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53271 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53271 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50375 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53271 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53271 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50375 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50375 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50375 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53271 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54399 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50375 - "POST /dashboard/_dash-update-component HTTP/1.1" 200 OK

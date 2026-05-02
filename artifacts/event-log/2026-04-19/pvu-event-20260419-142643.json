@@ -1,0 +1,27 @@
+{
+  "event_id": "pvu-event-20260419-142643",
+  "captured_at": "2026-04-19T11:26:43.894407Z",
+  "category": "simulation",
+  "level": "info",
+  "title": "Запущен сценарий Лето",
+  "summary": "Лето (summer): приток 27.9 °C, расход 2845 м³/ч, суммарная мощность 1.5 кВт.",
+  "source_type": "dashboard",
+  "source_label": "Лето (summer)",
+  "trigger": "scenario-select",
+  "scenario_id": "summer",
+  "scenario_title": "Лето",
+  "control_mode": "auto",
+  "status": "normal",
+  "details": [
+    "Триггер dashboard/API: scenario-select.",
+    "Режим управления: auto.",
+    "Статус: normal.",
+    "Тревоги: нет активных тревог.",
+    "Контур: Автоматический режим удерживает температуру притока около уставки; доступный запас нагревателя можно использовать как резерв.",
+    "Δ притока: +6.9 °C.",
+    "Δ расхода: -478 м³/ч.",
+    "Δ мощности: -19.3 кВт."
+  ],
+  "artifact_path": null,
+  "file_path": "artifacts/event-log/2026-04-19/pvu-event-20260419-142643.json"
+}

@@ -1,0 +1,28 @@
+{
+  "event_id": "pvu-event-20260404-231059",
+  "captured_at": "2026-04-04T20:10:59.050324Z",
+  "category": "control",
+  "level": "info",
+  "title": "Сменён режим управления",
+  "summary": "Пользовательский режим: приток 21.0 °C, расход 3323 м³/ч, суммарная мощность 20.8 кВт.",
+  "source_type": "dashboard",
+  "source_label": "Пользовательский режим",
+  "trigger": "control-mode",
+  "scenario_id": null,
+  "scenario_title": null,
+  "control_mode": "manual",
+  "status": "normal",
+  "details": [
+    "Триггер dashboard/API: control-mode.",
+    "Режим управления: manual.",
+    "Статус: normal.",
+    "Тревоги: MANUAL_MODE.",
+    "Контур: Ручной режим фиксирует operator override: оператор сам задаёт уставку и скорость вентилятора, а система лишь показывает фактический результат без автоматической перенастройки сценария.",
+    "Смена control mode: auto -> manual.",
+    "Δ притока: +0.0 °C.",
+    "Δ расхода: +0 м³/ч.",
+    "Δ мощности: +0.0 кВт."
+  ],
+  "artifact_path": null,
+  "file_path": "artifacts/event-log/2026-04-04/pvu-event-20260404-231059.json"
+}

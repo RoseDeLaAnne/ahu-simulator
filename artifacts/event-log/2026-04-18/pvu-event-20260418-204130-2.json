@@ -1,0 +1,22 @@
+{
+  "event_id": "pvu-event-20260418-204130-2",
+  "captured_at": "2026-04-18T17:41:30.325959Z",
+  "category": "archive",
+  "level": "info",
+  "title": "Сохранён прогон в Scenario Archive",
+  "summary": "Текущий прогон зафиксирован как отдельный JSON-снимок для повторного разбора или защиты.",
+  "source_type": "api",
+  "source_label": "Зима (winter)",
+  "trigger": null,
+  "scenario_id": "winter",
+  "scenario_title": "Зима",
+  "control_mode": "auto",
+  "status": "normal",
+  "details": [
+    "Статус режима: normal.",
+    "Количество тревог: 0.",
+    "Файл архива: artifacts/scenario-archive/2026-04-18/pvu-run-20260418-204130.json."
+  ],
+  "artifact_path": "artifacts/scenario-archive/2026-04-18/pvu-run-20260418-204130.json",
+  "file_path": "artifacts/event-log/2026-04-18/pvu-event-20260418-204130-2.json"
+}

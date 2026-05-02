@@ -1,0 +1,22 @@
+{
+  "event_id": "pvu-event-20260418-204051-2",
+  "captured_at": "2026-04-18T17:40:51.135612Z",
+  "category": "archive",
+  "level": "info",
+  "title": "Сохранён прогон в Scenario Archive",
+  "summary": "Текущий прогон зафиксирован как отдельный JSON-снимок для повторного разбора или защиты.",
+  "source_type": "api",
+  "source_label": "Лето (summer)",
+  "trigger": null,
+  "scenario_id": "summer",
+  "scenario_title": "Лето",
+  "control_mode": "auto",
+  "status": "normal",
+  "details": [
+    "Статус режима: normal.",
+    "Количество тревог: 0.",
+    "Файл архива: artifacts/scenario-archive/2026-04-18/pvu-run-20260418-204051.json."
+  ],
+  "artifact_path": "artifacts/scenario-archive/2026-04-18/pvu-run-20260418-204051.json",
+  "file_path": "artifacts/event-log/2026-04-18/pvu-event-20260418-204051-2.json"
+}

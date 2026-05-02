@@ -1,0 +1,15 @@
+{
+  "export_id": "pvu-export-20260404-204732",
+  "captured_at": "2026-04-04T17:47:32.442686Z",
+  "source_type": "scenario",
+  "source_label": "Межсезонье (midseason)",
+  "scenario_id": "midseason",
+  "scenario_title": "Межсезонье",
+  "status": "normal",
+  "alarm_count": 0,
+  "trend_points": 13,
+  "csv_path": "artifacts/exports/2026-04-04/pvu-export-20260404-204732.csv",
+  "xlsx_path": "artifacts/exports/2026-04-04/pvu-export-20260404-204732.xlsx",
+  "pdf_path": "artifacts/exports/2026-04-04/pvu-export-20260404-204732.pdf",
+  "manifest_path": "artifacts/exports/2026-04-04/pvu-export-20260404-204732.manifest.json"
+}

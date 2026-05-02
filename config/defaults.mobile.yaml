@@ -1,0 +1,23 @@
+# Mobile-oriented backend profile.
+# Use with: AHU_SIMULATOR_SETTINGS_FILE=config/defaults.mobile.yaml
+# Override host/origin values via env for your real domain.
+
+dashboard_path: "/dashboard"
+cors_allow_origins:
+  - "https://app.ahu-simulator.example"
+  - "https://demo.ahu-simulator.example"
+cors_allow_methods:
+  - "GET"
+  - "POST"
+  - "OPTIONS"
+cors_allow_headers:
+  - "Authorization"
+  - "Content-Type"
+  - "Accept"
+  - "Origin"
+cors_allow_credentials: true
+trusted_hosts:
+  - "api.ahu-simulator.example"
+  - "localhost"
+  - "127.0.0.1"
+enforce_https_redirect: true

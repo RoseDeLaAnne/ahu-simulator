@@ -1,0 +1,72 @@
+INFO:     Started server process [5276]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+2026-04-11 22:16:02,924 | ERROR | app.ui.dashboard | Exception on /_dash-update-component [POST]
+Traceback (most recent call last):
+  File "C:\My\Work\Diploma\ahu-simulator\.venv\Lib\site-packages\flask\app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "C:\My\Work\Diploma\ahu-simulator\.venv\Lib\site-packages\flask\app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "C:\My\Work\Diploma\ahu-simulator\.venv\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\My\Work\Diploma\ahu-simulator\.venv\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\My\Work\Diploma\ahu-simulator\.venv\Lib\site-packages\dash\_get_app.py", line 17, in wrap
+    return ctx.run(func, self, *args, **kwargs)
+           ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\My\Work\Diploma\ahu-simulator\.venv\Lib\site-packages\dash\dash.py", line 1600, in dispatch
+    response_data = ctx.run(partial_func)
+  File "C:\My\Work\Diploma\ahu-simulator\.venv\Lib\site-packages\dash\_callback.py", line 720, in add_context
+    raise err
+  File "C:\My\Work\Diploma\ahu-simulator\.venv\Lib\site-packages\dash\_callback.py", line 711, in add_context
+    output_value = _invoke_callback(func, *func_args, **func_kwargs)  # type: ignore[reportArgumentType]
+  File "C:\My\Work\Diploma\ahu-simulator\.venv\Lib\site-packages\dash\_callback.py", line 58, in _invoke_callback
+    return func(*args, **kwargs)  # %% callback invoked %%
+  File "C:\My\Work\Diploma\ahu-simulator\src\app\ui\callbacks.py", line 941, in update_dashboard
+    parameters = SimulationParameters(
+        outdoor_temp_c=outdoor_temp_c,
+    ...<20 lines>...
+        control_mode=ControlMode(control_mode),
+    )
+  File "C:\My\Work\Diploma\ahu-simulator\.venv\Lib\site-packages\pydantic\main.py", line 250, in __init__
+    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+pydantic_core._pydantic_core.ValidationError: 1 validation error for SimulationParameters
+airflow_m3_h
+  Input should be a valid number [type=float_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.12/v/float_type
+2026-04-11 22:16:05,058 | ERROR | app.ui.dashboard | Exception on /_dash-update-component [POST]
+Traceback (most recent call last):
+  File "C:\My\Work\Diploma\ahu-simulator\.venv\Lib\site-packages\flask\app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "C:\My\Work\Diploma\ahu-simulator\.venv\Lib\site-packages\flask\app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "C:\My\Work\Diploma\ahu-simulator\.venv\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\My\Work\Diploma\ahu-simulator\.venv\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\My\Work\Diploma\ahu-simulator\.venv\Lib\site-packages\dash\_get_app.py", line 17, in wrap
+    return ctx.run(func, self, *args, **kwargs)
+           ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\My\Work\Diploma\ahu-simulator\.venv\Lib\site-packages\dash\dash.py", line 1600, in dispatch
+    response_data = ctx.run(partial_func)
+  File "C:\My\Work\Diploma\ahu-simulator\.venv\Lib\site-packages\dash\_callback.py", line 720, in add_context
+    raise err
+  File "C:\My\Work\Diploma\ahu-simulator\.venv\Lib\site-packages\dash\_callback.py", line 711, in add_context
+    output_value = _invoke_callback(func, *func_args, **func_kwargs)  # type: ignore[reportArgumentType]
+  File "C:\My\Work\Diploma\ahu-simulator\.venv\Lib\site-packages\dash\_callback.py", line 58, in _invoke_callback
+    return func(*args, **kwargs)  # %% callback invoked %%
+  File "C:\My\Work\Diploma\ahu-simulator\src\app\ui\callbacks.py", line 941, in update_dashboard
+    parameters = SimulationParameters(
+        outdoor_temp_c=outdoor_temp_c,
+    ...<20 lines>...
+        control_mode=ControlMode(control_mode),
+    )
+  File "C:\My\Work\Diploma\ahu-simulator\.venv\Lib\site-packages\pydantic\main.py", line 250, in __init__
+    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+pydantic_core._pydantic_core.ValidationError: 1 validation error for SimulationParameters
+airflow_m3_h
+  Input should be a valid number [type=float_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.12/v/float_type

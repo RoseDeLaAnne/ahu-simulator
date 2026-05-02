@@ -1,0 +1,27 @@
+{
+  "event_id": "pvu-event-20260419-142646",
+  "captured_at": "2026-04-19T11:26:46.922026Z",
+  "category": "simulation",
+  "level": "info",
+  "title": "Запущен сценарий Зима",
+  "summary": "Зима (winter): приток 21.0 °C, расход 3323 м³/ч, суммарная мощность 20.8 кВт.",
+  "source_type": "dashboard",
+  "source_label": "Зима (winter)",
+  "trigger": "scenario-select",
+  "scenario_id": "winter",
+  "scenario_title": "Зима",
+  "control_mode": "auto",
+  "status": "normal",
+  "details": [
+    "Триггер dashboard/API: scenario-select.",
+    "Режим управления: auto.",
+    "Статус: normal.",
+    "Тревоги: нет активных тревог.",
+    "Контур: Автоматический режим удерживает температуру притока около уставки; доступный запас нагревателя можно использовать как резерв.",
+    "Δ притока: -6.9 °C.",
+    "Δ расхода: +478 м³/ч.",
+    "Δ мощности: +19.3 кВт."
+  ],
+  "artifact_path": null,
+  "file_path": "artifacts/event-log/2026-04-19/pvu-event-20260419-142646.json"
+}

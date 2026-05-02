@@ -1,0 +1,182 @@
+%PDF-1.4
+%‚„œ”
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Count 3 /Kids [4 0 R 5 0 R 6 0 R] >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+4 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 7 0 R >>
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 8 0 R >>
+endobj
+6 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 9 0 R >>
+endobj
+7 0 obj
+<< /Length 1618 >>
+stream
+BT
+/F1 11 Tf
+72 760 Td
+14 TL
+(AHU Scenario Report) Tj
+T* () Tj
+T* (Metadata) Tj
+T* (report_id: pvu-report-20260419-142525) Tj
+T* (generated_at: 2026-04-19T11:25:25.312945+00:00) Tj
+T* (source_type: custom) Tj
+T* (source_label: Polzovatelskiy rezhim) Tj
+T* (scenario_id: -) Tj
+T* (scenario_title: -) Tj
+T* (control_mode: auto) Tj
+T* (status: warning) Tj
+T* (alarm_count: 1) Tj
+T* (trend_points: 13) Tj
+T* (horizon_minutes: 120) Tj
+T* (step_minutes: 10) Tj
+T* (session_id: sim-0454adf841cc) Tj
+T* (session_status: idle) Tj
+T* (elapsed_minutes: 0) Tj
+T* () Tj
+T* (Key Findings) Tj
+T* (- [warning] Obshchiy rezhim ustanovki: Status rezhima: warning; aktivnykh trevog: 1.) Tj
+T* (- [normal] Otklonenie pritoka ot ustavki: Fakticheskiy pritok 19.00 C, ustavka 19.00 C, otklonenie +0.00 C.) Tj
+T* (- [warning] Energeticheskaya nagruzka: Summarnaya moshchnost 3.95 kVt, nagrevatel 3.37 kVt, ventilyator 0.58 kVt.) Tj
+T* (- [normal] Dinamika pomeshcheniya: Temperatura pomeshcheniya izmenilas na +0.00 C za 120 min pri shage 10 min.) Tj
+T* () Tj
+T* (Svodka progona) Tj
+T* (Pokazatel | Znachenie) Tj
+T* (report_id | pvu-report-20260419-142525) Tj
+T* (generated_at | 2026-04-19T11:25:25.312945+00:00) Tj
+T* (source_type | custom) Tj
+T* (source_label | Polzovatelskiy rezhim) Tj
+T* (scenario_id | -) Tj
+T* (scenario_title | -) Tj
+T* (control_mode | auto) Tj
+T* (status | warning) Tj
+T* (alarm_count | 1) Tj
+T* (trend_points | 13) Tj
+T* (horizon_minutes | 120) Tj
+T* (step_minutes | 10) Tj
+T* (session_id | sim-0454adf841cc) Tj
+T* (session_status | idle) Tj
+T* (elapsed_minutes | 0) Tj
+T* () Tj
+T* (Statusy KPI i alert-bloka) Tj
+ET
+endstream
+endobj
+8 0 obj
+<< /Length 1990 >>
+stream
+BT
+/F1 11 Tf
+72 760 Td
+14 TL
+(Zona | Status | Osnovanie) Tj
+T* (overall_status | Risk | Integralnyy status rascheta API/state: warning; aktivnykh trevog: 1.) Tj
+T* (alert_block | Risk | Alert-blok agregiruet aktivnye alarms i podsvechivaet risk/avariyu po ikh urovnyu.) Tj
+T* (supply_temp | Norma | Otklonenie ot ustavki +0.0 C \(tsel 19.0 C\)) Tj
+T* (room_temp | Norma | Komfortnyy diapazon 1827 C) Tj
+T* (heating_power | Norma | Zagruzka nagrevatelya 28% ot dostupnoy moshchnosti) Tj
+T* (total_power | Norma | Udelnaya moshchnost 2.16 kVt/1000 m3/ch) Tj
+T* (airflow | Risk | 70% ot zadannogo raskhoda) Tj
+T* (filter_pressure | Norma | Porog riska 280 Pa, avarii 360 Pa) Tj
+T* () Tj
+T* (Legenda statusov) Tj
+T* (Status | Tsvet | Pravilo) Tj
+T* (Norma | #22c55e | Pritok v predelakh 1.5 C ot ustavki, raskhod vyshe 75% i P filtra nizhe 280 Pa.) Tj
+T* (Risk | #facc15 | Otklonenie pritoka ot 1.5 do 3.0 C, raskhod ot 60% do 75% ili P filtra ot 280 do 360 Pa.) Tj
+T* (Avariya | #ef4444 | Otklonenie pritoka ne menshe 3.0 C, raskhod ne vyshe 60% ili P filtra ne nizhe 360 Pa.) Tj
+T* () Tj
+T* (Parametry stsenariya) Tj
+T* (Parametr | Znachenie) Tj
+T* (outdoor_temp_c | 8.00) Tj
+T* (airflow_m3_h | 2600.00) Tj
+T* (supply_temp_setpoint_c | 19.00) Tj
+T* (heat_recovery_efficiency | 0.42) Tj
+T* (heater_power_kw | 12.00) Tj
+T* (filter_contamination | 0.14) Tj
+T* (fan_speed_ratio | 0.74) Tj
+T* (room_temp_c | 21.10) Tj
+T* (room_heat_gain_kw | 3.60) Tj
+T* (room_volume_m3 | 250.00) Tj
+T* (room_thermal_capacity_kwh_per_k | 14.00) Tj
+T* (room_loss_coeff_kw_per_k | 0.18) Tj
+T* (control_mode | auto) Tj
+T* (horizon_minutes | 120) Tj
+T* (step_minutes | 10) Tj
+T* () Tj
+T* (Itogovoe sostoyanie) Tj
+T* (Pokazatel | Znachenie) Tj
+T* (timestamp | 2026-04-19T11:25:25.311900Z) Tj
+T* (control_mode | auto) Tj
+T* (actual_airflow_m3_h | 1829.72) Tj
+T* (mixed_air_temp_c | 8.00) Tj
+T* (recovered_air_temp_c | 13.50) Tj
+T* (supply_temp_c | 19.00) Tj
+T* (room_temp_c | 21.10) Tj
+T* (heating_power_kw | 3.37) Tj
+ET
+endstream
+endobj
+9 0 obj
+<< /Length 1468 >>
+stream
+BT
+/F1 11 Tf
+72 760 Td
+14 TL
+(heater_load_ratio | 0.28) Tj
+T* (fan_power_kw | 0.58) Tj
+T* (total_power_kw | 3.95) Tj
+T* (energy_intensity_kw_per_1000_m3_h | 2.16) Tj
+T* (filter_pressure_drop_pa | 141.11) Tj
+T* (heat_balance_kw | -0.05) Tj
+T* (status | warning) Tj
+T* () Tj
+T* (Preduprezhdeniya i trevogi) Tj
+T* (Kod | Uroven | Soobshchenie) Tj
+T* (AIRFLOW_WARNING | warning | Raskhod vozdukha nizhe ozhidaemogo rezhima.) Tj
+T* () Tj
+T* (Trend po shagam) Tj
+T* (Minuta | Naruzhnaya, C | Pritok, C | Pomeshchenie, C | Nagrev, kVt | Summarnaya moshchnost, kVt | Raskhod, m3/ch | P filtra, Pa) Tj
+T* (0 | 8.00 | 19.00 | 21.10 | 3.37 | 3.95 | 1829.72 | 141.11) Tj
+T* (10 | 8.00 | 19.00 | 21.10 | 3.37 | 3.95 | 1829.72 | 141.11) Tj
+T* (20 | 8.00 | 19.00 | 21.10 | 3.37 | 3.95 | 1829.72 | 141.11) Tj
+T* (30 | 8.00 | 19.00 | 21.10 | 3.37 | 3.95 | 1829.72 | 141.11) Tj
+T* (40 | 8.00 | 19.00 | 21.10 | 3.37 | 3.95 | 1829.72 | 141.11) Tj
+T* (50 | 8.00 | 19.00 | 21.10 | 3.37 | 3.95 | 1829.72 | 141.11) Tj
+T* (60 | 8.00 | 19.00 | 21.10 | 3.37 | 3.95 | 1829.72 | 141.11) Tj
+T* (70 | 8.00 | 19.00 | 21.10 | 3.37 | 3.95 | 1829.72 | 141.11) Tj
+T* (80 | 8.00 | 19.00 | 21.10 | 3.37 | 3.95 | 1829.72 | 141.11) Tj
+T* (90 | 8.00 | 19.00 | 21.10 | 3.37 | 3.95 | 1829.72 | 141.11) Tj
+T* (100 | 8.00 | 19.00 | 21.10 | 3.37 | 3.95 | 1829.72 | 141.11) Tj
+T* (110 | 8.00 | 19.00 | 21.10 | 3.37 | 3.95 | 1829.72 | 141.11) Tj
+T* (120 | 8.00 | 19.00 | 21.10 | 3.37 | 3.95 | 1829.72 | 141.11) Tj
+ET
+endstream
+endobj
+xref
+0 10
+0000000000 65535 f 
+0000000015 00000 n 
+0000000064 00000 n 
+0000000133 00000 n 
+0000000203 00000 n 
+0000000329 00000 n 
+0000000455 00000 n 
+0000000581 00000 n 
+0000002251 00000 n 
+0000004293 00000 n 
+trailer
+<< /Size 10 /Root 1 0 R >>
+startxref
+5813
+%%EOF

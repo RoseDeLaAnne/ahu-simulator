@@ -1,0 +1,289 @@
+{
+  "agreement_id": "p1-quality-2026-04-04",
+  "title": "Протокол валидации качества P1",
+  "status": "normal",
+  "approved_on": "2026-04-04",
+  "authority": "Литературно-методическое согласование автора ВКР по DOE/NREL, DOE Better Buildings, DOE FEMP и NIST V&V.",
+  "summary": "5 контрольных точек и 9 шагов ручной инженерной сверки согласованы для учебно-обобщённой ПВУ текущего MVP.",
+  "note": "Численные диапазоны в reference_points.json трактуются как согласованные инженерные окна: они выведены из ручного вывода по явной теплоте, эффективности и законам подобия вентилятора, а затем зафиксированы как регрессионный контракт для фазы 6. Это закрывает качество P1 для текущего обобщённого контура, но не подменяет будущую калибровку конкретной установки.",
+  "control_points": [
+    {
+      "case_id": "winter_supply_heating",
+      "basis_level": "mixed",
+      "source_ids": [
+        "doe_whole_house_ventilation",
+        "nrel_vics_report"
+      ],
+      "expected_status": "normal",
+      "expected_alarm_codes": [],
+      "note": "Зимняя точка согласована как штатный режим HRV + догрев: ручной вывод фиксирует диапазон вокруг стабильного притока 21 °C и зимней мощности нагрева.",
+      "metrics": [
+        {
+          "metric_id": "supply_temp_c",
+          "target_value": 21.0,
+          "tolerance": 0.1,
+          "note": "Цель задаётся балансом рекуперации и догрева до уставки."
+        },
+        {
+          "metric_id": "room_temp_c",
+          "target_value": 20.5,
+          "tolerance": 0.1,
+          "note": "Комнатная температура остаётся возле исходной за один дискретный шаг."
+        },
+        {
+          "metric_id": "actual_airflow_m3_h",
+          "target_value": 3322.5,
+          "tolerance": 2.5,
+          "note": "Диапазон привязан к номинальному расходу с учётом коэффициента скорости вентилятора и умеренного фактора загрязнения."
+        },
+        {
+          "metric_id": "total_power_kw",
+          "target_value": 20.8,
+          "tolerance": 0.1,
+          "note": "Сумма мощности нагревателя и вентилятора задаёт зимний энергетический контрольный пункт."
+        }
+      ]
+    },
+    {
+      "case_id": "midseason_low_load",
+      "basis_level": "mixed",
+      "source_ids": [
+        "nrel_vics_report"
+      ],
+      "expected_status": "normal",
+      "expected_alarm_codes": [],
+      "note": "Межсезонная точка фиксирует режим низкой нагрузки: рекуперация и догрев работают без избыточной мощности и без тревог.",
+      "metrics": [
+        {
+          "metric_id": "supply_temp_c",
+          "target_value": 19.0,
+          "tolerance": 0.1,
+          "note": "Приток удерживается около сниженной уставки."
+        },
+        {
+          "metric_id": "room_temp_c",
+          "target_value": 21.2,
+          "tolerance": 0.1,
+          "note": "Комната остаётся в исходном комфортном диапазоне."
+        },
+        {
+          "metric_id": "actual_airflow_m3_h",
+          "target_value": 2444.5,
+          "tolerance": 1.5,
+          "note": "Согласованный диапазон соответствует пониженному коэффициенту скорости вентилятора без аварийного падения расхода."
+        },
+        {
+          "metric_id": "total_power_kw",
+          "target_value": 6.1,
+          "tolerance": 0.1,
+          "note": "Нагрузка низкая, так как основную часть перепада температуры закрывает рекуперация."
+        }
+      ]
+    },
+    {
+      "case_id": "reduced_flow_alarm",
+      "basis_level": "mixed",
+      "source_ids": [
+        "nrel_vics_report",
+        "doe_fan_system_info_card"
+      ],
+      "expected_status": "alarm",
+      "expected_alarm_codes": [
+        "AIRFLOW_CRITICAL"
+      ],
+      "note": "Точка согласована как диапазон отказа по расходу: расход должен упасть до аварийного уровня и активировать критический код по подаче.",
+      "metrics": [
+        {
+          "metric_id": "supply_temp_c",
+          "target_value": 20.0,
+          "tolerance": 0.1,
+          "note": "Даже при низком расходе контур нагрева удерживает уставку по притоку."
+        },
+        {
+          "metric_id": "room_temp_c",
+          "target_value": 21.0,
+          "tolerance": 0.1,
+          "note": "Короткий расчётный шаг не уводит комнату из исходного диапазона."
+        },
+        {
+          "metric_id": "actual_airflow_m3_h",
+          "target_value": 1533.0,
+          "tolerance": 2.0,
+          "note": "Диапазон зафиксирован как аварийный провал подачи при сниженной скорости вентилятора и загрязнении."
+        },
+        {
+          "metric_id": "total_power_kw",
+          "target_value": 5.75,
+          "tolerance": 0.15,
+          "note": "Суммарная мощность падает вместе с расходом, что важно для объяснения аварийного сценария."
+        }
+      ]
+    },
+    {
+      "case_id": "dirty_filter_alarm",
+      "basis_level": "mixed",
+      "source_ids": [
+        "doe_om_best_practices"
+      ],
+      "expected_status": "alarm",
+      "expected_alarm_codes": [
+        "AIRFLOW_WARNING",
+        "FILTER_SERVICE_NOW"
+      ],
+      "note": "Точка согласована как сервисный диапазон: повышенный перепад давления и снижение подачи должны сопровождаться фильтровой тревогой.",
+      "metrics": [
+        {
+          "metric_id": "supply_temp_c",
+          "target_value": 21.0,
+          "tolerance": 0.1,
+          "note": "По температуре притока режим остаётся управляемым, несмотря на загрязнение."
+        },
+        {
+          "metric_id": "room_temp_c",
+          "target_value": 20.8,
+          "tolerance": 0.1,
+          "note": "Комнатная температура используется как вторичная контрольная точка на коротком горизонте."
+        },
+        {
+          "metric_id": "actual_airflow_m3_h",
+          "target_value": 2167.0,
+          "tolerance": 2.0,
+          "note": "Расход должен заметно просесть из-за сильного загрязнения."
+        },
+        {
+          "metric_id": "total_power_kw",
+          "target_value": 11.05,
+          "tolerance": 0.15,
+          "note": "Энергетический диапазон помогает отличить сценарий обслуживания фильтра от сценария снижения подачи."
+        }
+      ]
+    },
+    {
+      "case_id": "manual_mode_warning",
+      "basis_level": "assumption",
+      "source_ids": [],
+      "expected_status": "warning",
+      "expected_alarm_codes": [
+        "AIRFLOW_WARNING",
+        "MANUAL_MODE"
+      ],
+      "note": "Эта точка согласована как проектное поведенческое правило: ручной режим должен оставаться объяснимым и воспроизводимым, хотя его семантика тревог не берётся из внешнего стандарта.",
+      "metrics": [
+        {
+          "metric_id": "supply_temp_c",
+          "target_value": 22.0,
+          "tolerance": 0.1,
+          "note": "Уставка по притоку остаётся достижимой и в ручном режиме."
+        },
+        {
+          "metric_id": "room_temp_c",
+          "target_value": 21.0,
+          "tolerance": 0.1,
+          "note": "Комнатная температура остаётся около исходной на коротком шаге."
+        },
+        {
+          "metric_id": "actual_airflow_m3_h",
+          "target_value": 2303.0,
+          "tolerance": 2.0,
+          "note": "Пониженный расход нужен для воспроизводимого сценария предупреждения."
+        },
+        {
+          "metric_id": "total_power_kw",
+          "target_value": 16.75,
+          "tolerance": 0.15,
+          "note": "Суммарная мощность используется как поддерживающая метрика для сценария ручного режима."
+        }
+      ]
+    }
+  ],
+  "manual_steps": [
+    {
+      "step_id": "actual_airflow_m3_h",
+      "basis_level": "mixed",
+      "tolerance": 0.01,
+      "source_ids": [
+        "nrel_vics_report",
+        "doe_fan_system_info_card"
+      ],
+      "note": "Шаг согласован как вывод расхода для MVP; коэффициент загрязнения остаётся проектной калибровкой."
+    },
+    {
+      "step_id": "recovered_air_temp_c",
+      "basis_level": "external",
+      "tolerance": 0.01,
+      "source_ids": [
+        "doe_whole_house_ventilation",
+        "nrel_vics_report"
+      ],
+      "note": "Шаг рекуперации на основе эффективности полностью привязан к внешней логике ОВКВ."
+    },
+    {
+      "step_id": "filter_pressure_drop_pa",
+      "basis_level": "mixed",
+      "tolerance": 0.01,
+      "source_ids": [
+        "doe_om_best_practices"
+      ],
+      "note": "Измерение перепада давления внешне обосновано, а кривая загрязнения принята как инженерное приближение."
+    },
+    {
+      "step_id": "heating_power_kw",
+      "basis_level": "external",
+      "tolerance": 0.01,
+      "source_ids": [
+        "nrel_vics_report"
+      ],
+      "note": "Согласовано через баланс явной теплоты с ограничением доступной мощности нагревателя."
+    },
+    {
+      "step_id": "supply_temp_c",
+      "basis_level": "external",
+      "tolerance": 0.01,
+      "source_ids": [
+        "nrel_vics_report"
+      ],
+      "note": "Приточная температура выводится из того же соотношения теплового баланса, что и во внешнем источнике."
+    },
+    {
+      "step_id": "fan_power_kw",
+      "basis_level": "mixed",
+      "tolerance": 0.01,
+      "source_ids": [
+        "doe_fan_system_info_card",
+        "nrel_vics_report"
+      ],
+      "note": "Кубическая часть согласована по законам подобия, коэффициент кривой остаётся учебной калибровкой."
+    },
+    {
+      "step_id": "total_power_kw",
+      "basis_level": "derived",
+      "tolerance": 0.01,
+      "source_ids": [
+        "nrel_vics_report",
+        "doe_fan_system_info_card"
+      ],
+      "note": "Агрегирующий шаг согласован как производная сумма двух уже подтверждённых энергетических составляющих."
+    },
+    {
+      "step_id": "heat_balance_kw",
+      "basis_level": "mixed",
+      "tolerance": 0.01,
+      "source_ids": [
+        "nrel_vics_report"
+      ],
+      "note": "Базовый тепловой баланс помещения согласован, но потери и теплопритоки остаются параметрами MVP."
+    },
+    {
+      "step_id": "room_temp_c",
+      "basis_level": "assumption",
+      "tolerance": 0.01,
+      "source_ids": [],
+      "note": "Однозонное обновление температуры помещения явно согласовано как контролируемое MVP-упрощение."
+    }
+  ],
+  "limitations": [
+    "Согласование относится к учебно-обобщённой ПВУ и синтетическим сценариям текущего MVP.",
+    "Этот артефакт не является паспортной калибровкой реального объекта и не заменяет будущую полевую валидацию на конкретной установке.",
+    "Логика ручного режима остаётся проектным поведенческим правилом, но теперь зафиксирована как осознанная и воспроизводимая часть контура валидации."
+  ]
+}

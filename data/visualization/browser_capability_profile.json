@@ -1,0 +1,114 @@
+{
+  "profile_id": "phase7-webgl-demo-profile-2026-04-04",
+  "verified_at": "2026-04-04T19:16:38.480000+00:00",
+  "target_use": "future_optional_webgl_viewer",
+  "verification_method": "Playwright MCP + клиентская диагностика дашборда",
+  "summary": "Локальный диапазон браузера и демо-ПК для будущего WebGL-режима подтверждён: Chromium 146 на Windows отдаёт WebGL2 в защищённом контексте, рендерер читается через ANGLE/AMD, а экран 1463x823 перекрывает минимальный 1366x768 для фазы 7.",
+  "note": "Для MVP-защиты 2D SVG остаётся базовым режимом отображения. Будущий 3D-путь можно проверять на этом профиле как дополнительный слой поверх тех же визуальных сигналов, а дашборд лучше открывать в окне не уже 1200x680.",
+  "evidence_paths": [
+    "data/visualization/browser_capability_profile.json",
+    "artifacts/playwright/manual/2026-04-04/dashboard/browser-diagnostics/01-webgl-profile.png",
+    "artifacts/playwright/manual/2026-04-04/dashboard/browser-diagnostics/02-demo-readiness-browser-brief.png"
+  ],
+  "verified_environment": {
+    "browser_label": "Chromium 146, Not-A.Brand 24, Google Chrome 146",
+    "platform": "Windows",
+    "online": true,
+    "secure_context": true,
+    "webgl_supported": true,
+    "webgl2_supported": true,
+    "hardware_concurrency": 12,
+    "device_memory_gb": 8,
+    "renderer": "ANGLE (AMD, AMD Radeon(TM) Graphics (0x00001681) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "vendor": "Google Inc. (AMD)",
+    "debug_renderer_info": true,
+    "max_texture_size": 16384,
+    "max_viewport_width": 32767,
+    "max_viewport_height": 32767,
+    "viewport_width": 1051,
+    "viewport_height": 628,
+    "screen_width": 1463,
+    "screen_height": 823,
+    "device_pixel_ratio": 1.75,
+    "diagnostics_timestamp": "2026-04-04T19:16:38.480Z"
+  },
+  "recommended_viewport": {
+    "min_width": 1200,
+    "min_height": 680,
+    "note": "Для комфортного показа дашборда окно лучше развернуть хотя бы до 1200x680, даже если аппаратный профиль браузера/WebGL уже подтверждён."
+  },
+  "requirements": [
+    {
+      "requirement_id": "webgl",
+      "title": "Базовый WebGL-контекст",
+      "field": "webgl_supported",
+      "kind": "boolean",
+      "expected_bool": true,
+      "expected_text": "WebGL = да",
+      "rationale": "Без базового WebGL будущий 3D-путь не имеет технического смысла."
+    },
+    {
+      "requirement_id": "webgl2",
+      "title": "WebGL2-контекст",
+      "field": "webgl2_supported",
+      "kind": "boolean",
+      "expected_bool": true,
+      "expected_text": "WebGL2 = да",
+      "rationale": "Для следующего этапа нужен современный графический контекст, а не откат к устаревшему режиму только WebGL1."
+    },
+    {
+      "requirement_id": "secure-context",
+      "title": "Защищённый контекст",
+      "field": "secure_context",
+      "kind": "boolean",
+      "expected_bool": true,
+      "expected_text": "защищённый контекст = да",
+      "rationale": "Проверка будущего 3D-режима должна идти в локальном http://127.0.0.1 или HTTPS-окружении."
+    },
+    {
+      "requirement_id": "cpu-headroom",
+      "title": "Запас потоков CPU",
+      "field": "hardware_concurrency",
+      "kind": "minimum_int",
+      "minimum_int": 4,
+      "expected_text": "hardwareConcurrency >= 4",
+      "rationale": "Низкий заявленный запас CPU повышает риск тяжёлой 3D-сцены и делает 2D единственным безопасным режимом."
+    },
+    {
+      "requirement_id": "memory-headroom",
+      "title": "Заявленная память устройства",
+      "field": "device_memory_gb",
+      "kind": "minimum_float",
+      "minimum_float": 4.0,
+      "expected_text": "deviceMemory >= 4 GB",
+      "rationale": "Минимальный запас памяти нужен для текстур, буферов и стабильного браузерного рендера."
+    },
+    {
+      "requirement_id": "screen-width",
+      "title": "Ширина демонстрационного экрана",
+      "field": "screen_width",
+      "kind": "minimum_int",
+      "minimum_int": 1366,
+      "expected_text": "screen width >= 1366",
+      "rationale": "Даже без 3D дашборд требует достаточной ширины для читабельных панелей и таблиц."
+    },
+    {
+      "requirement_id": "screen-height",
+      "title": "Высота демонстрационного экрана",
+      "field": "screen_height",
+      "kind": "minimum_int",
+      "minimum_int": 768,
+      "expected_text": "screen height >= 768",
+      "rationale": "Высота экрана должна позволять показать мнемосхему, тренды и блоки готовности без деградации UX."
+    },
+    {
+      "requirement_id": "texture-budget",
+      "title": "MAX_TEXTURE_SIZE",
+      "field": "max_texture_size",
+      "kind": "minimum_int",
+      "minimum_int": 8192,
+      "expected_text": "MAX_TEXTURE_SIZE >= 8192",
+      "rationale": "Запас текстур нужен как грубый индикатор того, что графический стек не слишком урезан для будущего визуализатора."
+    }
+  ]
+}

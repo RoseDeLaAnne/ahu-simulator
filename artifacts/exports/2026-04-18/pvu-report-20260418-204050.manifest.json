@@ -1,0 +1,535 @@
+{
+  "generated_at": "2026-04-18T17:40:50.729609Z",
+  "entry": {
+    "report_id": "pvu-report-20260418-204050",
+    "captured_at": "2026-04-18T17:40:50.729609Z",
+    "source_type": "scenario",
+    "source_label": "Зима (winter)",
+    "scenario_id": "winter",
+    "scenario_title": "Зима",
+    "status": "normal",
+    "alarm_count": 0,
+    "trend_points": 13,
+    "finding_count": 4,
+    "table_count": 7,
+    "csv_path": "artifacts/exports/2026-04-18/pvu-report-20260418-204050.csv",
+    "pdf_path": "artifacts/exports/2026-04-18/pvu-report-20260418-204050.pdf",
+    "manifest_path": "artifacts/exports/2026-04-18/pvu-report-20260418-204050.manifest.json"
+  },
+  "report": {
+    "metadata": {
+      "report_id": "pvu-report-20260418-204050",
+      "generated_at": "2026-04-18T17:40:50.729609Z",
+      "source_type": "scenario",
+      "source_label": "Зима (winter)",
+      "scenario_id": "winter",
+      "scenario_title": "Зима",
+      "control_mode": "auto",
+      "status": "normal",
+      "alarm_count": 0,
+      "trend_points": 13,
+      "horizon_minutes": 120,
+      "step_minutes": 10,
+      "session_id": "sim-f1aa6e378ac3",
+      "session_status": "idle",
+      "elapsed_minutes": 0
+    },
+    "findings": [
+      {
+        "finding_id": "operating-status",
+        "title": "Общий режим установки",
+        "severity": "normal",
+        "conclusion": "Статус режима: normal; активных тревог: 0."
+      },
+      {
+        "finding_id": "supply-gap",
+        "title": "Отклонение притока от уставки",
+        "severity": "normal",
+        "conclusion": "Фактический приток 21.00 °C, уставка 21.00 °C, отклонение +0.00 °C."
+      },
+      {
+        "finding_id": "energy-balance",
+        "title": "Энергетическая нагрузка",
+        "severity": "normal",
+        "conclusion": "Суммарная мощность 20.80 кВт, нагреватель 18.53 кВт, вентилятор 2.27 кВт."
+      },
+      {
+        "finding_id": "room-trend",
+        "title": "Динамика помещения",
+        "severity": "normal",
+        "conclusion": "Температура помещения изменилась на -0.48 °C за 120 мин при шаге 10 мин."
+      }
+    ],
+    "tables": [
+      {
+        "table_id": "summary",
+        "title": "Сводка прогона",
+        "columns": [
+          "Показатель",
+          "Значение"
+        ],
+        "rows": [
+          [
+            "report_id",
+            "pvu-report-20260418-204050"
+          ],
+          [
+            "generated_at",
+            "2026-04-18T17:40:50.729609+00:00"
+          ],
+          [
+            "source_type",
+            "scenario"
+          ],
+          [
+            "source_label",
+            "Зима (winter)"
+          ],
+          [
+            "scenario_id",
+            "winter"
+          ],
+          [
+            "scenario_title",
+            "Зима"
+          ],
+          [
+            "control_mode",
+            "auto"
+          ],
+          [
+            "status",
+            "normal"
+          ],
+          [
+            "alarm_count",
+            "0"
+          ],
+          [
+            "trend_points",
+            "13"
+          ],
+          [
+            "horizon_minutes",
+            "120"
+          ],
+          [
+            "step_minutes",
+            "10"
+          ],
+          [
+            "session_id",
+            "sim-f1aa6e378ac3"
+          ],
+          [
+            "session_status",
+            "idle"
+          ],
+          [
+            "elapsed_minutes",
+            "0"
+          ]
+        ]
+      },
+      {
+        "table_id": "status",
+        "title": "Статусы KPI и alert-блока",
+        "columns": [
+          "Зона",
+          "Статус",
+          "Основание"
+        ],
+        "rows": [
+          [
+            "overall_status",
+            "Норма",
+            "Интегральный статус расчёта API/state: normal; активных тревог: 0."
+          ],
+          [
+            "alert_block",
+            "Норма",
+            "Alert-блок агрегирует активные alarms и подсвечивает риск/аварию по их уровню."
+          ],
+          [
+            "supply_temp",
+            "Норма",
+            "Отклонение от уставки +0.0 °C (цель 21.0 °C)"
+          ],
+          [
+            "room_temp",
+            "Норма",
+            "Комфортный диапазон 18–27 °C"
+          ],
+          [
+            "heating_power",
+            "Норма",
+            "Загрузка нагревателя 44% от доступной мощности"
+          ],
+          [
+            "total_power",
+            "Норма",
+            "Удельная мощность 6.26 кВт/1000 м³/ч"
+          ],
+          [
+            "airflow",
+            "Норма",
+            "92% от заданного расхода"
+          ],
+          [
+            "filter_pressure",
+            "Норма",
+            "Порог риска 280 Па, аварии 360 Па"
+          ]
+        ]
+      },
+      {
+        "table_id": "status_legend",
+        "title": "Легенда статусов",
+        "columns": [
+          "Статус",
+          "Цвет",
+          "Правило"
+        ],
+        "rows": [
+          [
+            "Норма",
+            "#22c55e",
+            "Приток в пределах 1.5 °C от уставки, расход выше 75% и ΔP фильтра ниже 280 Па."
+          ],
+          [
+            "Риск",
+            "#facc15",
+            "Отклонение притока от 1.5 до 3.0 °C, расход от 60% до 75% или ΔP фильтра от 280 до 360 Па."
+          ],
+          [
+            "Авария",
+            "#ef4444",
+            "Отклонение притока не меньше 3.0 °C, расход не выше 60% или ΔP фильтра не ниже 360 Па."
+          ]
+        ]
+      },
+      {
+        "table_id": "parameters",
+        "title": "Параметры сценария",
+        "columns": [
+          "Параметр",
+          "Значение"
+        ],
+        "rows": [
+          [
+            "outdoor_temp_c",
+            "-22.00"
+          ],
+          [
+            "airflow_m3_h",
+            "3600.00"
+          ],
+          [
+            "supply_temp_setpoint_c",
+            "21.00"
+          ],
+          [
+            "heat_recovery_efficiency",
+            "0.62"
+          ],
+          [
+            "heater_power_kw",
+            "42.00"
+          ],
+          [
+            "filter_contamination",
+            "0.22"
+          ],
+          [
+            "fan_speed_ratio",
+            "1.00"
+          ],
+          [
+            "room_temp_c",
+            "20.50"
+          ],
+          [
+            "room_heat_gain_kw",
+            "3.50"
+          ],
+          [
+            "room_volume_m3",
+            "250.00"
+          ],
+          [
+            "room_thermal_capacity_kwh_per_k",
+            "14.00"
+          ],
+          [
+            "room_loss_coeff_kw_per_k",
+            "0.18"
+          ],
+          [
+            "control_mode",
+            "auto"
+          ],
+          [
+            "horizon_minutes",
+            "120"
+          ],
+          [
+            "step_minutes",
+            "10"
+          ]
+        ]
+      },
+      {
+        "table_id": "state",
+        "title": "Итоговое состояние",
+        "columns": [
+          "Показатель",
+          "Значение"
+        ],
+        "rows": [
+          [
+            "timestamp",
+            "2026-04-18T17:40:50.728923Z"
+          ],
+          [
+            "control_mode",
+            "auto"
+          ],
+          [
+            "actual_airflow_m3_h",
+            "3322.80"
+          ],
+          [
+            "mixed_air_temp_c",
+            "-22.00"
+          ],
+          [
+            "recovered_air_temp_c",
+            "4.35"
+          ],
+          [
+            "supply_temp_c",
+            "21.00"
+          ],
+          [
+            "room_temp_c",
+            "20.46"
+          ],
+          [
+            "heating_power_kw",
+            "18.53"
+          ],
+          [
+            "heater_load_ratio",
+            "0.44"
+          ],
+          [
+            "fan_power_kw",
+            "2.27"
+          ],
+          [
+            "total_power_kw",
+            "20.80"
+          ],
+          [
+            "energy_intensity_kw_per_1000_m3_h",
+            "6.26"
+          ],
+          [
+            "filter_pressure_drop_pa",
+            "158.85"
+          ],
+          [
+            "heat_balance_kw",
+            "-3.59"
+          ],
+          [
+            "status",
+            "normal"
+          ]
+        ]
+      },
+      {
+        "table_id": "alarms",
+        "title": "Предупреждения и тревоги",
+        "columns": [
+          "Код",
+          "Уровень",
+          "Сообщение"
+        ],
+        "rows": [
+          [
+            "-",
+            "info",
+            "Активных предупреждений нет."
+          ]
+        ]
+      },
+      {
+        "table_id": "trend",
+        "title": "Тренд по шагам",
+        "columns": [
+          "Минута",
+          "Наружная, °C",
+          "Приток, °C",
+          "Помещение, °C",
+          "Нагрев, кВт",
+          "Суммарная мощность, кВт",
+          "Расход, м³/ч",
+          "ΔP фильтра, Па"
+        ],
+        "rows": [
+          [
+            "0",
+            "-22.00",
+            "21.00",
+            "20.50",
+            "18.53",
+            "20.80",
+            "3322.80",
+            "158.85"
+          ],
+          [
+            "10",
+            "-22.00",
+            "21.00",
+            "20.46",
+            "18.53",
+            "20.80",
+            "3322.80",
+            "158.85"
+          ],
+          [
+            "20",
+            "-22.00",
+            "21.00",
+            "20.42",
+            "18.56",
+            "20.83",
+            "3322.80",
+            "158.85"
+          ],
+          [
+            "30",
+            "-22.00",
+            "21.00",
+            "20.38",
+            "18.59",
+            "20.86",
+            "3322.80",
+            "158.85"
+          ],
+          [
+            "40",
+            "-22.00",
+            "21.00",
+            "20.34",
+            "18.62",
+            "20.89",
+            "3322.80",
+            "158.85"
+          ],
+          [
+            "50",
+            "-22.00",
+            "21.00",
+            "20.30",
+            "18.64",
+            "20.91",
+            "3322.80",
+            "158.85"
+          ],
+          [
+            "60",
+            "-22.00",
+            "21.00",
+            "20.26",
+            "18.67",
+            "20.94",
+            "3322.80",
+            "158.85"
+          ],
+          [
+            "70",
+            "-22.00",
+            "21.00",
+            "20.22",
+            "18.70",
+            "20.97",
+            "3322.80",
+            "158.85"
+          ],
+          [
+            "80",
+            "-22.00",
+            "21.00",
+            "20.18",
+            "18.73",
+            "21.00",
+            "3322.80",
+            "158.85"
+          ],
+          [
+            "90",
+            "-22.00",
+            "21.00",
+            "20.14",
+            "18.75",
+            "21.03",
+            "3322.80",
+            "158.85"
+          ],
+          [
+            "100",
+            "-22.00",
+            "21.00",
+            "20.10",
+            "18.78",
+            "21.05",
+            "3322.80",
+            "158.85"
+          ],
+          [
+            "110",
+            "-22.00",
+            "21.00",
+            "20.06",
+            "18.81",
+            "21.08",
+            "3322.80",
+            "158.85"
+          ],
+          [
+            "120",
+            "-22.00",
+            "21.00",
+            "20.02",
+            "18.84",
+            "21.11",
+            "3322.80",
+            "158.85"
+          ]
+        ]
+      }
+    ]
+  },
+  "artifacts": [
+    {
+      "artifact_id": "csv",
+      "label": "CSV отчёт",
+      "path": "artifacts/exports/2026-04-18/pvu-report-20260418-204050.csv",
+      "exists": true
+    },
+    {
+      "artifact_id": "pdf",
+      "label": "PDF отчёт",
+      "path": "artifacts/exports/2026-04-18/pvu-report-20260418-204050.pdf",
+      "exists": true
+    },
+    {
+      "artifact_id": "manifest",
+      "label": "Manifest",
+      "path": "artifacts/exports/2026-04-18/pvu-report-20260418-204050.manifest.json",
+      "exists": true
+    }
+  ]
+}

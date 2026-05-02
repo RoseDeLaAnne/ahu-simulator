@@ -1,0 +1,182 @@
+%PDF-1.4
+%‚„œ”
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Count 3 /Kids [4 0 R 5 0 R 6 0 R] >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+4 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 7 0 R >>
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 8 0 R >>
+endobj
+6 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 9 0 R >>
+endobj
+7 0 obj
+<< /Length 1749 >>
+stream
+BT
+/F1 11 Tf
+72 760 Td
+14 TL
+(Stsenarnyy otchet PVU) Tj
+T* () Tj
+T* (Metadannye) Tj
+T* (identifikator_otcheta: pvu-report-20260502-135540) Tj
+T* (vremya_formirovaniya: 2026-05-02T10:55:40.338717+00:00) Tj
+T* (tip_istochnika: Polzovatelskiy) Tj
+T* (istochnik: Polzovatelskiy rezhim) Tj
+T* (identifikator_stsenariya: -) Tj
+T* (nazvanie_stsenariya: -) Tj
+T* (rezhim_upravleniya: Avto) Tj
+T* (status: Risk) Tj
+T* (kolichestvo_trevog: 1) Tj
+T* (tochki_trenda: 13) Tj
+T* (gorizont_minut: 120) Tj
+T* (shag_minut: 10) Tj
+T* (identifikator_sessii: sim-cbd898ed99ef) Tj
+T* (status_sessii: Ozhidanie) Tj
+T* (proshlo_minut: 0) Tj
+T* () Tj
+T* (Klyuchevye vyvody) Tj
+T* (- [Risk] Obshchiy rezhim ustanovki: Status rezhima: Risk; aktivnykh trevog: 1.) Tj
+T* (- [Norma] Otklonenie pritoka ot ustavki: Fakticheskiy pritok 19.00 C, ustavka 19.00 C, otklonenie +0.00 C.) Tj
+T* (- [Risk] Energeticheskaya nagruzka: Summarnaya moshchnost 3.95 kVt, nagrevatel 3.37 kVt, ventilyator 0.58 kVt.) Tj
+T* (- [Norma] Dinamika pomeshcheniya: Temperatura pomeshcheniya izmenilas na +0.00 C za 120 min pri shage 10 min.) Tj
+T* () Tj
+T* (Svodka progona) Tj
+T* (Pokazatel | Znachenie) Tj
+T* (identifikator_otcheta | pvu-report-20260502-135540) Tj
+T* (vremya_formirovaniya | 2026-05-02T10:55:40.338717+00:00) Tj
+T* (tip_istochnika | Polzovatelskiy) Tj
+T* (istochnik | Polzovatelskiy rezhim) Tj
+T* (identifikator_stsenariya | -) Tj
+T* (nazvanie_stsenariya | -) Tj
+T* (rezhim_upravleniya | Avto) Tj
+T* (status | Risk) Tj
+T* (kolichestvo_trevog | 1) Tj
+T* (tochki_trenda | 13) Tj
+T* (gorizont_minut | 120) Tj
+T* (shag_minut | 10) Tj
+T* (identifikator_sessii | sim-cbd898ed99ef) Tj
+T* (status_sessii | Ozhidanie) Tj
+T* (proshlo_minut | 0) Tj
+T* () Tj
+T* (Statusy KPI i bloka trevog) Tj
+ET
+endstream
+endobj
+8 0 obj
+<< /Length 2255 >>
+stream
+BT
+/F1 11 Tf
+72 760 Td
+14 TL
+(Zona | Status | Osnovanie) Tj
+T* (overall_status | Risk | Integralnyy status rascheta: Otklonenie pritoka ot 1.5 do 3.0 C, raskhod ot 60% do 75% ili P filtra ot 280 do 360 Pa. Aktivnykh trevog: 1.) Tj
+T* (alert_block | Risk | Blok trevog agregiruet aktivnye signaly trevogi i podsvechivaet risk/avariyu po ikh urovnyu.) Tj
+T* (supply_temp | Norma | Otklonenie ot ustavki +0.0 C \(tsel 19.0 C\)) Tj
+T* (room_temp | Norma | Komfortnyy diapazon 1827 C) Tj
+T* (heating_power | Norma | Zagruzka nagrevatelya 28% ot dostupnoy moshchnosti) Tj
+T* (total_power | Norma | Udelnaya moshchnost 2.16 kVt/1000 m3/ch) Tj
+T* (airflow | Risk | 70% ot zadannogo raskhoda) Tj
+T* (filter_pressure | Norma | Porog riska 280 Pa, avarii 360 Pa) Tj
+T* () Tj
+T* (Legenda statusov) Tj
+T* (Status | Tsvet | Pravilo) Tj
+T* (Norma | #22c55e | Pritok v predelakh 1.5 C ot ustavki, raskhod vyshe 75% i P filtra nizhe 280 Pa.) Tj
+T* (Risk | #facc15 | Otklonenie pritoka ot 1.5 do 3.0 C, raskhod ot 60% do 75% ili P filtra ot 280 do 360 Pa.) Tj
+T* (Avariya | #ef4444 | Otklonenie pritoka ne menshe 3.0 C, raskhod ne vyshe 60% ili P filtra ne nizhe 360 Pa.) Tj
+T* () Tj
+T* (Parametry stsenariya) Tj
+T* (Parametr | Znachenie) Tj
+T* (Naruzhnaya temperatura, C | 8.00) Tj
+T* (Raskhod vozdukha, m3/ch | 2600.00) Tj
+T* (Ustavka pritoka, C | 19.00) Tj
+T* (Effektivnost rekuperatsii | 0.42) Tj
+T* (Moshchnost nagrevatelya, kVt | 12.00) Tj
+T* (Zagryaznenie filtra | 0.14) Tj
+T* (Otnositelnaya skorost ventilyatora | 0.74) Tj
+T* (Temperatura pomeshcheniya, C | 21.10) Tj
+T* (Teplopritoki pomeshcheniya, kVt | 3.60) Tj
+T* (Obem pomeshcheniya, m3 | 250.00) Tj
+T* (Teploemkost pomeshcheniya, kVtch/K | 14.00) Tj
+T* (Koeffitsient teplopoter, kVt/K | 0.18) Tj
+T* (Rezhim upravleniya | auto) Tj
+T* (Gorizont modelirovaniya, min | 120) Tj
+T* (Shag modelirovaniya, min | 10) Tj
+T* () Tj
+T* (Itogovoe sostoyanie) Tj
+T* (Pokazatel | Znachenie) Tj
+T* (Metka vremeni | 2026-05-02T10:55:40.338002Z) Tj
+T* (Rezhim upravleniya | auto) Tj
+T* (Fakticheskiy raskhod, m3/ch | 1829.72) Tj
+T* (Temperatura smesi, C | 8.00) Tj
+T* (Temperatura posle rekuperatsii, C | 13.50) Tj
+T* (Temperatura pritoka, C | 19.00) Tj
+T* (Temperatura pomeshcheniya, C | 21.10) Tj
+T* (Nagrev, kVt | 3.37) Tj
+ET
+endstream
+endobj
+9 0 obj
+<< /Length 1504 >>
+stream
+BT
+/F1 11 Tf
+72 760 Td
+14 TL
+(Dolya nagruzki nagrevatelya | 0.28) Tj
+T* (Moshchnost ventilyatora, kVt | 0.58) Tj
+T* (Summarnaya moshchnost, kVt | 3.95) Tj
+T* (Udelnaya moshchnost, kVt/1000 m3/ch | 2.16) Tj
+T* (Perepad davleniya filtra, Pa | 141.11) Tj
+T* (Teplovoy balans, kVt | -0.05) Tj
+T* (Status | Risk) Tj
+T* () Tj
+T* (Statusnye sobytiya) Tj
+T* (Kod | Uroven | Soobshchenie) Tj
+T* (AIRFLOW_WARNING | Risk | Raskhod vozdukha nizhe ozhidaemogo rezhima.) Tj
+T* () Tj
+T* (Trend po shagam) Tj
+T* (Minuta | Naruzhnaya, C | Pritok, C | Pomeshchenie, C | Nagrev, kVt | Summarnaya moshchnost, kVt | Raskhod, m3/ch | P filtra, Pa) Tj
+T* (0 | 8.00 | 19.00 | 21.10 | 3.37 | 3.95 | 1829.72 | 141.11) Tj
+T* (10 | 8.00 | 19.00 | 21.10 | 3.37 | 3.95 | 1829.72 | 141.11) Tj
+T* (20 | 8.00 | 19.00 | 21.10 | 3.37 | 3.95 | 1829.72 | 141.11) Tj
+T* (30 | 8.00 | 19.00 | 21.10 | 3.37 | 3.95 | 1829.72 | 141.11) Tj
+T* (40 | 8.00 | 19.00 | 21.10 | 3.37 | 3.95 | 1829.72 | 141.11) Tj
+T* (50 | 8.00 | 19.00 | 21.10 | 3.37 | 3.95 | 1829.72 | 141.11) Tj
+T* (60 | 8.00 | 19.00 | 21.10 | 3.37 | 3.95 | 1829.72 | 141.11) Tj
+T* (70 | 8.00 | 19.00 | 21.10 | 3.37 | 3.95 | 1829.72 | 141.11) Tj
+T* (80 | 8.00 | 19.00 | 21.10 | 3.37 | 3.95 | 1829.72 | 141.11) Tj
+T* (90 | 8.00 | 19.00 | 21.10 | 3.37 | 3.95 | 1829.72 | 141.11) Tj
+T* (100 | 8.00 | 19.00 | 21.10 | 3.37 | 3.95 | 1829.72 | 141.11) Tj
+T* (110 | 8.00 | 19.00 | 21.10 | 3.37 | 3.95 | 1829.72 | 141.11) Tj
+T* (120 | 8.00 | 19.00 | 21.10 | 3.37 | 3.95 | 1829.72 | 141.11) Tj
+ET
+endstream
+endobj
+xref
+0 10
+0000000000 65535 f 
+0000000015 00000 n 
+0000000064 00000 n 
+0000000133 00000 n 
+0000000203 00000 n 
+0000000329 00000 n 
+0000000455 00000 n 
+0000000581 00000 n 
+0000002382 00000 n 
+0000004689 00000 n 
+trailer
+<< /Size 10 /Root 1 0 R >>
+startxref
+6245
+%%EOF

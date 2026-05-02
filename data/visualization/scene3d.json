@@ -1,0 +1,263 @@
+{
+  "version": 2,
+  "asset": {
+    "model_path": "data/visualization/assets/pvu_installation.glb",
+    "format": "glb",
+    "generator": "tooling/scene/build_blender_pvu.py",
+    "units": "meters",
+    "up_axis": "Y",
+    "forward_axis": "X"
+  },
+  "camera_presets": {
+    "default": {
+      "position": [8.6, 7.4, -9.2],
+      "target": [0.25, 1.45, 0.9],
+      "fov": 45,
+      "near": 0.1,
+      "far": 500
+    },
+    "top": {
+      "position": [0.0, 16.5, 0.01],
+      "target": [0.0, 0.0, 0.0],
+      "fov": 45,
+      "near": 0.1,
+      "far": 500
+    },
+    "front": {
+      "position": [8.6, 7.4, -9.2],
+      "target": [0.25, 1.45, 0.9],
+      "fov": 45,
+      "near": 0.1,
+      "far": 500
+    }
+  },
+  "orbit_controls": {
+    "min_distance": 3.0,
+    "max_distance": 120.0,
+    "min_polar_angle": 0.05,
+    "max_polar_angle": 1.48,
+    "enable_damping": true,
+    "damping_factor": 0.08,
+    "auto_rotate": false
+  },
+  "performance_budget": {
+    "max_pixel_ratio": 2.0,
+    "max_canvas_width": 1400,
+    "max_canvas_height": 900,
+    "target_fps": 30,
+    "antialias": true,
+    "fallback_to_2d_on_fps_below": 10
+  },
+  "interactive_targets": [
+    "pvu.intake.outdoor_air",
+    "pvu.filter.bank",
+    "pvu.heater.coil",
+    "pvu.fan.supply",
+    "pvu.duct.supply",
+    "building.room.zone_a",
+    "pvu.sensors.outdoor_temp",
+    "pvu.sensors.filter_pressure",
+    "pvu.sensors.supply_temp",
+    "pvu.sensors.airflow",
+    "building.sensors.room_temp"
+  ],
+  "auxiliary_nodes": [
+    "pvu.fan.rotor",
+    "pvu.flow.room_plumes",
+    "building.flow.extract_context",
+    "pvu.damper.intake",
+    "pvu.damper.living",
+    "pvu.damper.bedroom_north",
+    "pvu.damper.bedroom_south",
+    "pvu.damper.study",
+    "pvu.damper.kitchen"
+  ],
+  "animation_rules": {
+    "fan_rotation": {
+      "target_node": "pvu.fan.rotor",
+      "axis": "X",
+      "speed_signal": "flows.flow_fan_to_room.intensity",
+      "max_rpm": 3.0
+    },
+    "flow_pulse": {
+      "target_nodes": [
+        "pvu.flow.outdoor_to_filter",
+        "pvu.flow.filter_to_heater",
+        "pvu.flow.heater_to_fan",
+        "pvu.flow.fan_to_room",
+        "building.flow.extract_context"
+      ],
+      "property": "opacity",
+      "min_opacity": 0.26,
+      "max_opacity": 0.92,
+      "pulse_speed": 1.7
+    },
+    "damper_position": {
+      "target_nodes": [
+        "pvu.damper.intake",
+        "pvu.damper.living",
+        "pvu.damper.bedroom_north",
+        "pvu.damper.bedroom_south",
+        "pvu.damper.study",
+        "pvu.damper.kitchen"
+      ],
+      "axis": "Z",
+      "closed_angle_deg": -58,
+      "open_angle_deg": 8,
+      "driver_signal": "flows.flow_fan_to_room.intensity",
+      "response": 3.2
+    },
+    "plume_pulse": {
+      "target_nodes": [
+        "pvu.flow.room_plumes"
+      ],
+      "axis": "Y",
+      "min_scale": 0.88,
+      "max_scale": 1.22,
+      "min_opacity": 0.12,
+      "max_opacity": 0.48,
+      "pulse_speed": 1.15,
+      "driver_signal": "flows.flow_fan_to_room.intensity"
+    },
+    "sensor_pulse": {
+      "target_nodes": [
+        "pvu.sensors.outdoor_temp",
+        "pvu.sensors.filter_pressure",
+        "pvu.sensors.supply_temp",
+        "pvu.sensors.airflow",
+        "building.sensors.room_temp"
+      ],
+      "min_scale": 0.94,
+      "max_scale": 1.14,
+      "pulse_speed": 1.6,
+      "emissive_strength": 1.05
+    }
+  },
+  "status_colors": {
+    "normal": "#22c55e",
+    "warning": "#facc15",
+    "alarm": "#ef4444",
+    "inactive": "#64748b"
+  },
+  "emissive_highlight": {
+    "hover": "#334155",
+    "selected": "#475569",
+    "alarm_flash_a": "#ff2000",
+    "alarm_flash_b": "#ff6600"
+  },
+  "export_rules": {
+    "dcc_tool": "Blender / procedural Python script",
+    "units": "meters",
+    "orientation": "Y-up, X-forward (browser-ready GLB export)",
+    "allowed_texture_formats": ["png", "jpeg"],
+    "node_naming": "dot-separated hierarchy matching scene_node IDs",
+    "update_procedure": "Re-run build_blender_pvu.py or re-export from Blender, then validate scene3d.json"
+  },
+  "bindings": [
+    {
+      "visual_id": "outdoor_air",
+      "kind": "node",
+      "signal_path": "nodes.outdoor_air",
+      "svg_element_id": "outdoor_air",
+      "scene_node": "pvu.intake.outdoor_air"
+    },
+    {
+      "visual_id": "filter_bank",
+      "kind": "node",
+      "signal_path": "nodes.filter_bank",
+      "svg_element_id": "filter_bank",
+      "scene_node": "pvu.filter.bank"
+    },
+    {
+      "visual_id": "heater_coil",
+      "kind": "node",
+      "signal_path": "nodes.heater_coil",
+      "svg_element_id": "heater_coil",
+      "scene_node": "pvu.heater.coil"
+    },
+    {
+      "visual_id": "supply_fan",
+      "kind": "node",
+      "signal_path": "nodes.supply_fan",
+      "svg_element_id": "supply_fan",
+      "scene_node": "pvu.fan.supply"
+    },
+    {
+      "visual_id": "supply_duct",
+      "kind": "node",
+      "signal_path": "nodes.supply_duct",
+      "svg_element_id": "supply_duct",
+      "scene_node": "pvu.duct.supply"
+    },
+    {
+      "visual_id": "room_zone",
+      "kind": "node",
+      "signal_path": "nodes.room_zone",
+      "svg_element_id": "room_zone",
+      "scene_node": "building.room.zone_a"
+    },
+    {
+      "visual_id": "sensor_outdoor_temp",
+      "kind": "sensor",
+      "signal_path": "sensors.sensor_outdoor_temp",
+      "svg_element_id": "sensor_outdoor_temp",
+      "scene_node": "pvu.sensors.outdoor_temp"
+    },
+    {
+      "visual_id": "sensor_filter_pressure",
+      "kind": "sensor",
+      "signal_path": "sensors.sensor_filter_pressure",
+      "svg_element_id": "sensor_filter_pressure",
+      "scene_node": "pvu.sensors.filter_pressure"
+    },
+    {
+      "visual_id": "sensor_supply_temp",
+      "kind": "sensor",
+      "signal_path": "sensors.sensor_supply_temp",
+      "svg_element_id": "sensor_supply_temp",
+      "scene_node": "pvu.sensors.supply_temp"
+    },
+    {
+      "visual_id": "sensor_airflow",
+      "kind": "sensor",
+      "signal_path": "sensors.sensor_airflow",
+      "svg_element_id": "sensor_airflow",
+      "scene_node": "pvu.sensors.airflow"
+    },
+    {
+      "visual_id": "sensor_room_temp",
+      "kind": "sensor",
+      "signal_path": "sensors.sensor_room_temp",
+      "svg_element_id": "sensor_room_temp",
+      "scene_node": "building.sensors.room_temp"
+    },
+    {
+      "visual_id": "flow_outdoor_to_filter",
+      "kind": "flow",
+      "signal_path": "flows.flow_outdoor_to_filter",
+      "svg_element_id": "flow_outdoor_to_filter",
+      "scene_node": "pvu.flow.outdoor_to_filter"
+    },
+    {
+      "visual_id": "flow_filter_to_heater",
+      "kind": "flow",
+      "signal_path": "flows.flow_filter_to_heater",
+      "svg_element_id": "flow_filter_to_heater",
+      "scene_node": "pvu.flow.filter_to_heater"
+    },
+    {
+      "visual_id": "flow_heater_to_fan",
+      "kind": "flow",
+      "signal_path": "flows.flow_heater_to_fan",
+      "svg_element_id": "flow_heater_to_fan",
+      "scene_node": "pvu.flow.heater_to_fan"
+    },
+    {
+      "visual_id": "flow_fan_to_room",
+      "kind": "flow",
+      "signal_path": "flows.flow_fan_to_room",
+      "svg_element_id": "flow_fan_to_room",
+      "scene_node": "pvu.flow.fan_to_room"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+::ffff:127.0.0.1 - - [20/Apr/2026 17:13:36] "GET /index.html HTTP/1.1" 200 -
+::ffff:127.0.0.1 - - [20/Apr/2026 17:13:36] "GET /js/iconify.min.js HTTP/1.1" 200 -
+::ffff:127.0.0.1 - - [20/Apr/2026 17:13:36] "GET /js/resource_9neza9.js HTTP/1.1" 200 -
+::ffff:127.0.0.1 - - [20/Apr/2026 17:13:36] "GET /css/inline-styles.css HTTP/1.1" 200 -
+::ffff:127.0.0.1 - - [20/Apr/2026 17:13:36] "GET /images/photo-1600607687939-ce8a6c25118c.png HTTP/1.1" 200 -
+::ffff:127.0.0.1 - - [20/Apr/2026 17:13:37] "GET /images/photo-1605276374104-dee2a0ed3cd6.png HTTP/1.1" 200 -
+::ffff:127.0.0.1 - - [20/Apr/2026 17:13:37] "GET /images/photo-1640906152676-dace6710d24b.png HTTP/1.1" 200 -
+::ffff:127.0.0.1 - - [20/Apr/2026 17:13:37] "GET /images/photo-1600585154340-be6161a56a0c.png HTTP/1.1" 200 -
+::ffff:127.0.0.1 - - [20/Apr/2026 17:13:37] "GET /images/photo-1629946832022-c327f74956e0.png HTTP/1.1" 200 -
+::ffff:127.0.0.1 - - [20/Apr/2026 17:13:37] "GET /images/photo-1600607686527-6fb886090705.png HTTP/1.1" 200 -
+::ffff:127.0.0.1 - - [20/Apr/2026 17:13:37] "GET /images/photo-1724525647065-f948fc102e68.png HTTP/1.1" 200 -
+::ffff:127.0.0.1 - - [20/Apr/2026 17:13:37] "GET /images/photo-1595846519845-68e298c2edd8.png HTTP/1.1" 200 -
+::ffff:127.0.0.1 - - [20/Apr/2026 17:13:38] code 404, message File not found
+::ffff:127.0.0.1 - - [20/Apr/2026 17:13:38] "GET /favicon.ico HTTP/1.1" 404 -

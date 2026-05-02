@@ -1,0 +1,28 @@
+{
+  "event_id": "pvu-event-20260418-215436",
+  "captured_at": "2026-04-18T18:54:36.353474Z",
+  "category": "simulation",
+  "level": "critical",
+  "title": "Запущен сценарий Снижение подачи",
+  "summary": "Снижение подачи (reduced_flow): приток 20.0 °C, расход 1533 м³/ч, суммарная мощность 5.7 кВт.",
+  "source_type": "dashboard",
+  "source_label": "Снижение подачи (reduced_flow)",
+  "trigger": "scenario-select",
+  "scenario_id": "reduced_flow",
+  "scenario_title": "Снижение подачи",
+  "control_mode": "auto",
+  "status": "alarm",
+  "details": [
+    "Триггер dashboard/API: scenario-select.",
+    "Режим управления: auto.",
+    "Статус: alarm.",
+    "Тревоги: AIRFLOW_CRITICAL.",
+    "Контур: Автоматический режим удерживает температуру притока около уставки; доступный запас нагревателя можно использовать как резерв.",
+    "Смена статуса: normal -> alarm.",
+    "Δ притока: +0.5 °C.",
+    "Δ расхода: -1080 м³/ч.",
+    "Δ мощности: -1.4 кВт."
+  ],
+  "artifact_path": null,
+  "file_path": "artifacts/event-log/2026-04-18/pvu-event-20260418-215436.json"
+}

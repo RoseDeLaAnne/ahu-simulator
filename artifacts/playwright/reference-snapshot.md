@@ -1,0 +1,169 @@
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e3]:
+      - link "Matos." [ref=e4] [cursor=pointer]:
+        - /url: "#"
+      - generic [ref=e5]:
+        - link "Philosophy" [ref=e6] [cursor=pointer]:
+          - /url: "#commitments"
+        - link "Services" [ref=e7] [cursor=pointer]:
+          - /url: "#services"
+        - link "Process" [ref=e8] [cursor=pointer]:
+          - /url: "#process"
+      - link "Start Project" [ref=e9] [cursor=pointer]:
+        - /url: "#contact"
+        - text: Start Project
+        - img [ref=e10]
+  - banner [ref=e12]:
+    - generic [ref=e14]:
+      - generic [ref=e15]:
+        - generic [ref=e16]:
+          - heading "Your Ideal Home" [level=1] [ref=e17]
+          - generic [ref=e18]
+        - generic [ref=e22]:
+          - paragraph [ref=e23]: We will help you choose a property that combines modern style, impeccable comfort, and the highest investment appeal.
+          - link "Find Your Home" [ref=e24] [cursor=pointer]:
+            - /url: "#contact"
+        - generic [ref=e25]:
+          - generic [ref=e26]
+          - generic [ref=e29]
+          - generic [ref=e32]
+        - generic [ref=e35]:
+          - img "Modern Interior" [ref=e36]
+          - generic [ref=e37]
+      - generic [ref=e44]:
+        - img "Luxury Villa" [ref=e45]
+        - generic [ref=e46]:
+          - link [ref=e47] [cursor=pointer]:
+            - /url: "#"
+          - link [ref=e51] [cursor=pointer]:
+            - /url: "#"
+          - link [ref=e54] [cursor=pointer]:
+            - /url: "#"
+        - generic [ref=e58]:
+          - img "Property Preview" [ref=e60]
+          - paragraph [ref=e61]: Within 7 days, we will find a property that fully matches your budget and preferences.
+          - button [ref=e62] [cursor=pointer]
+        - generic [ref=e65]:
+          - paragraph [ref=e66]: With us, buying a home becomes simple, safe, and enjoyable, as we guide you through every step — from selecting the property to completing the paperwork.
+          - button "Learn More" [ref=e67] [cursor=pointer]
+  - img "Minimalist Interior" [ref=e69]
+  - generic [ref=e72]:
+    - generic [ref=e74]:
+      - heading "The Matos Standard" [level=2] [ref=e75]
+      - paragraph [ref=e76]: Our reputation is built on what we do when no one is watching.
+    - generic [ref=e77]:
+      - generic [ref=e78]:
+        - img [ref=e80]
+        - heading "Total Accountability" [level=3] [ref=e84]
+        - paragraph [ref=e85]: We take full responsibility for the project. No finger-pointing. If a challenge arises, we solve it.
+      - generic [ref=e86]:
+        - img [ref=e88]
+        - heading "Radical Transparency" [level=3] [ref=e90]
+        - paragraph [ref=e91]: Clear communication. Real timelines. No hidden costs. You remain informed at every phase.
+      - generic [ref=e92]:
+        - img [ref=e94]
+        - heading "Respect for Property" [level=3] [ref=e98]
+        - paragraph [ref=e99]: We treat your home as if it were our own. Clean worksites and protection for your belongings are mandatory.
+      - generic [ref=e100]:
+        - img [ref=e102]
+        - heading "Precision Execution" [level=3] [ref=e104]
+        - paragraph [ref=e105]: From framing to the final paint stroke, our craftsmanship is measured in millimeters, not inches.
+      - generic [ref=e106]:
+        - img [ref=e108]
+        - heading "Respected Timelines" [level=3] [ref=e112]
+        - paragraph [ref=e113]: We respect your time. We set realistic schedules and work diligently to meet them without compromising quality.
+      - generic [ref=e114]:
+        - img [ref=e116]
+        - heading "Long-term Support" [level=3] [ref=e118]
+        - paragraph [ref=e119]: Our relationship doesn't end when the dust settles. We stand behind our work with solid guarantees.
+  - generic [ref=e121]:
+    - generic [ref=e122]: Expertise
+    - generic [ref=e123]:
+      - generic [ref=e125]:
+        - img "Interior Transformations" [ref=e126]
+        - img "Exterior Improvements" [ref=e127]
+        - img "Design & Systems" [ref=e128]
+      - generic [ref=e129]:
+        - generic [ref=e131] [cursor=pointer]:
+          - generic [ref=e132]: "01"
+          - generic [ref=e133]
+        - generic [ref=e151] [cursor=pointer]:
+          - generic [ref=e152]: "02"
+          - generic [ref=e153]
+        - generic [ref=e170] [cursor=pointer]:
+          - generic [ref=e171]: "03"
+          - generic [ref=e172]
+  - generic [ref=e189]:
+    - generic [ref=e190]:
+      - generic [ref=e191]:
+        - heading "The Process" [level=2] [ref=e192]
+        - paragraph [ref=e193]: Stress-free execution from concept to completion.
+      - link "Start your journey" [ref=e194] [cursor=pointer]:
+        - /url: "#contact"
+    - generic [ref=e195]:
+      - generic [ref=e196]:
+        - generic [ref=e197]: "01"
+        - heading "Consultation" [level=3] [ref=e198]
+        - paragraph [ref=e199]: We meet to discuss your vision, budget, and timeline. We provide a clear, detailed estimate.
+      - generic [ref=e200]:
+        - generic [ref=e201]: "02"
+        - heading "Planning" [level=3] [ref=e202]
+        - paragraph [ref=e203]: Design, material selection, and permitting. We handle the paperwork so you don't have to.
+      - generic [ref=e204]:
+        - generic [ref=e205]: "03"
+        - heading "Construction" [level=3] [ref=e206]
+        - paragraph [ref=e207]: Our team executes with precision, maintaining a clean site and providing weekly updates.
+      - generic [ref=e208]:
+        - generic [ref=e209]: "04"
+        - heading "Delivery" [level=3] [ref=e210]
+        - paragraph [ref=e211]: Final walkthrough and handover. We ensure every detail meets the Matos Standard.
+  - generic [ref=e213]:
+    - generic [ref=e215]:
+      - img "Construction Detail" [ref=e216]
+      - paragraph [ref=e218]: Dallas, Texas
+    - generic [ref=e219]:
+      - heading "A legacy of honest work." [level=2] [ref=e220]
+      - generic [ref=e221]:
+        - paragraph [ref=e222]: In an industry often plagued by uncertainty, Matos Home Improvements stands as a pillar of reliability. We believe that how we treat our clients is just as important as the quality of our construction.
+        - paragraph [ref=e223]: We are a Dallas-based company understanding the specific needs of local homeowners, property managers, and businesses. When you hire Matos, you hire peace of mind.
+      - generic [ref=e224]:
+        - generic [ref=e225]:
+          - img [ref=e226]
+          - text: Licensed
+        - generic [ref=e230]:
+          - img [ref=e231]
+          - text: Insured
+        - generic [ref=e235]:
+          - img [ref=e236]
+          - text: Bonded
+  - generic [ref=e241]:
+    - heading "Ready to build something lasting?" [level=2] [ref=e242]
+    - paragraph [ref=e243]: Schedule a consultation with our team. We’ll discuss your project, budget, and how we can bring your vision to life.
+    - generic [ref=e244]:
+      - generic [ref=e245]:
+        - generic [ref=e246]: Email
+        - textbox "Email" [ref=e247]:
+          - /placeholder: Your email address
+      - button "Request Consultation" [ref=e248] [cursor=pointer]
+      - paragraph [ref=e249]: No spam. No pressure. Just professional advice.
+  - contentinfo [ref=e250]:
+    - generic [ref=e251]:
+      - generic [ref=e252]:
+        - generic [ref=e253]:
+          - link "Matos." [ref=e254] [cursor=pointer]:
+            - /url: "#"
+          - paragraph [ref=e255]: Premium home remodeling services for Dallas, Texas. Built on integrity, transparency, and architectural quality.
+        - generic [ref=e256]:
+          - heading "Services" [level=4] [ref=e257]
+          - list [ref=e258]
+        - generic [ref=e265]:
+          - heading "Contact" [level=4] [ref=e266]
+          - list [ref=e267]
+      - generic [ref=e281]:
+        - paragraph [ref=e282]: © 2024 Matos Home Improvements LLC. All rights reserved.
+        - generic [ref=e283]:
+          - link [ref=e284] [cursor=pointer]:
+            - /url: "#"
+          - link [ref=e289] [cursor=pointer]:
+            - /url: "#"

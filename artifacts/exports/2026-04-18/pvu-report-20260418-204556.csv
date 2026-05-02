@@ -1,0 +1,113 @@
+section,key,value
+metadata,report_id,pvu-report-20260418-204556
+metadata,generated_at,2026-04-18T17:45:56.463370Z
+metadata,source_type,scenario
+metadata,source_label,Пик нагрузки (peak_load)
+metadata,scenario_id,peak_load
+metadata,scenario_title,Пик нагрузки
+metadata,control_mode,auto
+metadata,status,normal
+metadata,alarm_count,0
+metadata,trend_points,13
+metadata,horizon_minutes,120
+metadata,step_minutes,10
+metadata,session_id,sim-c86578e5e4a3
+metadata,session_status,idle
+metadata,elapsed_minutes,0
+
+section,finding_id,title,severity,conclusion
+finding,operating-status,Общий режим установки,normal,Статус режима: normal; активных тревог: 0.
+finding,supply-gap,Отклонение притока от уставки,normal,"Фактический приток 22.00 °C, уставка 22.00 °C, отклонение +0.00 °C."
+finding,energy-balance,Энергетическая нагрузка,normal,"Суммарная мощность 39.23 кВт, нагреватель 27.45 кВт, вентилятор 11.78 кВт."
+finding,room-trend,Динамика помещения,normal,Температура помещения изменилась на +0.67 °C за 120 мин при шаге 10 мин.
+
+table,summary,Сводка прогона
+Показатель,Значение
+report_id,pvu-report-20260418-204556
+generated_at,2026-04-18T17:45:56.463370+00:00
+source_type,scenario
+source_label,Пик нагрузки (peak_load)
+scenario_id,peak_load
+scenario_title,Пик нагрузки
+control_mode,auto
+status,normal
+alarm_count,0
+trend_points,13
+horizon_minutes,120
+step_minutes,10
+session_id,sim-c86578e5e4a3
+session_status,idle
+elapsed_minutes,0
+
+table,status,Статусы KPI и alert-блока
+Зона,Статус,Основание
+overall_status,Норма,Интегральный статус расчёта API/state: normal; активных тревог: 0.
+alert_block,Норма,Alert-блок агрегирует активные alarms и подсвечивает риск/аварию по их уровню.
+supply_temp,Норма,Отклонение от уставки +0.0 °C (цель 22.0 °C)
+room_temp,Норма,Комфортный диапазон 18–27 °C
+heating_power,Норма,Загрузка нагревателя 39% от доступной мощности
+total_power,Риск,Удельная мощность 6.82 кВт/1000 м³/ч
+airflow,Норма,88% от заданного расхода
+filter_pressure,Норма,"Порог риска 280 Па, аварии 360 Па"
+
+table,status_legend,Легенда статусов
+Статус,Цвет,Правило
+Норма,#22c55e,"Приток в пределах 1.5 °C от уставки, расход выше 75% и ΔP фильтра ниже 280 Па."
+Риск,#facc15,"Отклонение притока от 1.5 до 3.0 °C, расход от 60% до 75% или ΔP фильтра от 280 до 360 Па."
+Авария,#ef4444,"Отклонение притока не меньше 3.0 °C, расход не выше 60% или ΔP фильтра не ниже 360 Па."
+
+table,parameters,Параметры сценария
+Параметр,Значение
+outdoor_temp_c,-8.00
+airflow_m3_h,6500.00
+supply_temp_setpoint_c,22.00
+heat_recovery_efficiency,0.50
+heater_power_kw,70.00
+filter_contamination,0.60
+fan_speed_ratio,1.12
+room_temp_c,23.50
+room_heat_gain_kw,14.00
+room_volume_m3,250.00
+room_thermal_capacity_kwh_per_k,14.00
+room_loss_coeff_kw_per_k,0.18
+control_mode,auto
+horizon_minutes,120
+step_minutes,10
+
+table,state,Итоговое состояние
+Показатель,Значение
+timestamp,2026-04-18T17:45:56.462902Z
+control_mode,auto
+actual_airflow_m3_h,5751.20
+mixed_air_temp_c,-8.00
+recovered_air_temp_c,7.75
+supply_temp_c,22.00
+room_temp_c,23.56
+heating_power_kw,27.45
+heater_load_ratio,0.39
+fan_power_kw,11.78
+total_power_kw,39.23
+energy_intensity_kw_per_1000_m3_h,6.82
+filter_pressure_drop_pa,270.53
+heat_balance_kw,5.44
+status,normal
+
+table,alarms,Предупреждения и тревоги
+Код,Уровень,Сообщение
+-,info,Активных предупреждений нет.
+
+table,trend,Тренд по шагам
+Минута,"Наружная, °C","Приток, °C","Помещение, °C","Нагрев, кВт","Суммарная мощность, кВт","Расход, м³/ч","ΔP фильтра, Па"
+0,-8.00,22.00,23.50,27.45,39.23,5751.20,270.53
+10,-8.00,22.00,23.56,27.45,39.23,5751.20,270.53
+20,-8.00,22.00,23.62,27.40,39.17,5751.20,270.53
+30,-8.00,22.00,23.68,27.34,39.12,5751.20,270.53
+40,-8.00,22.00,23.74,27.28,39.06,5751.20,270.53
+50,-8.00,22.00,23.80,27.22,39.00,5751.20,270.53
+60,-8.00,22.00,23.86,27.17,38.94,5751.20,270.53
+70,-8.00,22.00,23.92,27.11,38.89,5751.20,270.53
+80,-8.00,22.00,23.97,27.05,38.83,5751.20,270.53
+90,-8.00,22.00,24.02,27.00,38.78,5751.20,270.53
+100,-8.00,22.00,24.07,26.95,38.73,5751.20,270.53
+110,-8.00,22.00,24.12,26.91,38.68,5751.20,270.53
+120,-8.00,22.00,24.17,26.86,38.63,5751.20,270.53

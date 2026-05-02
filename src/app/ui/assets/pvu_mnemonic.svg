@@ -1,0 +1,340 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 480" role="img" aria-labelledby="svg-title svg-desc">
+  <title id="svg-title">Мнемосхема приточной вентиляционной установки</title>
+  <desc id="svg-desc">SVG-сцена ПВУ с узлами, датчиками и потоками, обновляемая через clientside callback.</desc>
+  <defs>
+    <linearGradient id="panelGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#15343b" />
+      <stop offset="100%" stop-color="#0d2025" />
+    </linearGradient>
+    <linearGradient id="roomGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#183e46" />
+      <stop offset="100%" stop-color="#10272d" />
+    </linearGradient>
+    <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="0" stdDeviation="10" flood-color="#56d8cf" flood-opacity="0.18" />
+    </filter>
+  </defs>
+  <style>
+    .scene-bg {
+      fill: #09181c;
+    }
+
+    .scene-frame {
+      fill: url(#panelGradient);
+      stroke: rgba(152, 176, 172, 0.18);
+      stroke-width: 2;
+    }
+
+    .heading {
+      fill: #edf6f3;
+      font: 700 28px Bahnschrift, "Segoe UI", sans-serif;
+      letter-spacing: 0.04em;
+    }
+
+    .subheading {
+      fill: #9fb8b3;
+      font: 600 13px Bahnschrift, "Segoe UI", sans-serif;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .summary {
+      fill: #dce9e6;
+      font: 600 16px Bahnschrift, "Segoe UI", sans-serif;
+    }
+
+    .visual-node .node-shell,
+    .visual-sensor .sensor-shell {
+      fill: rgba(20, 43, 49, 0.96);
+      stroke: rgba(100, 210, 203, 0.45);
+      stroke-width: 3;
+      filter: url(#softGlow);
+      transition: fill 0.2s ease, stroke 0.2s ease;
+    }
+
+    .visual-node[data-state="normal"] .node-shell,
+    .visual-sensor[data-state="normal"] .sensor-shell,
+    .visual-flow[data-state="normal"] .flow-line {
+      stroke: #4fd1c5;
+    }
+
+    .visual-node[data-state="warning"] .node-shell,
+    .visual-sensor[data-state="warning"] .sensor-shell,
+    .visual-flow[data-state="warning"] .flow-line {
+      stroke: #facc15;
+    }
+
+    .visual-node[data-state="alarm"] .node-shell,
+    .visual-sensor[data-state="alarm"] .sensor-shell,
+    .visual-flow[data-state="alarm"] .flow-line {
+      stroke: #fb7185;
+    }
+
+    .visual-node[data-state="warning"] .node-shell,
+    .visual-sensor[data-state="warning"] .sensor-shell {
+      fill: rgba(63, 53, 13, 0.84);
+    }
+
+    .visual-node[data-state="alarm"] .node-shell,
+    .visual-sensor[data-state="alarm"] .sensor-shell {
+      fill: rgba(65, 18, 26, 0.88);
+    }
+
+    .node-caption,
+    .sensor-caption {
+      fill: #8fa8a3;
+      font: 600 12px Bahnschrift, "Segoe UI", sans-serif;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .node-value,
+    .sensor-value {
+      fill: #f3fbf8;
+      font: 700 28px "Cascadia Code", Consolas, monospace;
+    }
+
+    .node-detail,
+    .sensor-detail {
+      fill: #b8c7c3;
+      font: 500 14px Bahnschrift, "Segoe UI", sans-serif;
+    }
+
+    .room-node .node-shell {
+      fill: url(#roomGradient);
+    }
+
+    .visual-flow {
+      --signal-intensity: 0.65;
+    }
+
+    .flow-line {
+      fill: none;
+      stroke: #4fd1c5;
+      stroke-width: 14;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-dasharray: 20 14;
+      opacity: calc(0.35 + var(--signal-intensity) * 0.55);
+    }
+
+    .visual-flow.is-active .flow-line {
+      animation: flowDash 1.8s linear infinite;
+    }
+
+    .flow-arrow {
+      fill: currentColor;
+      color: #4fd1c5;
+      opacity: calc(0.38 + var(--signal-intensity) * 0.52);
+    }
+
+    .visual-flow[data-state="warning"] .flow-arrow {
+      color: #facc15;
+    }
+
+    .visual-flow[data-state="alarm"] .flow-arrow {
+      color: #fb7185;
+    }
+
+    .flow-caption {
+      fill: #8ca4a0;
+      font: 600 11px Bahnschrift, "Segoe UI", sans-serif;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .flow-value,
+    .flow-detail {
+      fill: #ebf8f5;
+      font: 600 14px Bahnschrift, "Segoe UI", sans-serif;
+    }
+
+    .alarm-badge {
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .alarm-badge circle {
+      fill: #fb7185;
+    }
+
+    .alarm-badge text {
+      fill: white;
+      font: 700 16px Bahnschrift, "Segoe UI", sans-serif;
+      text-anchor: middle;
+    }
+
+    .ambient-label {
+      fill: #79938f;
+      font: 500 13px Bahnschrift, "Segoe UI", sans-serif;
+    }
+
+    @keyframes flowDash {
+      to {
+        stroke-dashoffset: -68;
+      }
+    }
+  </style>
+
+  <rect class="scene-bg" x="0" y="0" width="1200" height="480" rx="32" />
+  <rect class="scene-frame" x="14" y="14" width="1172" height="452" rx="28" />
+
+  <text class="subheading" x="48" y="54">SVG mnemonic renderer</text>
+  <text class="heading" x="48" y="92">Приточная вентиляционная установка</text>
+  <text class="ambient-label" id="scene-status" x="950" y="56">Статус: NORMAL</text>
+  <text class="ambient-label" id="scene-bindings-version" x="950" y="80">bindings v1</text>
+  <text class="summary" id="scene-summary" x="48" y="430">Ожидание данных моделирования.</text>
+
+  <g id="flow_outdoor_to_filter" class="visual-flow is-active" data-state="normal">
+    <path id="flow_outdoor_to_filter__line" class="flow-line" d="M 242 175 H 280" />
+    <polygon class="flow-arrow" points="280,175 264,166 264,184" />
+    <text class="flow-caption" x="250" y="150">Поток</text>
+    <text id="flow_outdoor_to_filter__value" class="flow-value" x="246" y="204">--</text>
+    <text id="flow_outdoor_to_filter__detail" class="flow-detail" x="246" y="222">--</text>
+  </g>
+
+  <g id="flow_filter_to_heater" class="visual-flow is-active" data-state="normal">
+    <path id="flow_filter_to_heater__line" class="flow-line" d="M 432 175 H 470" />
+    <polygon class="flow-arrow" points="470,175 454,166 454,184" />
+    <text class="flow-caption" x="438" y="150">Поток</text>
+    <text id="flow_filter_to_heater__value" class="flow-value" x="438" y="204">--</text>
+    <text id="flow_filter_to_heater__detail" class="flow-detail" x="438" y="222">--</text>
+  </g>
+
+  <g id="flow_heater_to_fan" class="visual-flow is-active" data-state="normal">
+    <path id="flow_heater_to_fan__line" class="flow-line" d="M 622 175 H 660" />
+    <polygon class="flow-arrow" points="660,175 644,166 644,184" />
+    <text class="flow-caption" x="628" y="150">Поток</text>
+    <text id="flow_heater_to_fan__value" class="flow-value" x="628" y="204">--</text>
+    <text id="flow_heater_to_fan__detail" class="flow-detail" x="628" y="222">--</text>
+  </g>
+
+  <g id="flow_fan_to_room" class="visual-flow is-active" data-state="normal">
+    <path id="flow_fan_to_room__line" class="flow-line" d="M 812 175 H 1038 V 308 H 860" />
+    <polygon class="flow-arrow" points="860,308 876,299 876,317" />
+    <text class="flow-caption" x="840" y="150">Подача в помещение</text>
+    <text id="flow_fan_to_room__value" class="flow-value" x="842" y="202">--</text>
+    <text id="flow_fan_to_room__detail" class="flow-detail" x="842" y="220">--</text>
+  </g>
+
+  <g id="outdoor_air" class="visual-node" data-state="normal" transform="translate(60 120)">
+    <rect class="node-shell" width="180" height="110" rx="24" />
+    <text class="node-caption" x="20" y="30">Наружный воздух</text>
+    <text id="outdoor_air__value" class="node-value" x="20" y="70">--</text>
+    <text id="outdoor_air__detail" class="node-detail" x="20" y="94">--</text>
+    <g id="outdoor_air__alarm" class="alarm-badge" transform="translate(148 22)">
+      <circle r="14" />
+      <text id="outdoor_air__alarm_text" y="6">!</text>
+    </g>
+  </g>
+
+  <g id="filter_bank" class="visual-node" data-state="normal" transform="translate(280 100)">
+    <rect class="node-shell" width="150" height="140" rx="26" />
+    <text class="node-caption" x="18" y="32">Фильтр</text>
+    <text id="filter_bank__value" class="node-value" x="18" y="82">--</text>
+    <text id="filter_bank__detail" class="node-detail" x="18" y="112">--</text>
+    <g id="filter_bank__alarm" class="alarm-badge" transform="translate(122 24)">
+      <circle r="14" />
+      <text id="filter_bank__alarm_text" y="6">!</text>
+    </g>
+  </g>
+
+  <g id="heater_coil" class="visual-node" data-state="normal" transform="translate(470 100)">
+    <rect class="node-shell" width="150" height="140" rx="26" />
+    <text class="node-caption" x="18" y="32">Нагреватель</text>
+    <text id="heater_coil__value" class="node-value" x="18" y="82">--</text>
+    <text id="heater_coil__detail" class="node-detail" x="18" y="112">--</text>
+    <g id="heater_coil__alarm" class="alarm-badge" transform="translate(122 24)">
+      <circle r="14" />
+      <text id="heater_coil__alarm_text" y="6">!</text>
+    </g>
+  </g>
+
+  <g id="supply_fan" class="visual-node" data-state="normal" transform="translate(660 100)">
+    <rect class="node-shell" width="150" height="140" rx="26" />
+    <text class="node-caption" x="18" y="32">Вентилятор</text>
+    <text id="supply_fan__value" class="node-value" x="18" y="82">--</text>
+    <text id="supply_fan__detail" class="node-detail" x="18" y="112">--</text>
+    <g id="supply_fan__alarm" class="alarm-badge" transform="translate(122 24)">
+      <circle r="14" />
+      <text id="supply_fan__alarm_text" y="6">!</text>
+    </g>
+  </g>
+
+  <g id="supply_duct" class="visual-node" data-state="normal" transform="translate(850 90)">
+    <rect class="node-shell" width="200" height="160" rx="28" />
+    <text class="node-caption" x="20" y="34">Приточный воздуховод</text>
+    <text id="supply_duct__value" class="node-value" x="20" y="94">--</text>
+    <text id="supply_duct__detail" class="node-detail" x="20" y="126">--</text>
+    <g id="supply_duct__alarm" class="alarm-badge" transform="translate(170 26)">
+      <circle r="14" />
+      <text id="supply_duct__alarm_text" y="6">!</text>
+    </g>
+  </g>
+
+  <g id="room_zone" class="visual-node room-node" data-state="normal" transform="translate(860 290)">
+    <rect class="node-shell" width="270" height="120" rx="28" />
+    <text class="node-caption" x="22" y="34">Помещение</text>
+    <text id="room_zone__value" class="node-value" x="22" y="84">--</text>
+    <text id="room_zone__detail" class="node-detail" x="22" y="108">--</text>
+    <g id="room_zone__alarm" class="alarm-badge" transform="translate(238 26)">
+      <circle r="14" />
+      <text id="room_zone__alarm_text" y="6">!</text>
+    </g>
+  </g>
+
+  <g id="sensor_outdoor_temp" class="visual-sensor" data-state="normal" transform="translate(118 46)">
+    <rect class="sensor-shell" width="128" height="54" rx="18" />
+    <text class="sensor-caption" x="14" y="20">T наружная</text>
+    <text id="sensor_outdoor_temp__value" class="sensor-value" x="14" y="43">--</text>
+    <text id="sensor_outdoor_temp__detail" class="sensor-detail" x="14" y="62" />
+    <g id="sensor_outdoor_temp__alarm" class="alarm-badge" transform="translate(108 18)">
+      <circle r="11" />
+      <text id="sensor_outdoor_temp__alarm_text" y="5">!</text>
+    </g>
+  </g>
+
+  <g id="sensor_filter_pressure" class="visual-sensor" data-state="normal" transform="translate(290 270)">
+    <rect class="sensor-shell" width="138" height="58" rx="18" />
+    <text class="sensor-caption" x="14" y="22">ΔP фильтра</text>
+    <text id="sensor_filter_pressure__value" class="sensor-value" x="14" y="47">--</text>
+    <text id="sensor_filter_pressure__detail" class="sensor-detail" x="14" y="66" />
+    <g id="sensor_filter_pressure__alarm" class="alarm-badge" transform="translate(118 18)">
+      <circle r="11" />
+      <text id="sensor_filter_pressure__alarm_text" y="5">!</text>
+    </g>
+  </g>
+
+  <g id="sensor_supply_temp" class="visual-sensor" data-state="normal" transform="translate(878 26)">
+    <rect class="sensor-shell" width="146" height="58" rx="18" />
+    <text class="sensor-caption" x="14" y="22">T притока</text>
+    <text id="sensor_supply_temp__value" class="sensor-value" x="14" y="47">--</text>
+    <text id="sensor_supply_temp__detail" class="sensor-detail" x="14" y="66" />
+    <g id="sensor_supply_temp__alarm" class="alarm-badge" transform="translate(126 18)">
+      <circle r="11" />
+      <text id="sensor_supply_temp__alarm_text" y="5">!</text>
+    </g>
+  </g>
+
+  <g id="sensor_airflow" class="visual-sensor" data-state="normal" transform="translate(900 255)">
+    <rect class="sensor-shell" width="142" height="58" rx="18" />
+    <text class="sensor-caption" x="14" y="22">Расход</text>
+    <text id="sensor_airflow__value" class="sensor-value" x="14" y="47">--</text>
+    <text id="sensor_airflow__detail" class="sensor-detail" x="14" y="66" />
+    <g id="sensor_airflow__alarm" class="alarm-badge" transform="translate(122 18)">
+      <circle r="11" />
+      <text id="sensor_airflow__alarm_text" y="5">!</text>
+    </g>
+  </g>
+
+  <g id="sensor_room_temp" class="visual-sensor" data-state="normal" transform="translate(980 230)">
+    <rect class="sensor-shell" width="140" height="58" rx="18" />
+    <text class="sensor-caption" x="14" y="22">T помещения</text>
+    <text id="sensor_room_temp__value" class="sensor-value" x="14" y="47">--</text>
+    <text id="sensor_room_temp__detail" class="sensor-detail" x="14" y="66" />
+    <g id="sensor_room_temp__alarm" class="alarm-badge" transform="translate(120 18)">
+      <circle r="11" />
+      <text id="sensor_room_temp__alarm_text" y="5">!</text>
+    </g>
+  </g>
+</svg>

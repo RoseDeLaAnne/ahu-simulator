@@ -1,0 +1,23 @@
+{
+  "event_id": "pvu-event-20260502-151337",
+  "captured_at": "2026-05-02T12:13:37.021050Z",
+  "category": "simulation",
+  "level": "info",
+  "title": "Сессия симуляции сброшена",
+  "summary": "Межсезонье (midseason): 0 из 120 мин, тик 0 из 12.",
+  "source_type": "api",
+  "source_label": "Межсезонье (midseason)",
+  "trigger": "simulation.session.reset",
+  "scenario_id": "midseason",
+  "scenario_title": "Межсезонье",
+  "control_mode": "auto",
+  "status": "normal",
+  "details": [
+    "Состояние сессии: idle.",
+    "Скорость воспроизведения: x1.",
+    "Горизонт достигнут: нет.",
+    "Действие: reset."
+  ],
+  "artifact_path": null,
+  "file_path": "artifacts/event-log/2026-05-02/pvu-event-20260502-151337.json"
+}

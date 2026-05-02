@@ -1,0 +1,23 @@
+{
+  "event_id": "pvu-event-20260502-135529",
+  "captured_at": "2026-05-02T10:55:29.783096Z",
+  "category": "simulation",
+  "level": "warning",
+  "title": "Сессия симуляции сброшена",
+  "summary": "Пользовательский режим: 0 из 120 мин, тик 0 из 12.",
+  "source_type": "dashboard",
+  "source_label": "Пользовательский режим",
+  "trigger": "simulation.reset",
+  "scenario_id": null,
+  "scenario_title": null,
+  "control_mode": "auto",
+  "status": "warning",
+  "details": [
+    "Состояние сессии: idle.",
+    "Скорость воспроизведения: x1.",
+    "Горизонт достигнут: нет.",
+    "Действие: reset."
+  ],
+  "artifact_path": null,
+  "file_path": "artifacts/event-log/2026-05-02/pvu-event-20260502-135529.json"
+}

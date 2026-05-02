@@ -1,0 +1,27 @@
+{
+  "event_id": "pvu-event-20260502-151858",
+  "captured_at": "2026-05-02T12:18:58.472974Z",
+  "category": "simulation",
+  "level": "warning",
+  "title": "Запущен сценарий Phase H UI temp preset",
+  "summary": "Phase H UI temp preset (phase_h_ui_temp_preset): приток 19.0 °C, расход 1830 м³/ч, суммарная мощность 4.0 кВт.",
+  "source_type": "dashboard",
+  "source_label": "Phase H UI temp preset (phase_h_ui_temp_preset)",
+  "trigger": "scenario-select",
+  "scenario_id": "phase_h_ui_temp_preset",
+  "scenario_title": "Phase H UI temp preset",
+  "control_mode": "auto",
+  "status": "warning",
+  "details": [
+    "Триггер интерфейса/API: scenario-select.",
+    "Режим управления: Авто.",
+    "Статус: Риск.",
+    "Тревоги: AIRFLOW_WARNING.",
+    "Контур: Автоматический режим удерживает температуру притока около уставки; доступный запас нагревателя можно использовать как резерв.",
+    "Δ притока: +0.0 °C.",
+    "Δ расхода: +0 м³/ч.",
+    "Δ мощности: +0.0 кВт."
+  ],
+  "artifact_path": null,
+  "file_path": "artifacts/event-log/2026-05-02/pvu-event-20260502-151858.json"
+}

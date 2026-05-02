@@ -1,0 +1,27 @@
+{
+  "event_id": "pvu-event-20260502-151337-10",
+  "captured_at": "2026-05-02T12:13:37.491182Z",
+  "category": "simulation",
+  "level": "info",
+  "title": "Запущен сценарий Phase H временный preset",
+  "summary": "Phase H временный preset (phase_h_temp_20260502_1513): приток 19.0 °C, расход 1974 м³/ч, суммарная мощность 4.7 кВт.",
+  "source_type": "api",
+  "source_label": "Phase H временный preset (phase_h_temp_20260502_1513)",
+  "trigger": "scenarios.run:phase_h_temp_20260502_1513",
+  "scenario_id": "phase_h_temp_20260502_1513",
+  "scenario_title": "Phase H временный preset",
+  "control_mode": "auto",
+  "status": "normal",
+  "details": [
+    "Триггер интерфейса/API: scenarios.run:phase_h_temp_20260502_1513.",
+    "Режим управления: Авто.",
+    "Статус: Норма.",
+    "Тревоги: нет активных тревог.",
+    "Контур: Автоматический режим удерживает температуру притока около уставки; доступный запас нагревателя можно использовать как резерв.",
+    "Δ притока: -2.0 °C.",
+    "Δ расхода: -1349 м³/ч.",
+    "Δ мощности: -16.1 кВт."
+  ],
+  "artifact_path": null,
+  "file_path": "artifacts/event-log/2026-05-02/pvu-event-20260502-151337-10.json"
+}
