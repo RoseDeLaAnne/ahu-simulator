@@ -7,3 +7,6 @@ artifacts/playwright/manual/
 artifacts/playwright/ci/
 .env
 config/local.env
+3d-references/
+tooling/bin/
+artifacts/demo-packages/
