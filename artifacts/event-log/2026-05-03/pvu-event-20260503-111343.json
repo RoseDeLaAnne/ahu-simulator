@@ -1,0 +1,27 @@
+{
+  "event_id": "pvu-event-20260503-111343",
+  "captured_at": "2026-05-03T08:13:43.735086Z",
+  "category": "simulation",
+  "level": "info",
+  "title": "Запущен сценарий Пик нагрузки",
+  "summary": "Пик нагрузки (peak_load): приток 22.0 °C, расход 5751 м³/ч, суммарная мощность 39.2 кВт.",
+  "source_type": "dashboard",
+  "source_label": "Пик нагрузки (peak_load)",
+  "trigger": "scenario-select",
+  "scenario_id": "peak_load",
+  "scenario_title": "Пик нагрузки",
+  "control_mode": "auto",
+  "status": "normal",
+  "details": [
+    "Триггер интерфейса/API: scenario-select.",
+    "Режим управления: Авто.",
+    "Статус: Норма.",
+    "Тревоги: нет активных тревог.",
+    "Контур: Автоматический режим удерживает температуру притока около уставки; доступный запас нагревателя можно использовать как резерв.",
+    "Δ притока: -5.9 °C.",
+    "Δ расхода: +2906 м³/ч.",
+    "Δ мощности: +37.7 кВт."
+  ],
+  "artifact_path": null,
+  "file_path": "artifacts/event-log/2026-05-03/pvu-event-20260503-111343.json"
+}

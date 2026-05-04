@@ -18,6 +18,212 @@ const COLD_COLOR = new THREE.Color(0x4cc9f0);
 const WARM_COLOR = new THREE.Color(0xfb923c);
 const NEUTRAL_COLOR = new THREE.Color(0x8b9aa7);
 
+// Семантическая палитра секций ПВУ (русская инженерная терминология).
+// По типовой компоновке СП 60.13330.2020 и рекомендациям АВОК:
+// холодные тона — забор и охлаждение, теплые — нагрев, янтарь — клапан,
+// сталь/графит — корпус и крепления.
+const SECTION_PALETTE = {
+  intake: new THREE.Color(0x7dd3fc),    // воздухозабор — ледяной голубой
+  damper: new THREE.Color(0xfbbf24),    // воздушный клапан — янтарный
+  filter: new THREE.Color(0xf1f5f9),    // фильтр — чистый светло-серый
+  silencer: new THREE.Color(0xa78bfa),  // шумоглушитель — приглушённый сиреневый
+  heater: new THREE.Color(0xfb7185),    // калорифер (нагреватель) — тёпло-розовый
+  fan: new THREE.Color(0x22d3ee),       // приточный вентилятор — бирюзовый
+  duct: new THREE.Color(0x94a3b8),      // воздуховод подачи — стальной
+  outdoor: new THREE.Color(0x60a5fa),   // наружный/выбросной канал — синий
+  enclosure: new THREE.Color(0x475569), // корпус секций — графит
+  frame: new THREE.Color(0x6b7280),     // рамы и крепления — холодный серый
+};
+
+const ENCLOSURE_KINDS = {
+  enclosure_shell: true,
+  enclosure_door: true,
+  enclosure_handle: true,
+};
+
+// Visual IDs, значения которых несут температуру (°C). Для таких узлов
+// color materials окрашиваются по температуре (холодный голубой → тёплый
+// оранжевый через нейтральный комфортный серый), а emissive остаётся по
+// status, чтобы авария/предупреждение были видны как цветной glow.
+const TEMPERATURE_VISUAL_IDS = {
+  outdoor_air: true,
+  supply_duct: true,
+  heater_coil: true,
+  room_zone: true,
+  flow_heater_to_fan: true,
+  flow_fan_to_room: true,
+  sensor_outdoor_temp: true,
+  sensor_supply_temp: true,
+  sensor_room_temp: true,
+};
+
+// Visual IDs, чьё состояние отражает давление на фильтре.
+const FILTER_PRESSURE_VISUAL_IDS = {
+  filter_bank: true,
+  sensor_filter_pressure: true,
+};
+
+// Приоритетные подписи в русской инженерной терминологии для постоянной
+// видимости (overlay screen-space). Ключевые секции ПВУ по СП 60.13330.2020 +
+// сервисные датчики микроклимата по ГОСТ 30494-2011.
+const PRIORITY_LABELS = [
+  { node: "pvu.intake.outdoor_air", text: "Забор", type: "section" },
+  { node: "pvu.filter.bank", text: "Фильтр", type: "section" },
+  { node: "pvu.heater.coil", text: "Калорифер", type: "section" },
+  { node: "pvu.fan.supply", text: "Вентилятор", type: "section" },
+  { node: "pvu.duct.supply", text: "Подача", type: "section" },
+  { node: "building.room.zone_a", text: "Помещение", type: "zone" },
+  { node: "pvu.sensors.outdoor_temp", text: "T нар.", type: "sensor" },
+  { node: "pvu.sensors.filter_pressure", text: "ΔP фильтра", type: "sensor" },
+  { node: "pvu.sensors.supply_temp", text: "T притока", type: "sensor" },
+  { node: "pvu.sensors.airflow", text: "Расход", type: "sensor" },
+  { node: "building.sensors.room_temp", text: "T помещ.", type: "sensor" },
+];
+
+const STATE_LABEL_RU = {
+  normal: "Норма",
+  warning: "Риск",
+  alarm: "Авария",
+  inactive: "Неактивно",
+};
+
+const TEMP_COLD = new THREE.Color(0x38bdf8);   // < -5 °C
+const TEMP_COMFORT = new THREE.Color(0xd1d5db); // 20–24 °C
+const TEMP_WARM = new THREE.Color(0xf97316);   // > 32 °C
+
+/**
+ * Возвращает цвет, соответствующий температуре по отечественной ОВК-гамме:
+ * холодный голубой ниже нуля (СП 131.13330.2025 / ГОСТ 30494-2011 зона холода),
+ * нейтральный комфортный при 20–24 °C (ГОСТ 30494-2011 оптимальные значения),
+ * тёплый оранжевый при перегреве/горячей подаче.
+ */
+function _temperatureColor(celsius) {
+  if (celsius === null || !Number.isFinite(celsius)) return null;
+  var result;
+  if (celsius <= 20) {
+    // -30 .. 20 °C: cold → comfort.
+    var t1 = _clamp((celsius + 30) / 50, 0, 1);
+    result = TEMP_COLD.clone().lerp(TEMP_COMFORT, t1);
+  } else if (celsius <= 24) {
+    // Comfort band (20..24 °C).
+    result = TEMP_COMFORT.clone();
+  } else {
+    // 24 .. 40 °C: comfort → warm.
+    var t2 = _clamp((celsius - 24) / 16, 0, 1);
+    result = TEMP_COMFORT.clone().lerp(TEMP_WARM, t2);
+  }
+  return result;
+}
+
+/**
+ * Классификация роли mesh по имени узла в иерархии GLB-сцены ПВУ.
+ * Возвращает { kind, section } — kind задаёт правило отрисовки в режимах
+ * studio/xray/schematic, section — ключ в SECTION_PALETTE.
+ *
+ * Замечание: Three.js GLTFLoader удаляет точки из имён узлов
+ * (`pvu.fan.blade_1` -> `pvufanblade_1`). Поэтому регулярки/indexOf здесь
+ * работают по нормализованной форме `name` без точек.
+ */
+function _classifyAhuRole(meshName) {
+  if (!meshName) return { kind: "other", section: null };
+  // Нормализуем: убираем точки и приводим к нижнему регистру.
+  var name = String(meshName).toLowerCase().replace(/\./g, "");
+  if (!name) return { kind: "other", section: null };
+
+  // Корпус секций ПВУ: оригинал «pvu.{section}.shell» -> «pvu{section}shell».
+  if (/^pvu/.test(name) && /shell$/.test(name) && name !== "pvuductsupplystatus_shell") {
+    return { kind: "enclosure_shell", section: "enclosure" };
+  }
+  if (/^pvu/.test(name) && /door$/.test(name)) {
+    return { kind: "enclosure_door", section: "enclosure" };
+  }
+  if (/^pvu/.test(name) && /handle$/.test(name)) {
+    return { kind: "enclosure_handle", section: "enclosure" };
+  }
+  if (/^pvudamper/.test(name)) {
+    return { kind: "damper", section: "damper" };
+  }
+  if (/^pvuintake/.test(name)) {
+    if (/louver/.test(name)) return { kind: "intake_louver", section: "intake" };
+    if (/weather_hood/.test(name)) return { kind: "intake_hood", section: "intake" };
+    if (/transition/.test(name)) return { kind: "intake_transition", section: "intake" };
+    return { kind: "intake_other", section: "intake" };
+  }
+  if (/^pvufilter/.test(name)) {
+    if (/media/.test(name)) return { kind: "filter_media", section: "filter" };
+    if (/frame/.test(name)) return { kind: "filter_frame", section: "filter" };
+    return { kind: "filter_other", section: "filter" };
+  }
+  if (/^pvusilencer/.test(name)) {
+    if (/baffle/.test(name)) return { kind: "silencer_baffle", section: "silencer" };
+    return { kind: "silencer_other", section: "silencer" };
+  }
+  if (/^pvuheater/.test(name)) {
+    if (/fin/.test(name)) return { kind: "heater_fin", section: "heater" };
+    if (/pipe/.test(name)) return { kind: "heater_pipe", section: "heater" };
+    if (/frame/.test(name)) return { kind: "heater_frame", section: "heater" };
+    return { kind: "heater_other", section: "heater" };
+  }
+  if (/^pvufan/.test(name)) {
+    if (/blade/.test(name)) return { kind: "fan_blade", section: "fan" };
+    if (/hub/.test(name)) return { kind: "fan_hub", section: "fan" };
+    if (/scroll_housing/.test(name)) return { kind: "fan_housing", section: "fan" };
+    if (/inlet/.test(name)) return { kind: "fan_inlet", section: "fan" };
+    return { kind: "fan_other", section: "fan" };
+  }
+  if (/^pvuduct/.test(name)) {
+    if (/status_shell/.test(name)) return { kind: "status_shell", section: "duct" };
+    return { kind: "duct", section: "duct" };
+  }
+  if (/^pvuplenum/.test(name)) {
+    return { kind: "plenum", section: "duct" };
+  }
+  if (/^pvubase/.test(name)) {
+    return { kind: "base", section: "frame" };
+  }
+  if (/^pvuinstallation/.test(name)) {
+    // pvu.installation, pvu.installation.base — внешний контейнер.
+    return { kind: "base", section: "frame" };
+  }
+  if (/^buildingoutdoor/.test(name)) {
+    return { kind: "outdoor_stack", section: "outdoor" };
+  }
+  if (/^buildingsystemssupply/.test(name) || /^duct/.test(name)) {
+    return { kind: "duct", section: "duct" };
+  }
+  if (/^building/.test(name)) {
+    return { kind: "building", section: null };
+  }
+  if (/^extract/.test(name)) {
+    // extract.*flow / extract.plume_* / extract.kitchen_run.flow и т.п.
+    if (/flow/.test(name) || /plume/.test(name)) {
+      return { kind: "flow", section: null };
+    }
+    return { kind: "building", section: null };
+  }
+  if (/^zone/.test(name)) {
+    return { kind: "building", section: null };
+  }
+  if (/^pvuflow/.test(name) || /^flow/.test(name)) {
+    return { kind: "flow", section: null };
+  }
+  if (/^pvusensors/.test(name) || /^buildingsensors/.test(name)) {
+    return { kind: "sensor", section: null };
+  }
+  // Мебель помещения: living.sofa, bedroom_north.bed, study.desk, kitchen.counter, utility.cabinet
+  if (
+    /^living/.test(name) ||
+    /^bedroom/.test(name) ||
+    /^study/.test(name) ||
+    /^kitchen/.test(name) ||
+    /^utility/.test(name) ||
+    /^bath/.test(name)
+  ) {
+    return { kind: "building", section: null };
+  }
+  return { kind: "other", section: null };
+}
+
 let renderer = null;
 let scene = null;
 let camera = null;
@@ -26,6 +232,9 @@ let animationId = null;
 let clock = null;
 let container = null;
 let infoCard = null;
+let labelLayer = null;
+let labelsState = [];
+let legendOverlay = null;
 let resizeObserver = null;
 let modelRoot = null;
 let overlayRoot = null;
@@ -664,16 +873,31 @@ function _createInfoCard() {
   document.body.appendChild(infoCard);
 }
 
+function _escapeHtml(text) {
+  return String(text == null ? "" : text)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function _showInfoCard(target, x, y) {
   if (!infoCard || !target || !target.userData || !target.userData.pvuSignal) return;
   var signal = target.userData.pvuSignal;
+  var state = signal.state || "normal";
+  var stateText = STATE_LABEL_RU[state] || STATE_LABEL_RU.normal;
   var alarmText = signal.alarm_text
-    ? '<div class="viewer3d-info-alarm">ALARM: ' + signal.alarm_text + "</div>"
+    ? '<div class="viewer3d-info-alarm">' + _escapeHtml(signal.alarm_text) + "</div>"
     : "";
+  infoCard.dataset.state = state;
   infoCard.innerHTML =
-    '<div class="viewer3d-info-label">' + (signal.label || target.name || "Signal") + "</div>" +
-    '<div class="viewer3d-info-value">' + (signal.value || "") + "</div>" +
-    (signal.detail ? '<div class="viewer3d-info-detail">' + signal.detail + "</div>" : "") +
+    '<div class="viewer3d-info-head">' +
+    '<span class="viewer3d-info-label">' + _escapeHtml(signal.label || target.name || "Сигнал") + "</span>" +
+    '<span class="viewer3d-info-state viewer3d-info-state--' + state + '">' + _escapeHtml(stateText) + "</span>" +
+    "</div>" +
+    '<div class="viewer3d-info-value">' + _escapeHtml(signal.value || "—") + "</div>" +
+    (signal.detail ? '<div class="viewer3d-info-detail">' + _escapeHtml(signal.detail) + "</div>" : "") +
     alarmText;
   infoCard.style.display = "block";
   infoCard.style.left = (x + 18) + "px";
@@ -689,6 +913,119 @@ function _showInfoCard(target, x, y) {
 
 function _hideInfoCard() {
   if (infoCard) infoCard.style.display = "none";
+}
+
+/**
+ * Создаёт overlay-слой с приоритетными подписями секций ПВУ.
+ * Слой накладывается на canvas (pointer-events: none, чтобы не блокировать
+ * раскрутку OrbitControls). На каждом frame `_updateLabels` обновляет
+ * positions и state.
+ */
+function _createLabelLayer() {
+  if (!container) return;
+  labelLayer = document.createElement("div");
+  labelLayer.className = "viewer3d-label-layer";
+  container.appendChild(labelLayer);
+  labelsState = PRIORITY_LABELS.map(function (spec) {
+    var el = document.createElement("div");
+    el.className = "viewer3d-label viewer3d-label--" + spec.type;
+    el.textContent = spec.text;
+    el.dataset.nodeId = spec.node;
+    labelLayer.appendChild(el);
+    return Object.assign({}, spec, { element: el, lastVisible: false });
+  });
+}
+
+function _removeLabelLayer() {
+  if (labelLayer && labelLayer.parentNode) {
+    labelLayer.parentNode.removeChild(labelLayer);
+  }
+  labelLayer = null;
+  labelsState = [];
+}
+
+/**
+ * Создаёт легенду статусов / температурных тонов / потоков.
+ * Лежит в правом нижнем углу контейнера и не мешает orbit-вращению.
+ */
+function _createLegendOverlay() {
+  if (!container) return;
+  legendOverlay = document.createElement("div");
+  legendOverlay.className = "viewer3d-legend";
+  legendOverlay.innerHTML =
+    '<div class="viewer3d-legend__title">Легенда</div>' +
+    '<div class="viewer3d-legend__group">' +
+    '<div class="viewer3d-legend__group-title">Состояние</div>' +
+    '<div class="viewer3d-legend__row"><span class="viewer3d-legend__dot" style="background:#22c55e"></span>Норма</div>' +
+    '<div class="viewer3d-legend__row"><span class="viewer3d-legend__dot" style="background:#facc15"></span>Риск</div>' +
+    '<div class="viewer3d-legend__row"><span class="viewer3d-legend__dot" style="background:#ef4444"></span>Авария</div>' +
+    "</div>" +
+    '<div class="viewer3d-legend__group">' +
+    '<div class="viewer3d-legend__group-title">Температура</div>' +
+    '<div class="viewer3d-legend__row"><span class="viewer3d-legend__dot" style="background:#38bdf8"></span>&lt; 18 °C</div>' +
+    '<div class="viewer3d-legend__row"><span class="viewer3d-legend__dot" style="background:#d1d5db"></span>20–24 °C</div>' +
+    '<div class="viewer3d-legend__row"><span class="viewer3d-legend__dot" style="background:#f97316"></span>&gt; 26 °C</div>' +
+    "</div>" +
+    '<div class="viewer3d-legend__group">' +
+    '<div class="viewer3d-legend__group-title">Поток</div>' +
+    '<div class="viewer3d-legend__row"><span class="viewer3d-legend__dot" style="background:#22d3ee"></span>Воздухопоток</div>' +
+    '<div class="viewer3d-legend__row"><span class="viewer3d-legend__dot" style="background:#fbbf24"></span>Клапаны</div>' +
+    "</div>" +
+    '<div class="viewer3d-legend__hint">Курсор/тап по узлу — карточка с показаниями</div>';
+  container.appendChild(legendOverlay);
+}
+
+function _removeLegendOverlay() {
+  if (legendOverlay && legendOverlay.parentNode) {
+    legendOverlay.parentNode.removeChild(legendOverlay);
+  }
+  legendOverlay = null;
+}
+
+function _updateLabels() {
+  if (!labelLayer || !camera || !container || !labelsState.length) return;
+  var rect = container.getBoundingClientRect();
+  var width = rect.width;
+  var height = rect.height;
+  if (!width || !height) return;
+  var margin = 16;
+  for (var i = 0; i < labelsState.length; i += 1) {
+    var label = labelsState[i];
+    var node = _getNode(label.node);
+    if (!node) {
+      if (label.lastVisible !== false) {
+        label.element.style.display = "none";
+        label.lastVisible = false;
+      }
+      continue;
+    }
+    var target = new THREE.Vector3();
+    node.getWorldPosition(target);
+    var projected = target.project(camera);
+    if (projected.z >= 1) {
+      // Behind near/far planes — скрываем без обновления координат.
+      if (label.lastVisible !== false) {
+        label.element.style.display = "none";
+        label.lastVisible = false;
+      }
+      continue;
+    }
+    var x = ((projected.x + 1) / 2) * width;
+    var y = ((-projected.y + 1) / 2) * height;
+    x = Math.max(margin, Math.min(width - margin, x));
+    y = Math.max(margin, Math.min(height - margin, y));
+    label.element.style.left = x + "px";
+    label.element.style.top = y + "px";
+    if (label.lastVisible !== true) {
+      label.element.style.display = "block";
+      label.lastVisible = true;
+    }
+    var signal = node.userData && node.userData.pvuSignal;
+    var state = signal && signal.state ? signal.state : "normal";
+    if (label.element.dataset.state !== state) {
+      label.element.dataset.state = state;
+    }
+  }
 }
 
 function _createSceneScaffold() {
@@ -928,6 +1265,8 @@ function init(containerId, meta) {
     clock = new THREE.Clock();
     _createSceneScaffold();
     _createInfoCard();
+    _createLabelLayer();
+    _createLegendOverlay();
     _onResize();
 
     renderer.domElement.addEventListener("mousemove", _onMouseMove);
@@ -1739,9 +2078,15 @@ function _createFlowNode(sceneNode, points, colorHex) {
   );
   group.add(auraTube);
 
-  for (var i = 0; i < 10; i += 1) {
+  // Плотная цепочка направленных меток-частиц вдоль curve. Это даёт
+  // «течение» воздуха, интенсивность которого управляется
+  // `flows.*.intensity` (см. _animateFlowNodes). 24 частицы дают
+  // заметное визуальное различие между малым и большим расходом без
+  // заметной нагрузки на GPU на performance_budget 30 fps.
+  var particleCount = 24;
+  for (var i = 0; i < particleCount; i += 1) {
     var particle = new THREE.Mesh(
-      new THREE.SphereGeometry(viewMetrics.flowRadius * 0.74, 16, 16),
+      new THREE.SphereGeometry(viewMetrics.flowRadius * 0.58, 14, 14),
       new THREE.MeshBasicMaterial({
         color: colorHex,
         transparent: true,
@@ -1749,13 +2094,16 @@ function _createFlowNode(sceneNode, points, colorHex) {
         depthWrite: false,
       })
     );
-    particle.userData.flowOffset = i / 10;
+    particle.userData.flowOffset = i / particleCount;
     group.userData.flowParticles.push(particle);
     group.add(particle);
   }
 
   group.userData.colorMaterials = [tube.material, auraTube.material];
   group.userData.glowMaterials = [tube.material];
+  group.userData.flowParticleMaterials = group.userData.flowParticles.map(function (particle) {
+    return particle.material;
+  });
   _registerNode(sceneNode, group, true);
   overlayRoot.add(group);
   return group;
@@ -1981,6 +2329,16 @@ function _buildSyntheticScene() {
     _resolvePointFromSpec(effectsProfile.filter_dust, anchors, { anchor: "filter" }),
     _withDefault((effectsProfile.filter_dust || {}).scale, 1)
   );
+  // Дополнительный маркер перепада давления ΔP на фильтре: полупрозрачное
+  // красно-оранжевое halo-кольцо, видимое только при warning/alarm состоянии
+  // sensor_filter_pressure. См. _animateFilterPressureCue.
+  _createAuraRings(
+    "pvu.effect.filter_pressure_cue",
+    _resolvePointFromSpec(effectsProfile.filter_dust, anchors, { anchor: "filter" }),
+    0xef4444,
+    _withDefault((effectsProfile.filter_dust || {}).scale, 1) * 0.85,
+    "filter-pressure-cue"
+  );
   _createAuraRings(
     "pvu.effect.heater_field",
     _resolvePointFromSpec(effectsProfile.heater_field, anchors, { anchor: "heater" }),
@@ -2118,41 +2476,174 @@ function setScaleTuning(scaleTuning) {
   return true;
 }
 
+/**
+ * Поднимается по parent-цепочке mesh до первого узла, имя которого попадает
+ * в `_classifyAhuRole` (kind != "other"). Это нужно, потому что GLB после
+ * экспорта из Blender может оставлять у самих Mesh пустые имена, а семантика
+ * хранится у родительского Object3D (например, "pvu.fan.blade_1" — это Group,
+ * а её child Mesh без имени).
+ */
+function _classifyMeshContext(mesh) {
+  var current = mesh;
+  while (current) {
+    var role = _classifyAhuRole(current.name);
+    if (role.kind !== "other") return role;
+    if (current === modelRoot || current === roomModelRoot || current === scene) break;
+    current = current.parent;
+  }
+  return { kind: "other", section: null };
+}
+
+function _applyMaterialForMode(material, base, role, mode, accentColor) {
+  var sectionColor = role.section ? SECTION_PALETTE[role.section] : null;
+  var isEnclosure = ENCLOSURE_KINDS[role.kind] === true;
+  var isFlow = role.kind === "flow";
+
+  if (mode === "xray") {
+    if (isFlow) {
+      // Потоки управляются applySignals/animateFlow, в xray не трогаем.
+      material.transparent = base.transparent;
+      material.opacity = base.opacity;
+      material.depthWrite = base.depthWrite;
+      material.color.copy(base.color);
+      material.emissive.copy(base.emissive);
+      material.emissiveIntensity = base.emissiveIntensity;
+      material.roughness = base.roughness;
+      material.metalness = base.metalness;
+    } else if (role.kind === "enclosure_shell" || role.kind === "enclosure_door") {
+      // Корпус и двери — почти невидимый контур, чтобы открыть внутренние секции.
+      material.transparent = true;
+      material.opacity = 0.05;
+      material.depthWrite = false;
+      material.color.copy(base.color).lerp(SECTION_PALETTE.enclosure, 0.45);
+      material.emissive.setHex(0x000000);
+      material.emissiveIntensity = 0;
+      material.roughness = 0.55;
+      material.metalness = 0.18;
+    } else if (role.kind === "enclosure_handle" || role.kind === "base" || role.kind === "outdoor_stack") {
+      material.transparent = true;
+      material.opacity = 0.45;
+      material.depthWrite = true;
+      material.color.copy(base.color).lerp(SECTION_PALETTE.frame, 0.18);
+      material.emissive.setHex(0x000000);
+      material.emissiveIntensity = 0;
+      material.roughness = base.roughness;
+      material.metalness = base.metalness;
+    } else if (role.kind === "building") {
+      // Стены/полы помещения — едва заметные, чтобы не перекрывали ПВУ.
+      material.transparent = true;
+      material.opacity = 0.06;
+      material.depthWrite = false;
+      material.color.copy(base.color).lerp(new THREE.Color(0xe2e8f0), 0.5);
+      material.emissive.setHex(0x000000);
+      material.emissiveIntensity = 0;
+      material.roughness = 0.95;
+      material.metalness = 0;
+    } else if (sectionColor) {
+      // Внутренние секции ПВУ: яркие, с эмиссией цвета секции.
+      material.transparent = base.transparent;
+      material.opacity = Math.max(base.opacity, 0.94);
+      material.depthWrite = true;
+      material.color.copy(base.color).lerp(sectionColor, 0.55);
+      material.emissive.copy(sectionColor).multiplyScalar(0.45);
+      material.emissiveIntensity = 0.7;
+      material.roughness = 0.32;
+      material.metalness = 0.22;
+    } else {
+      material.transparent = true;
+      material.opacity = Math.max(0.18, base.opacity * 0.32);
+      material.depthWrite = false;
+      material.color.copy(base.color).lerp(accentColor, 0.22);
+      material.emissive.copy(accentColor).multiplyScalar(0.1);
+      material.emissiveIntensity = 0.2;
+      material.roughness = 0.4;
+      material.metalness = 0.1;
+    }
+  } else if (mode === "schematic") {
+    if (isFlow) {
+      material.transparent = base.transparent;
+      material.opacity = base.opacity;
+      material.depthWrite = base.depthWrite;
+      material.color.copy(base.color);
+      material.emissive.copy(base.emissive);
+      material.emissiveIntensity = base.emissiveIntensity;
+      material.roughness = base.roughness;
+      material.metalness = base.metalness;
+    } else if (isEnclosure) {
+      // Корпус превращается в едва видимый контур.
+      material.transparent = true;
+      material.opacity = 0.04;
+      material.depthWrite = false;
+      material.color.set(0xe2e8f0);
+      material.emissive.setHex(0x000000);
+      material.emissiveIntensity = 0;
+      material.roughness = 0.95;
+      material.metalness = 0;
+    } else if (role.kind === "building") {
+      material.transparent = true;
+      material.opacity = 0.05;
+      material.depthWrite = false;
+      material.color.set(0xf1f5f9);
+      material.emissive.setHex(0x000000);
+      material.emissiveIntensity = 0;
+      material.roughness = 0.98;
+      material.metalness = 0;
+    } else if (sectionColor) {
+      // Внутренние секции отрисовываются плоским цветом по семантике.
+      material.transparent = false;
+      material.opacity = 1;
+      material.depthWrite = true;
+      material.color.copy(sectionColor);
+      material.emissive.copy(sectionColor).multiplyScalar(0.18);
+      material.emissiveIntensity = 0.28;
+      material.roughness = 0.78;
+      material.metalness = 0;
+    } else {
+      material.transparent = true;
+      material.opacity = Math.max(0.16, base.opacity * 0.22);
+      material.depthWrite = false;
+      material.color.copy(base.color).lerp(new THREE.Color(0xe2e8f0), 0.6);
+      material.emissive.setHex(0x000000);
+      material.emissiveIntensity = 0;
+      material.roughness = 0.95;
+      material.metalness = 0;
+    }
+  } else {
+    // studio: реалистичный вид с цветовой семантикой секций.
+    material.transparent = base.transparent;
+    material.opacity = base.opacity;
+    material.depthWrite = base.depthWrite;
+    if (sectionColor && !isEnclosure && !isFlow) {
+      material.color.copy(base.color).lerp(sectionColor, 0.32);
+      material.emissive.copy(sectionColor).multiplyScalar(0.05);
+      material.emissiveIntensity = Math.max(base.emissiveIntensity, 0.08);
+      material.roughness = Math.min(base.roughness, 0.6);
+      material.metalness = Math.max(base.metalness, 0.18);
+    } else if (isEnclosure) {
+      material.color.copy(base.color).lerp(SECTION_PALETTE.enclosure, 0.18);
+      material.emissive.copy(base.emissive);
+      material.emissiveIntensity = Math.max(base.emissiveIntensity, 0.04);
+      material.roughness = Math.min(base.roughness, 0.55);
+      material.metalness = Math.max(base.metalness, 0.18);
+    } else {
+      material.color.copy(base.color).lerp(accentColor, 0.08);
+      material.emissive.copy(base.emissive);
+      material.emissiveIntensity = Math.max(base.emissiveIntensity, 0.04);
+      material.roughness = Math.min(base.roughness, 0.62);
+      material.metalness = Math.max(base.metalness, 0.16);
+    }
+  }
+  material.needsUpdate = true;
+}
+
 function _applyDisplayModeToRoot(root, mode, accentColor) {
   if (!root) return;
   root.traverse(function (child) {
     if (!child.isMesh || !child.material) return;
+    var role = _classifyMeshContext(child);
     _materialArray(child.material).forEach(function (material) {
       var base = _ensureModelMaterialState(material);
-      if (mode === "xray") {
-        material.transparent = true;
-        material.opacity = Math.max(0.18, base.opacity * 0.24);
-        material.depthWrite = false;
-        material.color.copy(base.color).lerp(accentColor, 0.32);
-        material.emissive.copy(accentColor).multiplyScalar(0.12);
-        material.emissiveIntensity = 0.26;
-        material.roughness = 0.12;
-        material.metalness = 0.06;
-      } else if (mode === "schematic") {
-        material.transparent = true;
-        material.opacity = Math.max(0.08, base.opacity * 0.12);
-        material.depthWrite = false;
-        material.color.copy(base.color).lerp(new THREE.Color(0xe2e8f0), 0.78);
-        material.emissive.setHex(0x000000);
-        material.emissiveIntensity = 0;
-        material.roughness = 0.95;
-        material.metalness = 0.0;
-      } else {
-        material.transparent = base.transparent;
-        material.opacity = base.opacity;
-        material.depthWrite = base.depthWrite;
-        material.color.copy(base.color).lerp(accentColor, 0.08);
-        material.emissive.copy(base.emissive);
-        material.emissiveIntensity = Math.max(base.emissiveIntensity, 0.04);
-        material.roughness = Math.min(base.roughness, 0.62);
-        material.metalness = Math.max(base.metalness, 0.16);
-      }
-      material.needsUpdate = true;
+      _applyMaterialForMode(material, base, role, mode, accentColor);
     });
   });
 }
@@ -2161,6 +2652,32 @@ function _applyDisplayModeToModel(mode, accent) {
   var accentColor = _colorFromHex(accent || DEFAULT_MODEL_ACCENT);
   _applyDisplayModeToRoot(modelRoot, mode, accentColor);
   _applyDisplayModeToRoot(roomModelRoot, mode, accentColor);
+}
+
+function _applyDisplayModeLighting(mode) {
+  if (!ambientLight || !keyLight || !rimLight || !fillLight) return;
+  if (mode === "xray") {
+    // Равномерный мягкий свет, чтобы внутренние секции читались сквозь корпус.
+    ambientLight.intensity = 1.45;
+    keyLight.intensity = 1.05;
+    rimLight.intensity = 1.4;
+    fillLight.intensity = 0.45;
+    if (renderer) renderer.toneMappingExposure = 1.18;
+  } else if (mode === "schematic") {
+    // Плоский образовательный вид без сильной светотени.
+    ambientLight.intensity = 1.6;
+    keyLight.intensity = 0.55;
+    rimLight.intensity = 0.4;
+    fillLight.intensity = 0.4;
+    if (renderer) renderer.toneMappingExposure = 1.0;
+  } else {
+    // studio: контрастная светотень, металл/стекло читаемы.
+    ambientLight.intensity = 0.95;
+    keyLight.intensity = 2.15;
+    rimLight.intensity = 1.05;
+    fillLight.intensity = 0.65;
+    if (renderer) renderer.toneMappingExposure = 1.05;
+  }
 }
 
 function _applyDisplayModeToOverlays(mode, accent) {
@@ -2194,6 +2711,7 @@ function setDisplayMode(mode, options) {
       : (currentModelDescriptor && currentModelDescriptor.accent) || DEFAULT_MODEL_ACCENT;
   _applyDisplayModeToModel(currentDisplayMode, accent);
   _applyDisplayModeToOverlays(currentDisplayMode, accent);
+  _applyDisplayModeLighting(currentDisplayMode);
   return true;
 }
 
@@ -2203,12 +2721,40 @@ function _applyNodeSignal(node, signal, kind, colorHex) {
   node.userData.pvuBinding = bindingByVisualId[signal.visual_id] || null;
   node.userData.pvuState = signal.state || "normal";
 
-  var color = _colorFromHex(colorHex);
+  var statusColor = _colorFromHex(colorHex);
   var emissiveStrength = signal.state === "alarm" ? 1.45 : signal.state === "warning" ? 0.72 : 0.48;
+
+  // Температурный цвет: только для ВП с числовым °C value. Если получилось
+  // извлечь температуру — используем её для color materials; status
+  // остаётся через emissive glow (alarm/warning остаются читаемыми).
+  var isTempVisual = TEMPERATURE_VISUAL_IDS[signal.visual_id] === true;
+  var tempColor = null;
+  if (isTempVisual) {
+    var celsius = _parseNumericValue(signal && signal.value);
+    if (celsius === null && signal && signal.detail) {
+      // У supply_duct value = airflow, а температура притока в detail
+      // («Приток 19.0 °C»). Пробуем detail как fallback.
+      celsius = _parseNumericValue(signal.detail);
+    }
+    tempColor = _temperatureColor(celsius);
+  }
+
+  var materialColor = tempColor || statusColor;
+  node.userData.pvuTempColor = tempColor;
+
+  // Давление на фильтре: если state != normal, усиливаем pulse через
+  // дополнительный emissiveIntensity boost. Это используется в
+  // _animateFilterPressureCue для гало-кольца вокруг фильтра.
+  if (FILTER_PRESSURE_VISUAL_IDS[signal.visual_id] === true) {
+    node.userData.pvuPressureIntensity = typeof signal.intensity === "number"
+      ? signal.intensity
+      : (signal.state === "alarm" ? 0.95 : signal.state === "warning" ? 0.65 : 0.28);
+  }
+
   var materials = node.userData.colorMaterials || [];
   var glowMaterials = node.userData.glowMaterials || [];
   materials.forEach(function (material) {
-    if (material.color) material.color.copy(color);
+    if (material.color) material.color.copy(materialColor);
     if (typeof material.opacity === "number") {
       if (kind === "flow") {
         material.opacity = signal.active === false ? 0.08 : 0.24 + (signal.intensity || 0.55) * 0.62;
@@ -2219,7 +2765,7 @@ function _applyNodeSignal(node, signal, kind, colorHex) {
   });
   glowMaterials.forEach(function (material) {
     if (material.emissive) {
-      material.emissive.copy(color);
+      material.emissive.copy(statusColor);
       material.emissiveIntensity = emissiveStrength;
     }
   });
@@ -2324,25 +2870,32 @@ function _animateFlowNodes(time) {
     var node = nodeMap[key];
     if (!node || node.userData.__flowAnimated || node.userData.overlayKind !== "flow") return;
     node.userData.__flowAnimated = true;
-    var intensity = _clamp(node.userData.flowIntensity || 0.55, 0.12, 1.15);
-    var pulse = 0.5 + 0.5 * Math.sin(time * (1.2 + intensity * 2.8));
+    // Расширенный диапазон intensity: отображаем разницу между
+    // сниженным расходом (dirty filter, 0.2-0.4) и нормой (0.8+).
+    var intensity = _clamp(node.userData.flowIntensity || 0.55, 0.08, 1.2);
+    var pulse = 0.5 + 0.5 * Math.sin(time * (1.0 + intensity * 3.2));
     var materials = node.userData.colorMaterials || [];
     materials.forEach(function (material) {
       if (!material) return;
       if (typeof material.opacity === "number") {
-        material.opacity = 0.16 + intensity * 0.6 + pulse * 0.08;
+        material.opacity = 0.14 + intensity * 0.66 + pulse * 0.1;
       }
       if (material.emissiveIntensity !== undefined) {
-        material.emissiveIntensity = 0.42 + intensity * 0.85 + pulse * 0.15;
+        material.emissiveIntensity = 0.34 + intensity * 1.05 + pulse * 0.18;
       }
     });
+    // Скорость частиц сильнее зависит от intensity: при малом расходе
+    // частицы почти стоят (имитация перекрытого тракта), при полной
+    // нагрузке — быстрый поток.
+    var progressSpeed = 0.06 + intensity * 0.48;
+    var particleOpacity = 0.22 + intensity * 0.68;
+    var particleScale = 0.7 + intensity * 0.55 + pulse * 0.25;
     (node.userData.flowParticles || []).forEach(function (particle) {
-      var progress =
-        (time * (0.14 + intensity * 0.26) + particle.userData.flowOffset) % 1;
+      var progress = (time * progressSpeed + particle.userData.flowOffset) % 1;
       var point = node.userData.flowCurve.getPointAt(progress);
       particle.position.copy(point);
-      particle.scale.setScalar(0.8 + pulse * 0.45);
-      particle.material.opacity = 0.3 + intensity * 0.6;
+      particle.scale.setScalar(particleScale);
+      particle.material.opacity = particleOpacity;
     });
   });
   Object.keys(nodeMap).forEach(function (key) {
@@ -2495,6 +3048,43 @@ function _animateProcessEffects(time) {
       child.material.opacity = 0.02 + contamination * 0.28;
       if (child.material.color) {
         child.material.color.copy(new THREE.Color(0xf8fafc).lerp(new THREE.Color(0xfacc15), contamination * 0.55));
+      }
+    });
+  }
+
+  // Маркер ΔP на фильтре. Пульсация растёт при повышении давления:
+  // normal → практически невидим, warning → заметное оранжевое пульсирующее
+  // кольцо, alarm → яркое красное кольцо с быстрым pulse.
+  var pressureCue = _getNode("pvu.effect.filter_pressure_cue");
+  var filterBankNode = _getNode("pvu.filter.bank");
+  var sensorPressureNode = _getNode("pvu.sensors.filter_pressure");
+  if (pressureCue) {
+    var rawIntensity = 0;
+    if (sensorPressureNode && typeof sensorPressureNode.userData.pvuPressureIntensity === "number") {
+      rawIntensity = sensorPressureNode.userData.pvuPressureIntensity;
+    } else if (filterBankNode && typeof filterBankNode.userData.pvuPressureIntensity === "number") {
+      rawIntensity = filterBankNode.userData.pvuPressureIntensity;
+    }
+    var filterState = sensorPressureNode ? sensorPressureNode.userData.pvuState : (
+      filterBankNode ? filterBankNode.userData.pvuState : "normal"
+    );
+    var cueColor = filterState === "alarm"
+      ? new THREE.Color(0xef4444)
+      : filterState === "warning"
+        ? new THREE.Color(0xf59e0b)
+        : new THREE.Color(0xfacc15);
+    var visibleLevel = filterState === "alarm" ? 0.95 : filterState === "warning" ? 0.55 : 0.0;
+    var cuePulse = 0.5 + 0.5 * Math.sin(time * (2.2 + rawIntensity * 3.0));
+    pressureCue.visible = visibleLevel > 0.05;
+    pressureCue.scale.setScalar(0.88 + cuePulse * (0.22 + visibleLevel * 0.18));
+    pressureCue.rotation[viewMetrics.verticalAxis] += 0.012;
+    (pressureCue.userData.colorMaterials || []).forEach(function (material, index) {
+      if (!material) return;
+      if (material.color) material.color.copy(cueColor);
+      if (material.emissive) material.emissive.copy(cueColor);
+      material.opacity = (0.06 + cuePulse * 0.22) * visibleLevel * (1 - index * 0.18);
+      if (material.emissiveIntensity !== undefined) {
+        material.emissiveIntensity = 0.45 + cuePulse * 0.9 * visibleLevel;
       }
     });
   }
@@ -2705,6 +3295,7 @@ function _startAnimation() {
       floorGlow.rotation.z = time * 0.045;
     }
     renderer.render(scene, camera);
+    _updateLabels();
   }
   loop();
 }
@@ -3050,6 +3641,8 @@ function dispose() {
   if (infoCard && infoCard.parentNode) {
     infoCard.parentNode.removeChild(infoCard);
   }
+  _removeLabelLayer();
+  _removeLegendOverlay();
   renderer = null;
   scene = null;
   camera = null;
@@ -3183,5 +3776,29 @@ window.pvu3d = {
   },
   getProjectedNode: function (nodeName) {
     return _projectNode(nodeName);
+  },
+  /**
+   * Debug-only: вернуть классификацию всех mesh в загруженных моделях.
+   * Используется для отладки display mode правил.
+   */
+  getMeshRoles: function () {
+    var entries = [];
+    var visit = function (root, label) {
+      if (!root) return;
+      root.traverse(function (child) {
+        if (!child.isMesh) return;
+        var role = _classifyMeshContext(child);
+        entries.push({
+          source: label,
+          name: child.name || "",
+          parent: child.parent ? child.parent.name || "" : "",
+          kind: role.kind,
+          section: role.section,
+        });
+      });
+    };
+    visit(modelRoot, "modelRoot");
+    visit(roomModelRoot, "roomModelRoot");
+    return entries;
   },
 };

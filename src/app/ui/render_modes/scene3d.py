@@ -164,488 +164,616 @@ def build_scene3d_workspace(
         className="scene3d-workspace",
         style={"display": "none"},
         children=[
+            _scene3d_top_toolbar(scene_model_catalog),
             html.Div(
-                className="scene3d-toolbar",
+                className="scene3d-stage-grid",
                 children=[
-                    _scene3d_dropdown_card(
-                        "Модель установки",
-                        dcc.Dropdown(
-                            id="scene3d-model-select",
-                            options=[
-                                {
-                                    "label": model.label,
-                                    "value": model.id,
-                                }
-                                for model in scene_model_catalog.models
-                            ],
-                            value=scene_model_catalog.default_model_id,
-                            clearable=False,
-                            searchable=False,
-                            optionHeight=48,
-                            maxHeight=320,
-                        ),
+                    _scene3d_stage_column(),
+                    _scene3d_kpi_sidebar(status_service),
+                ],
+            ),
+            _scene3d_secondary_grid(
+                scene_model_catalog=scene_model_catalog,
+                selected_scene_model=selected_scene_model,
+                scenario_options=scenario_options,
+                default_scenario_id=default_scenario_id,
+                room_catalog=room_catalog,
+                default_room=default_room,
+                developer_tools_enabled=developer_tools_enabled,
+            ),
+        ],
+    )
+
+
+def _scene3d_top_toolbar(scene_model_catalog: SceneModelCatalog) -> html.Div:
+    return html.Div(
+        className="scene3d-toolbar",
+        children=[
+            _scene3d_dropdown_card(
+                "Модель установки",
+                dcc.Dropdown(
+                    id="scene3d-model-select",
+                    options=[
+                        {
+                            "label": model.label,
+                            "value": model.id,
+                        }
+                        for model in scene_model_catalog.models
+                    ],
+                    value=scene_model_catalog.default_model_id,
+                    clearable=False,
+                    searchable=False,
+                    optionHeight=48,
+                    maxHeight=320,
+                ),
+            ),
+            _scene3d_dropdown_card(
+                "Режим сцены",
+                dcc.Dropdown(
+                    id="scene3d-display-mode",
+                    options=[
+                        {"label": "Студия", "value": "studio"},
+                        {"label": "Рентген", "value": "xray"},
+                        {"label": "Схема", "value": "schematic"},
+                    ],
+                    value="studio",
+                    clearable=False,
+                    searchable=False,
+                    optionHeight=48,
+                    maxHeight=320,
+                ),
+            ),
+            _scene3d_dropdown_card(
+                "Камера",
+                dcc.Dropdown(
+                    id="scene3d-camera-preset",
+                    options=[
+                        {"label": "Общий план", "value": "hero"},
+                        {"label": "Сервисный ракурс", "value": "service"},
+                        {"label": "Вид сверху", "value": "top"},
+                    ],
+                    value="hero",
+                    clearable=False,
+                    searchable=False,
+                    optionHeight=48,
+                    maxHeight=320,
+                ),
+            ),
+        ],
+    )
+
+
+def _scene3d_stage_column() -> html.Div:
+    return html.Div(
+        className="scene3d-stage-column",
+        children=[
+            html.Div(
+                id="scene-3d-canvas",
+                className="scene-3d-container",
+            ),
+        ],
+    )
+
+
+def _scene3d_kpi_sidebar(status_service: StatusService) -> html.Div:
+    """Right-side compact engineering KPI deck.
+
+    Reuses existing live-signal element IDs (scene3d-live-status,
+    scene3d-live-summary, scene3d-live-outdoor, scene3d-live-supply,
+    scene3d-live-airflow, scene3d-live-filter, scene3d-live-room,
+    scene3d-live-mode) so that the existing callbacks in callbacks.py
+    keep working unchanged. Russian terminology follows ОВК практику:
+    ПВУ, расход, ΔP, температура подачи (см.
+    docs/10_sources.md, раздел "Отечественная источниковая база 3D/ОВК").
+    """
+
+    return html.Div(
+        className="scene3d-sidebar",
+        children=[
+            html.Div(
+                className="scene3d-card scene3d-status-card",
+                children=[
+                    html.Div(
+                        className="browser-panel-header",
+                        children=[
+                            html.H3("Состояние ПВУ"),
+                            html.Div(
+                                id="scene3d-live-status",
+                                className=status_service.status_class_name(
+                                    OperationStatus.NORMAL
+                                ),
+                                children=status_service.status_label(
+                                    OperationStatus.NORMAL
+                                ),
+                            ),
+                        ],
                     ),
-                    _scene3d_dropdown_card(
-                        "Режим сцены",
-                        dcc.Dropdown(
-                            id="scene3d-display-mode",
-                            options=[
-                                {"label": "Студия", "value": "studio"},
-                                {"label": "Рентген", "value": "xray"},
-                                {"label": "Схема", "value": "schematic"},
-                            ],
-                            value="studio",
-                            clearable=False,
-                            searchable=False,
-                            optionHeight=48,
-                            maxHeight=320,
-                        ),
-                    ),
-                    _scene3d_dropdown_card(
-                        "Камера",
-                        dcc.Dropdown(
-                            id="scene3d-camera-preset",
-                            options=[
-                                {"label": "Общий план", "value": "hero"},
-                                {"label": "Сервисный ракурс", "value": "service"},
-                                {"label": "Вид сверху", "value": "top"},
-                            ],
-                            value="hero",
-                            clearable=False,
-                            searchable=False,
-                            optionHeight=48,
-                            maxHeight=320,
+                    html.P(
+                        id="scene3d-live-summary",
+                        className="scene3d-live-summary",
+                        children=(
+                            "После загрузки параметров здесь появится "
+                            "краткая live-сводка по установке."
                         ),
                     ),
                 ],
             ),
             html.Div(
-                className="scene3d-stage-grid",
+                className="scene3d-card scene3d-kpi-deck",
                 children=[
                     html.Div(
-                        className="scene3d-stage-column",
+                        className="browser-panel-header",
                         children=[
-                            html.Div(
-                                className="render-focus-card scene3d-brief",
-                                children=[
-                                    html.Div(
-                                        className="browser-panel-header",
-                                        children=[
-                                            html.H3("Панель управления 3D"),
-                                            html.Div(
-                                                id="scene3d-live-status",
-                                                className=status_service.status_class_name(
-                                                    OperationStatus.NORMAL
-                                                ),
-                                                children=status_service.status_label(
-                                                    OperationStatus.NORMAL
-                                                ),
-                                            ),
-                                        ],
-                                    ),
-                                    html.P(
-                                        "Меняйте параметры и сразу проверяйте реакцию узлов, потоков и помещения.",
-                                        className="validation-intro",
-                                    ),
-                                    html.P(
-                                        id="scene3d-live-summary",
-                                        className="mnemonic-note",
-                                        children=(
-                                            "После загрузки модели здесь появляется краткая live-сводка."
-                                        ),
-                                    ),
-                                ],
-                            ),
-                            html.Div(
-                                id="scene-3d-canvas",
-                                className="scene-3d-container",
+                            html.H3("Ключевые показатели"),
+                            html.Span(
+                                "LIVE",
+                                className="panel-tag",
                             ),
                         ],
                     ),
                     html.Div(
-                        className="scene3d-sidebar",
+                        className="scene3d-kpi-grid",
                         children=[
-                            html.Div(
-                                className="scene3d-card scene3d-control-deck",
-                                children=[
-                                    html.Div(
-                                        className="browser-panel-header",
-                                        children=[
-                                            html.H3("Пульт управления сценой"),
-                                            html.Div(
-                                                className="panel-tag",
-                                                children="В РАБОТЕ",
-                                            ),
-                                        ],
-                                    ),
-                                    html.P(
-                                        "Меняйте входные параметры и сразу смотрите реакцию модели.",
-                                        className="validation-intro",
-                                    ),
-                                    _scene3d_dropdown_card(
-                                        "Сценарий",
-                                        dcc.Dropdown(
-                                            id="scene3d-scenario-select",
-                                            options=scenario_options,
-                                            value=default_scenario_id,
-                                            clearable=False,
-                                            searchable=False,
-                                            optionHeight=48,
-                                            maxHeight=320,
-                                        ),
-                                    ),
-                                    _scene3d_dropdown_card(
-                                        "Помещение",
-                                        dcc.Dropdown(
-                                            id="scene3d-room-select",
-                                            options=[
-                                                {"label": room.label, "value": room.id}
-                                                for room in room_catalog.rooms
-                                            ],
-                                            value=room_catalog.default_room_id,
-                                            clearable=False,
-                                            searchable=False,
-                                            optionHeight=48,
-                                            maxHeight=320,
-                                        ),
-                                    ),
-                                    _scene3d_dropdown_card(
-                                        "Наглядный режим",
-                                        dcc.Dropdown(
-                                            id="scene3d-room-preset",
-                                            options=[
-                                                {"label": preset.label, "value": preset.id}
-                                                for preset in (
-                                                    default_room.presets
-                                                    if default_room
-                                                    else []
-                                                )
-                                            ],
-                                            value=(
-                                                default_room.default_preset_id
-                                                if default_room
-                                                else None
-                                            ),
-                                            clearable=False,
-                                            searchable=False,
-                                            optionHeight=48,
-                                            maxHeight=320,
-                                        ),
-                                    ),
-                                    html.Div(
-                                        className="scene3d-param-grid",
-                                        children=[
-                                            _scene3d_number_field(
-                                                "Наружная температура, °C",
-                                                "scene3d-outdoor-temp",
-                                                -45,
-                                                45,
-                                                0.5,
-                                                0.0,
-                                            ),
-                                            _scene3d_number_field(
-                                                "Расход воздуха, м³/ч",
-                                                "scene3d-airflow",
-                                                200,
-                                                8000,
-                                                50,
-                                                3000.0,
-                                            ),
-                                            _scene3d_number_field(
-                                                "Уставка притока, °C",
-                                                "scene3d-setpoint",
-                                                10,
-                                                35,
-                                                0.5,
-                                                19.0,
-                                            ),
-                                            _scene3d_number_field(
-                                                "КПД рекуперации",
-                                                "scene3d-recovery-efficiency",
-                                                0,
-                                                0.85,
-                                                0.01,
-                                                0.45,
-                                            ),
-                                            _scene3d_number_field(
-                                                "Нагреватель, кВт",
-                                                "scene3d-heater-power",
-                                                0,
-                                                120,
-                                                0.5,
-                                                18.0,
-                                            ),
-                                            _scene3d_number_field(
-                                                "Загрязнение фильтра",
-                                                "scene3d-filter-contamination",
-                                                0,
-                                                1,
-                                                0.01,
-                                                0.15,
-                                            ),
-                                            _scene3d_number_field(
-                                                "Скорость вентилятора",
-                                                "scene3d-fan-speed",
-                                                0.2,
-                                                1.2,
-                                                0.01,
-                                                0.86,
-                                            ),
-                                            _scene3d_number_field(
-                                                "Температура помещения, °C",
-                                                "scene3d-room-temp",
-                                                5,
-                                                40,
-                                                0.1,
-                                                21.2,
-                                            ),
-                                            _scene3d_number_field(
-                                                "Теплопритоки, кВт",
-                                                "scene3d-room-heat-gain",
-                                                -10,
-                                                40,
-                                                0.1,
-                                                4.2,
-                                            ),
-                                            _scene3d_number_field(
-                                                "Людей в помещении",
-                                                "scene3d-room-occupancy",
-                                                0,
-                                                200,
-                                                1,
-                                                (
-                                                    default_room.design_occupancy_people
-                                                    if default_room
-                                                    else 8
-                                                ),
-                                            ),
-                                            _scene3d_number_field(
-                                                "Влажность в помещении, %",
-                                                "scene3d-room-humidity",
-                                                20,
-                                                85,
-                                                1,
-                                                (
-                                                    default_room.local_humidity_baseline_percent
-                                                    if default_room
-                                                    else 42
-                                                ),
-                                            ),
-                                        ],
-                                    ),
-                                    _scene3d_dropdown_card(
-                                        "Режим управления",
-                                        dcc.Dropdown(
-                                            id="scene3d-control-mode",
-                                            options=[
-                                                {"label": "Авто", "value": "auto"},
-                                                {"label": "Ручной", "value": "manual"},
-                                            ],
-                                            value="auto",
-                                            clearable=False,
-                                            searchable=False,
-                                            optionHeight=48,
-                                            maxHeight=320,
-                                        ),
-                                    ),
-                                    *(
-                                        [_scene3d_developer_transform_controls()]
-                                        if developer_tools_enabled
-                                        else []
-                                    ),
-                                ],
+                            _scene3d_kpi_tile(
+                                "Расход воздуха",
+                                "scene3d-live-airflow",
+                                accent="airflow",
                             ),
-                            html.Div(
-                                className="scene3d-card scene3d-reference-card",
-                                children=[
-                                    html.Div(
-                                        className="browser-panel-header",
-                                        children=[
-                                            html.H3("Профиль модели"),
-                                            html.Div(
-                                                id="scene3d-model-tone",
-                                                className="panel-tag",
-                                                children=(
-                                                    selected_scene_model.tone.upper()
-                                                    if selected_scene_model
-                                                    else "МОДЕЛЬ"
-                                                ),
-                                            ),
-                                        ],
-                                    ),
-                                    html.P(
-                                        "Для каждой GLB используется собственный профиль привязок, камеры и сцены.",
-                                        className="validation-intro",
-                                    ),
-                                    html.Img(
-                                        id="scene3d-model-preview",
-                                        src=(
-                                            selected_scene_model.preview_url
-                                            if selected_scene_model
-                                            else None
-                                        ),
-                                        className="scene3d-reference-image",
-                                        alt=(
-                                            selected_scene_model.label
-                                            if selected_scene_model
-                                            else "Справка по модели"
-                                        ),
-                                    ),
-                                    html.H4(
-                                        id="scene3d-model-title",
-                                        className="scene3d-model-title",
-                                        children=(
-                                            selected_scene_model.label
-                                            if selected_scene_model
-                                            else "3D-модель"
-                                        ),
-                                    ),
-                                    html.P(
-                                        id="scene3d-model-description",
-                                        className="mnemonic-note",
-                                        children=(
-                                            selected_scene_model.description
-                                            if selected_scene_model
-                                            else "Выберите модель для визуализации цифрового двойника."
-                                        ),
-                                    ),
-                                ],
+                            _scene3d_kpi_tile(
+                                "ΔP фильтра",
+                                "scene3d-live-filter",
+                                accent="pressure",
                             ),
-                            html.Div(
-                                className="scene3d-card scene3d-room-card",
-                                children=[
-                                    html.Div(
-                                        className="browser-panel-header",
-                                        children=[html.H3("Каталог помещений")],
-                                    ),
-                                    html.H4(
-                                        id="scene3d-room-title",
-                                        className="scene3d-model-title",
-                                        children=(
-                                            default_room.label
-                                            if default_room
-                                            else "Помещение"
-                                        ),
-                                    ),
-                                    html.P(
-                                        id="scene3d-room-description",
-                                        className="mnemonic-note",
-                                        children=(
-                                            default_room.description
-                                            if default_room
-                                            else "Выберите модель помещения для цифрового двойника."
-                                        ),
-                                    ),
-                                    html.P(
-                                        id="scene3d-room-climate",
-                                        className="validation-intro",
-                                        children=(
-                                            default_room.climate_note
-                                            if default_room
-                                            else "Здесь появится режим помещения."
-                                        ),
-                                    ),
-                                    html.Div(
-                                        className="scene3d-live-grid scene3d-room-meta-grid",
-                                        children=[
-                                            _scene3d_stat("Объём", "scene3d-room-volume"),
-                                            _scene3d_stat("Теплоёмкость", "scene3d-room-capacity"),
-                                            _scene3d_stat("Потери", "scene3d-room-loss"),
-                                            _scene3d_stat("Проектная загрузка", "scene3d-room-design-occupancy"),
-                                        ],
-                                    ),
-                                    html.Div(
-                                        id="scene3d-room-sensors",
-                                        className="capability-list",
-                                        children=[
-                                            html.Div(
-                                                (
-                                                    "Локальные датчики CO₂, влажности и заполненности будут показаны здесь."
-                                                ),
-                                                className="capability-item",
-                                            )
-                                        ],
-                                    ),
-                                    html.P(
-                                        id="scene3d-room-preset-note",
-                                        className="validation-intro",
-                                        children=(
-                                            default_room.presets[0].explanation
-                                            if default_room and default_room.presets
-                                            else "Здесь появится пояснение выбранного режима."
-                                        ),
-                                    ),
-                                ],
+                            _scene3d_kpi_tile(
+                                "Температура подачи",
+                                "scene3d-live-supply",
+                                accent="temperature",
                             ),
-                            html.Div(
-                                className="scene3d-card scene3d-live-card",
-                                children=[
-                                    html.Div(
-                                        className="browser-panel-header",
-                                        children=[html.H3("Датчики помещения")],
-                                    ),
-                                    html.Div(
-                                        className="scene3d-live-grid",
-                                        children=[
-                                            _scene3d_stat("CO₂", "scene3d-room-co2"),
-                                            _scene3d_stat("Влажность", "scene3d-room-humidity-live"),
-                                            _scene3d_stat("Занятость", "scene3d-room-occupancy-live"),
-                                            _scene3d_stat("Качество воздуха", "scene3d-room-air-quality"),
-                                            _scene3d_stat("Активный режим", "scene3d-room-preset-active"),
-                                            _scene3d_stat("Свежий воздух/чел", "scene3d-room-fresh-air"),
-                                        ],
-                                    ),
-                                ],
+                            _scene3d_kpi_tile(
+                                "Температура помещения",
+                                "scene3d-live-room",
+                                accent="room",
                             ),
-                            html.Div(
-                                className="scene3d-card scene3d-live-card",
-                                children=[
-                                    html.Div(
-                                        className="browser-panel-header",
-                                        children=[html.H3("Живые сигналы")],
-                                    ),
-                                    html.Div(
-                                        className="scene3d-live-grid",
-                                        children=[
-                                            _scene3d_stat("Улица", "scene3d-live-outdoor"),
-                                            _scene3d_stat("Приток", "scene3d-live-supply"),
-                                            _scene3d_stat("Расход", "scene3d-live-airflow"),
-                                            _scene3d_stat("ΔP фильтра", "scene3d-live-filter"),
-                                            _scene3d_stat("Помещение", "scene3d-live-room"),
-                                            _scene3d_stat("Режим", "scene3d-live-mode"),
-                                        ],
-                                    ),
-                                ],
+                            _scene3d_kpi_tile(
+                                "Наружный воздух",
+                                "scene3d-live-outdoor",
+                                accent="outdoor",
                             ),
-                            html.Div(
-                                className="scene3d-card",
-                                children=[
-                                    html.Div(
-                                        className="browser-panel-header",
-                                        children=[html.H3("Руководство по сцене")],
-                                    ),
-                                    html.Div(
-                                        className="capability-list",
-                                        children=[
-                                            html.Div(
-                                                "1. Выберите установку и помещение. 2. Включите режим сцены. 3. Смотрите на поток и room-сигналы.",
-                                                className="capability-item",
-                                            ),
-                                            html.Div(
-                                                "Кликайте по узлам и датчикам, чтобы получить текущее значение.",
-                                                className="capability-item",
-                                            ),
-                                            html.Div(
-                                                "Рост CO₂ и влажности усиливает подсветку и локальные эффекты комнаты.",
-                                                className="capability-item",
-                                            ),
-                                        ],
-                                    ),
-                                ],
+                            _scene3d_kpi_tile(
+                                "Режим/модель",
+                                "scene3d-live-mode",
+                                accent="mode",
                             ),
                         ],
                     ),
+                    html.P(
+                        "Для возврата в 2D-режим используйте кнопку «2D» "
+                        "в шапке панели «Цифровой двойник».",
+                        className="scene3d-fallback-hint",
+                    ),
                 ],
+            ),
+        ],
+    )
+
+
+def _scene3d_secondary_grid(
+    *,
+    scene_model_catalog: SceneModelCatalog,
+    selected_scene_model: SceneModelDescriptor | None,
+    scenario_options: list[dict[str, str]],
+    default_scenario_id: str,
+    room_catalog: RoomCatalog,
+    default_room: RoomCatalogDescriptor | None,
+    developer_tools_enabled: bool = False,
+) -> html.Div:
+    """Сетка ниже основного экрана: параметры, профиль модели, помещение,
+    локальные датчики. Здесь живут все элементы управления и информационные
+    карточки, которые не должны соревноваться за внимание с главным
+    viewport. Все существующие IDs сохраняются."""
+
+    del scene_model_catalog  # не используется в этой сетке, оставлен для совместимости
+    return html.Div(
+        className="scene3d-secondary-grid",
+        children=[
+            _scene3d_control_deck_card(
+                scenario_options=scenario_options,
+                default_scenario_id=default_scenario_id,
+                room_catalog=room_catalog,
+                default_room=default_room,
+                developer_tools_enabled=developer_tools_enabled,
+            ),
+            _scene3d_reference_card(selected_scene_model),
+            _scene3d_room_card(default_room),
+            _scene3d_room_sensors_card(),
+        ],
+    )
+
+
+def _scene3d_control_deck_card(
+    *,
+    scenario_options: list[dict[str, str]],
+    default_scenario_id: str,
+    room_catalog: RoomCatalog,
+    default_room: RoomCatalogDescriptor | None,
+    developer_tools_enabled: bool = False,
+) -> html.Div:
+    return html.Div(
+        className="scene3d-card scene3d-control-deck",
+        children=[
+            html.Div(
+                className="browser-panel-header",
+                children=[
+                    html.H3("Пульт управления сценой"),
+                    html.Div(
+                        className="panel-tag",
+                        children="ВХОДНЫЕ ПАРАМЕТРЫ",
+                    ),
+                ],
+            ),
+            html.P(
+                "Меняйте входные параметры — узлы, потоки и помещение "
+                "пересчитываются мгновенно.",
+                className="validation-intro",
+            ),
+            _scene3d_dropdown_card(
+                "Сценарий",
+                dcc.Dropdown(
+                    id="scene3d-scenario-select",
+                    options=scenario_options,
+                    value=default_scenario_id,
+                    clearable=False,
+                    searchable=False,
+                    optionHeight=48,
+                    maxHeight=320,
+                ),
+            ),
+            _scene3d_dropdown_card(
+                "Помещение",
+                dcc.Dropdown(
+                    id="scene3d-room-select",
+                    options=[
+                        {"label": room.label, "value": room.id}
+                        for room in room_catalog.rooms
+                    ],
+                    value=room_catalog.default_room_id,
+                    clearable=False,
+                    searchable=False,
+                    optionHeight=48,
+                    maxHeight=320,
+                ),
+            ),
+            _scene3d_dropdown_card(
+                "Наглядный режим",
+                dcc.Dropdown(
+                    id="scene3d-room-preset",
+                    options=[
+                        {"label": preset.label, "value": preset.id}
+                        for preset in (
+                            default_room.presets if default_room else []
+                        )
+                    ],
+                    value=(
+                        default_room.default_preset_id
+                        if default_room
+                        else None
+                    ),
+                    clearable=False,
+                    searchable=False,
+                    optionHeight=48,
+                    maxHeight=320,
+                ),
+            ),
+            html.Div(
+                className="scene3d-param-grid",
+                children=[
+                    _scene3d_number_field(
+                        "Наружная температура, °C",
+                        "scene3d-outdoor-temp",
+                        -45,
+                        45,
+                        0.5,
+                        0.0,
+                    ),
+                    _scene3d_number_field(
+                        "Расход воздуха, м³/ч",
+                        "scene3d-airflow",
+                        200,
+                        8000,
+                        50,
+                        3000.0,
+                    ),
+                    _scene3d_number_field(
+                        "Уставка притока, °C",
+                        "scene3d-setpoint",
+                        10,
+                        35,
+                        0.5,
+                        19.0,
+                    ),
+                    _scene3d_number_field(
+                        "КПД рекуперации",
+                        "scene3d-recovery-efficiency",
+                        0,
+                        0.85,
+                        0.01,
+                        0.45,
+                    ),
+                    _scene3d_number_field(
+                        "Нагреватель, кВт",
+                        "scene3d-heater-power",
+                        0,
+                        120,
+                        0.5,
+                        18.0,
+                    ),
+                    _scene3d_number_field(
+                        "Загрязнение фильтра",
+                        "scene3d-filter-contamination",
+                        0,
+                        1,
+                        0.01,
+                        0.15,
+                    ),
+                    _scene3d_number_field(
+                        "Скорость вентилятора",
+                        "scene3d-fan-speed",
+                        0.2,
+                        1.2,
+                        0.01,
+                        0.86,
+                    ),
+                    _scene3d_number_field(
+                        "Температура помещения, °C",
+                        "scene3d-room-temp",
+                        5,
+                        40,
+                        0.1,
+                        21.2,
+                    ),
+                    _scene3d_number_field(
+                        "Теплопритоки, кВт",
+                        "scene3d-room-heat-gain",
+                        -10,
+                        40,
+                        0.1,
+                        4.2,
+                    ),
+                    _scene3d_number_field(
+                        "Людей в помещении",
+                        "scene3d-room-occupancy",
+                        0,
+                        200,
+                        1,
+                        (
+                            default_room.design_occupancy_people
+                            if default_room
+                            else 8
+                        ),
+                    ),
+                    _scene3d_number_field(
+                        "Влажность в помещении, %",
+                        "scene3d-room-humidity",
+                        20,
+                        85,
+                        1,
+                        (
+                            default_room.local_humidity_baseline_percent
+                            if default_room
+                            else 42
+                        ),
+                    ),
+                ],
+            ),
+            _scene3d_dropdown_card(
+                "Режим управления",
+                dcc.Dropdown(
+                    id="scene3d-control-mode",
+                    options=[
+                        {"label": "Авто", "value": "auto"},
+                        {"label": "Ручной", "value": "manual"},
+                    ],
+                    value="auto",
+                    clearable=False,
+                    searchable=False,
+                    optionHeight=48,
+                    maxHeight=320,
+                ),
+            ),
+            *(
+                [_scene3d_developer_transform_controls()]
+                if developer_tools_enabled
+                else []
+            ),
+        ],
+    )
+
+
+def _scene3d_reference_card(
+    selected_scene_model: SceneModelDescriptor | None,
+) -> html.Div:
+    return html.Div(
+        className="scene3d-card scene3d-reference-card",
+        children=[
+            html.Div(
+                className="browser-panel-header",
+                children=[
+                    html.H3("Профиль модели"),
+                    html.Div(
+                        id="scene3d-model-tone",
+                        className="panel-tag",
+                        children=(
+                            selected_scene_model.tone.upper()
+                            if selected_scene_model
+                            else "МОДЕЛЬ"
+                        ),
+                    ),
+                ],
+            ),
+            html.P(
+                "Для каждой GLB используется собственный профиль "
+                "привязок, камеры и сцены.",
+                className="validation-intro",
+            ),
+            html.Img(
+                id="scene3d-model-preview",
+                src=(
+                    selected_scene_model.preview_url
+                    if selected_scene_model
+                    else None
+                ),
+                className="scene3d-reference-image",
+                alt=(
+                    selected_scene_model.label
+                    if selected_scene_model
+                    else "Справка по модели"
+                ),
+            ),
+            html.H4(
+                id="scene3d-model-title",
+                className="scene3d-model-title",
+                children=(
+                    selected_scene_model.label
+                    if selected_scene_model
+                    else "3D-модель"
+                ),
+            ),
+            html.P(
+                id="scene3d-model-description",
+                className="mnemonic-note",
+                children=(
+                    selected_scene_model.description
+                    if selected_scene_model
+                    else "Выберите модель для визуализации цифрового двойника."
+                ),
+            ),
+        ],
+    )
+
+
+def _scene3d_room_card(
+    default_room: RoomCatalogDescriptor | None,
+) -> html.Div:
+    return html.Div(
+        className="scene3d-card scene3d-room-card",
+        children=[
+            html.Div(
+                className="browser-panel-header",
+                children=[html.H3("Каталог помещений")],
+            ),
+            html.H4(
+                id="scene3d-room-title",
+                className="scene3d-model-title",
+                children=(
+                    default_room.label if default_room else "Помещение"
+                ),
+            ),
+            html.P(
+                id="scene3d-room-description",
+                className="mnemonic-note",
+                children=(
+                    default_room.description
+                    if default_room
+                    else "Выберите модель помещения для цифрового двойника."
+                ),
+            ),
+            html.P(
+                id="scene3d-room-climate",
+                className="validation-intro",
+                children=(
+                    default_room.climate_note
+                    if default_room
+                    else "Здесь появится режим помещения."
+                ),
+            ),
+            html.Div(
+                className="scene3d-live-grid scene3d-room-meta-grid",
+                children=[
+                    _scene3d_stat("Объём", "scene3d-room-volume"),
+                    _scene3d_stat("Теплоёмкость", "scene3d-room-capacity"),
+                    _scene3d_stat("Потери", "scene3d-room-loss"),
+                    _scene3d_stat(
+                        "Проектная загрузка",
+                        "scene3d-room-design-occupancy",
+                    ),
+                ],
+            ),
+            html.Div(
+                id="scene3d-room-sensors",
+                className="capability-list",
+                children=[
+                    html.Div(
+                        (
+                            "Локальные датчики CO₂, влажности и "
+                            "заполненности будут показаны здесь."
+                        ),
+                        className="capability-item",
+                    )
+                ],
+            ),
+            html.P(
+                id="scene3d-room-preset-note",
+                className="validation-intro",
+                children=(
+                    default_room.presets[0].explanation
+                    if default_room and default_room.presets
+                    else "Здесь появится пояснение выбранного режима."
+                ),
+            ),
+        ],
+    )
+
+
+def _scene3d_room_sensors_card() -> html.Div:
+    return html.Div(
+        className="scene3d-card scene3d-live-card",
+        children=[
+            html.Div(
+                className="browser-panel-header",
+                children=[html.H3("Датчики помещения")],
+            ),
+            html.Div(
+                className="scene3d-live-grid",
+                children=[
+                    _scene3d_stat("CO₂", "scene3d-room-co2"),
+                    _scene3d_stat(
+                        "Влажность", "scene3d-room-humidity-live"
+                    ),
+                    _scene3d_stat(
+                        "Занятость", "scene3d-room-occupancy-live"
+                    ),
+                    _scene3d_stat(
+                        "Качество воздуха", "scene3d-room-air-quality"
+                    ),
+                    _scene3d_stat(
+                        "Активный режим", "scene3d-room-preset-active"
+                    ),
+                    _scene3d_stat(
+                        "Свежий воздух/чел", "scene3d-room-fresh-air"
+                    ),
+                ],
+            ),
+        ],
+    )
+
+
+def _scene3d_kpi_tile(label: str, element_id: str, *, accent: str) -> html.Div:
+    """Compact KPI tile for the right sidebar.
+
+    Renders a single live signal value as an emphasized engineering
+    KPI block (label + value). The `accent` class hint controls colour
+    accents in CSS so потоки, давление, температура и помещение
+    выглядят визуально разными.
+    """
+
+    return html.Div(
+        className=f"scene3d-kpi-tile scene3d-kpi-tile--{accent}",
+        children=[
+            html.Span(label, className="scene3d-kpi-tile__label"),
+            html.Strong(
+                "—",
+                id=element_id,
+                className="scene3d-kpi-tile__value",
             ),
         ],
     )

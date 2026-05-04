@@ -226,3 +226,63 @@ evidence.
 - [x] Настроить versioning и подпись релизов (exe metadata + Android keystore).
 - [x] Подготовить release-checklist для clean-install на Windows и Android.
 - [x] Обновить docs по запуску/сборке/ограничениям desktop и mobile поставок.
+
+## P4. Доведение 3D-визуализации до защитного уровня
+
+Рабочие файлы пакета:
+
+- `docs/35_3d_visualization_upgrade_plan.md`
+- `docs/36_3d_visualization_course_map.md`
+- `.omx/plans/3d_visualization_upgrade_plan.md`
+- `.omx/plans/3d_visualization_upgrade_todo.md`
+- `.omx/plans/3d_visualization_acceptance_matrix.md`
+- `.omx/plans/3d_visualization_new_session_prompt.md`
+
+### Phase 0. Target freeze и baseline
+
+- [x] Зафиксировать план, To-Do, acceptance matrix и prompt для новой сессии.
+- [x] Добавить русскую визуальную карту курса.
+- [ ] Сохранить baseline screenshots перед кодовыми правками.
+- [ ] Запустить baseline `python -m pytest`.
+
+### Phase 1. Композиция и viewport
+
+- [ ] Сделать 3D canvas главным объектом первого экрана.
+- [ ] Уплотнить 3D-панель управления и убрать лишнюю обучающую прозу.
+- [ ] Проверить desktop/mobile layout без overlap и горизонтального scroll.
+
+### Phase 2. Секции ПВУ и cutaway/xray
+
+- [ ] Усилить визуальные различия intake/filter/coil/fan/dampers/supply/room.
+- [ ] Сделать `xray` и `schematic` режимы смысловыми, а не только цветовыми.
+- [ ] Сохранить валидность `scene3d.json` и bindings.
+
+### Phase 3. Потоки, температура и давление
+
+- [ ] Сделать направленные airflow streamlines.
+- [ ] Привязать интенсивность потоков к `VisualizationSignalMap`.
+- [ ] Добавить temperature color language и pressure-drop cue фильтра.
+
+### Phase 4. Overlays и interaction
+
+- [ ] Добавить русские подписи узлов/датчиков и легенду.
+- [ ] Улучшить hover/click карточки.
+- [ ] Проверить touch/click-only interaction.
+
+### Phase 5. Demo route
+
+- [ ] Добавить/отполировать camera presets для защиты.
+- [ ] Подготовить маршрут base -> dirty filter -> winter/peak.
+- [ ] Обновить presenter script после реализации.
+
+### Phase 6. Надежность
+
+- [ ] Проверить cleanup WebGL resources и event listeners.
+- [ ] Проверить repeated 2D/3D switch и fallback.
+- [ ] Удержать canvas/pixel budget.
+
+### Phase 7. Evidence
+
+- [ ] Заполнить acceptance matrix evidence.
+- [ ] Сохранить свежие screenshots.
+- [ ] Повторить browser walkthrough на целевом демо-ПК.

@@ -37,6 +37,20 @@ class SceneModelCatalog(BaseModel):
 
 
 _MODEL_META: dict[str, dict[str, str | bool]] = {
+    "ahu/master/pvu_installation.glb": {
+        "id": "pvu_installation",
+        "label": "Учебная ПВУ (СП 60.13330.2020)",
+        "description": (
+            "Процедурная модель приточной вентиляционной установки с явной "
+            "разбивкой по секциям (воздухозабор, воздушный клапан, фильтр, "
+            "шумоглушитель, калорифер, вентилятор, воздуховод подачи). "
+            "Сохраняет иерархию узлов для режимов «Рентген» и «Схема»."
+        ),
+        "preview_path": "images-of-models/0476a6.jpg",
+        "accent": "#22d3ee",
+        "tone": "studio",
+        "featured": True,
+    },
     "ahu/master/modular_ahu_pbr.glb": {
         "id": "modular_ahu",
         "label": "Флагманская ПВУ (детализированная)",
@@ -136,6 +150,7 @@ _MODEL_META: dict[str, dict[str, str | bool]] = {
 }
 
 _PREFERRED_SCENE_MODEL_PATH_GROUPS: tuple[tuple[str, ...], ...] = (
+    ("ahu/master/pvu_installation.glb",),
     ("ahu/master/modular_ahu_pbr.glb", "ahu/master/modular_ahu_shaded.glb"),
     (
         "ahu/variants/base_variant_c_pbr.glb",

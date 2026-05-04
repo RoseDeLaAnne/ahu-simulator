@@ -1,0 +1,23 @@
+{
+  "event_id": "pvu-event-20260502-195748-2",
+  "captured_at": "2026-05-02T16:57:48.773418Z",
+  "category": "simulation",
+  "level": "warning",
+  "title": "Выполнен шаг сессии симуляции",
+  "summary": "Пользовательский режим: 20 из 120 мин, тик 2 из 12.",
+  "source_type": "dashboard",
+  "source_label": "Пользовательский режим",
+  "trigger": "simulation-interval",
+  "scenario_id": null,
+  "scenario_title": null,
+  "control_mode": "auto",
+  "status": "warning",
+  "details": [
+    "Состояние сессии: paused.",
+    "Скорость воспроизведения: x1.",
+    "Горизонт достигнут: нет.",
+    "Действие: tick."
+  ],
+  "artifact_path": null,
+  "file_path": "artifacts/event-log/2026-05-02/pvu-event-20260502-195748-2.json"
+}
