@@ -59,3 +59,7 @@ cors_allow_credentials: true
 trusted_hosts:
   - "*"
 enforce_https_redirect: false
+ui:
+  theme: "legacy"
+  concept03_enabled: false
+  defense_day_variant: false

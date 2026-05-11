@@ -8,6 +8,7 @@ from pathlib import Path
 import yaml
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.infrastructure.feature_flags import FeatureFlags, UITheme
 from app.simulation.status_policy import StatusThresholds
 
 
@@ -38,6 +39,11 @@ class ApplicationSettings(BaseModel):
     trusted_hosts: list[str] = Field(default_factory=lambda: ["*"])
     enforce_https_redirect: bool = False
     developer_tools_enabled: bool = False
+    ui: FeatureFlags = Field(default_factory=FeatureFlags)
+
+    @property
+    def feature_flags(self) -> FeatureFlags:
+        return self.ui
 
 
 def _project_root() -> Path:
@@ -155,6 +161,28 @@ def _apply_environment_overrides(payload: dict) -> dict:
     default_scenario_override = os.environ.get("AHU_SIMULATOR_DEFAULT_SCENARIO_ID")
     if default_scenario_override:
         merged_payload["default_scenario_id"] = default_scenario_override.strip()
+
+    ui_payload = dict(merged_payload.get("ui") or {})
+    ui_theme_override = os.environ.get("AHU_SIMULATOR_UI_THEME")
+    if ui_theme_override:
+        normalized_theme = ui_theme_override.strip().lower()
+        if normalized_theme not in {theme.value for theme in UITheme}:
+            raise ValueError(
+                f"Unsupported UI theme '{ui_theme_override}' for AHU_SIMULATOR_UI_THEME. "
+                "Use one of: legacy, concept03."
+            )
+        ui_payload["theme"] = normalized_theme
+
+    concept03_enabled_override = _parse_bool_env("AHU_SIMULATOR_CONCEPT03_ENABLED")
+    if concept03_enabled_override is not None:
+        ui_payload["concept03_enabled"] = concept03_enabled_override
+
+    defense_day_override = _parse_bool_env("AHU_SIMULATOR_DEFENSE_DAY_VARIANT")
+    if defense_day_override is not None:
+        ui_payload["defense_day_variant"] = defense_day_override
+
+    if ui_payload:
+        merged_payload["ui"] = ui_payload
 
     return merged_payload
 

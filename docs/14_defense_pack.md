@@ -109,6 +109,42 @@
 - 3D-viewer архитектурно подготовлен, но зависит от WebGL и не является обязательной частью MVP-защиты.
 - Проект не подключается к реальному оборудованию и не использует конфиденциальные данные предприятия.
 
+## P5. Concept-03 «Defense-Ready Digital Twin»
+
+Defense Day Variant для следующего этапа описан в пакете:
+`docs/concept03-defense-ready-digital-twin/README.md`.
+
+После завершения Phase 7 защита переходит со старого long-scroll
+dashboard на **single-screen Defense Day Variant**:
+
+- 5 вкладок canvas (`3D Модель / 2D Схема / Графики / Таблицы / Балансы`);
+- header action toolbar (Запустить / Пауза / Стоп / Сброс) с hotkey
+  `Space`/`Esc`/`1-5`;
+- 5 нижних панелей: Валидация модели, Экспортный пакет для защиты,
+  Сравнение сценариев, Журнал событий, Готовность к защите 96%;
+- academic footer с метаданными ВКР (программа / специальность /
+  профиль / кафедра / версия модели).
+
+Запуск Defense Day Variant:
+
+```
+http://127.0.0.1:<port>/dashboard?theme=concept03&defense=true
+```
+
+Fallback: `?defense=false` или `?theme=legacy` (см.
+`docs/concept03-defense-ready-digital-twin/12_migration_strategy.md → §5`).
+
+Полный сценарий 5/7/10-минутного demo —
+`docs/concept03-defense-ready-digital-twin/14_demo_script.md`.
+Финальный QA-лист —
+`docs/concept03-defense-ready-digital-twin/15_qa_checklist.md`.
+
+Концепт-изображения:
+
+- `artifacts/visual-concepts/concept-03-defense-ready-digital-twin.png`
+- `artifacts/visual-concepts/concept-03-defense-ready-digital-twin-tablet.png`
+- `artifacts/visual-concepts/concept-03-defense-ready-digital-twin-mobile.png`
+
 ## Использование ИИ как вспомогательного инструмента
 
 - ИИ используется для структурирования задач, ускорения черновых правок и поиска официальной документации.

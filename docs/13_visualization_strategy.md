@@ -278,3 +278,42 @@ data/visualization/scene3d.json   # v1 → v2, полный scene metadata
 - [x] Пользователь может вращать сцену, приближать её и кликать на узлы.
 - [x] При сбое WebGL интерфейс автоматически остаётся работоспособным в 2D.
 - [x] Playwright-верификация пройдена.
+
+## P5. Concept-03 расширение визуализации
+
+Concept-03 наследует существующую 2D/3D-стратегию и добавляет
+**callout-overlay** поверх 3D-сцены: 7-9 leader-line меток с числовыми
+значениями ключевых узлов (фильтры, рекуператор, нагреватель, вентилятор,
+охладитель, шумоглушитель, supply/outdoor air).
+
+Ключевые расширения:
+
+- `bindings_version` 2 → 3 — добавляются visual_id `filter_fine`,
+  `cooler_coil`, `silencer`, `room_supply`, плюс Defense Day Variant
+  расширение (`recovery_unit`, `humidifier`, `fan_p2`).
+- callouts позиционируются clientside через
+  `assets/concept03_overlay.js` с использованием
+  `THREE.Vector3.project`.
+- 2D fallback остаётся обязательным путём (см.
+  `docs/concept03-defense-ready-digital-twin/13_risks_and_mitigations.md → R-2`).
+- Compass widget + camera presets pagination dots — новые UI-слои
+  поверх 3D viewport (см.
+  `docs/concept03-defense-ready-digital-twin/03_layout_specification_desktop.md §4`).
+
+Подробности:
+
+- `docs/concept03-defense-ready-digital-twin/06_components_catalog.md → §D`
+  — `Scene3DViewport`, `CalloutTag`, `CompassWidget`, `LayersDropdown`.
+- `docs/concept03-defense-ready-digital-twin/07_interaction_design.md → §5`
+  — анимация, hover, camera presets.
+- `docs/concept03-defense-ready-digital-twin/08_data_mapping.md → §6`
+  — маппинг `VisualizationSignalMap → callouts`.
+
+Концепт-изображения:
+
+- `artifacts/visual-concepts/concept-03-defense-ready-digital-twin.png`
+- `artifacts/visual-concepts/concept-03-defense-ready-digital-twin-tablet.png`
+- `artifacts/visual-concepts/concept-03-defense-ready-digital-twin-mobile.png`
+
+Полный пакет проектирования:
+`docs/concept03-defense-ready-digital-twin/README.md`.

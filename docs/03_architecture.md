@@ -116,3 +116,28 @@
 ## Главный запрет для следующего этапа
 
 Не начинать разработку с интерфейса. Сначала нужно утвердить параметры, уравнения, ограничения и целевой состав выходных показателей.
+
+## P5. UI-эволюция: Concept-03 «Defense-Ready Digital Twin»
+
+После M10–M18 архитектура UI расширяется отдельным parallel-пакетом
+`src/app/ui/concept03/` (см. подробный план миграции:
+`docs/concept03-defense-ready-digital-twin/12_migration_strategy.md`).
+
+Принципы:
+
+- расчётное ядро (`src/app/simulation`) **не меняется**;
+- сервисы и API расширяются только аддитивно (новые поля/query-параметры
+  с дефолтами);
+- старый layout `src/app/ui/layout.py` остаётся как fallback (`?theme=legacy`);
+- новый layout `src/app/ui/concept03/shell.py` живёт параллельно и
+  активируется через `?theme=concept03` (`+ &defense=true` для Defense
+  Day Variant).
+
+Полный пакет архитектурной и UX-документации:
+`docs/concept03-defense-ready-digital-twin/README.md`.
+
+Концепт-изображения:
+
+- `artifacts/visual-concepts/concept-03-defense-ready-digital-twin.png`
+- `artifacts/visual-concepts/concept-03-defense-ready-digital-twin-tablet.png`
+- `artifacts/visual-concepts/concept-03-defense-ready-digital-twin-mobile.png`

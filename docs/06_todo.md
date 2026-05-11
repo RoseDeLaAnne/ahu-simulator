@@ -286,3 +286,76 @@ evidence.
 - [ ] Заполнить acceptance matrix evidence.
 - [ ] Сохранить свежие screenshots.
 - [ ] Повторить browser walkthrough на целевом демо-ПК.
+
+## P5. Concept-03 «Defense-Ready Digital Twin»
+
+Подробный action-list — `docs/concept03-defense-ready-digital-twin/10_todo.md`.
+Здесь — только верхнеуровневые чекпоинты по фазам (см.
+`docs/concept03-defense-ready-digital-twin/09_implementation_phases.md`).
+
+Концепт-изображения:
+- `artifacts/visual-concepts/concept-03-defense-ready-digital-twin.png`
+- `artifacts/visual-concepts/concept-03-defense-ready-digital-twin-tablet.png`
+- `artifacts/visual-concepts/concept-03-defense-ready-digital-twin-mobile.png`
+
+### Phase 0. Foundations
+
+- [ ] Создать `src/app/ui/concept03/` package + ассеты `concept03_tokens.css`,
+      `concept03_dashboard.css`, `concept03_icons.svg`.
+- [ ] Добавить feature flags (`concept03_enabled`, `defense_day_variant`).
+- [ ] `?theme=concept03` toggle на `/dashboard`.
+
+### Phase 1. App shell
+
+- [ ] Layout-grid 6 регионов (`#app-header`, `#left-rail`,
+      `#central-canvas`, `#right-rail`, `#bottom-strip`,
+      `#app-footer-nav`) на 1366/1500/1920.
+
+### Phase 2. Header
+
+- [ ] Brand + title + status pills + datetime + user avatar.
+
+### Phase 3. Left rail
+
+- [ ] Scenarios (5) + control modes (4) + config card + CTA.
+- [ ] Расширение `ControlMode` enum (`SEMI_AUTO`, `TEST`).
+- [ ] Иконка-поле в `ScenarioDefinition`.
+
+### Phase 4. Right rail
+
+- [ ] Status banner + 6 KPI rows + 4 health tiles.
+
+### Phase 5. Central canvas
+
+- [ ] 6 tabs (3D / Схема / Параметры / Тренды / Алармы / Документация).
+- [ ] 8 callouts + compass + pagination dots на 3D scene.
+- [ ] 2D fallback через существующий mnemonic.
+
+### Phase 6. Bottom strip + footer-nav
+
+- [ ] 4 нижние панели: Готовность к валидации, Сравнение модель vs
+      реальность, Журнал событий, Отчёты и экспорт.
+- [ ] Footer-nav 6 пунктов + «Защищённый контур» pill.
+
+### Phase 7. Defense Day Variant
+
+- [ ] Header action toolbar (Запустить/Пауза/Стоп/Сброс) + meta pills.
+- [ ] 5 tabs (`3D Модель / 2D Схема / Графики / Таблицы / Балансы`).
+- [ ] 4 KPI cards со sparkline; collapsibles справа.
+- [ ] 5 нижних панелей включая «Экспортный пакет» и «Готовность к
+      защите 96%».
+- [ ] Academic footer с метаданными ВКР.
+
+### Phase 8. Mobile / responsive polish
+
+- [ ] Mobile layout 375×812 (см. `docs/concept03-defense-ready-digital-twin/05_layout_specification_mobile.md`).
+- [ ] Bottom-nav 5 пунктов + off-canvas «Библиотека».
+- [ ] Capacitor APK с обновлённым splash и status bar.
+
+### Phase 9. Closeout
+
+- [ ] Demo bundle `--concept03 --defense`.
+- [ ] Обновить `docs/14_defense_pack.md`, `docs/30_defense_presenter_script.md`,
+      `docs/28_defense_freeze_note.md`.
+- [ ] Tag `v3.0.0-concept03-defense`.
+

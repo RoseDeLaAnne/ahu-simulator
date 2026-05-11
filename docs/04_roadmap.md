@@ -71,3 +71,28 @@
 
 Подробный план: `docs/35_3d_visualization_upgrade_plan.md`.
 Визуальная карта курса: `docs/36_3d_visualization_course_map.md`.
+
+## P5. Concept-03 «Defense-Ready Digital Twin» (2026-05-08)
+
+Перевод приложения из формата «инженерной лаборатории» в формат
+«цифрового двойника защищённого инженерного контура» — operator
+dashboard на каждый день и Defense Day Variant для презентации ВКР.
+
+| Фаза | Цель | Критерий выхода |
+| --- | --- | --- |
+| Phase 0 | Foundations: токены, namespace, feature toggle | `?theme=concept03` подгружает CSS, legacy не сломан |
+| Phase 1 | App shell: 6 регионов layout-grid | snapshot 1366/1500/1920 совпадает с tablet макетом |
+| Phase 2 | Header: бренд, title, status pills, datetime | snapshot phase2 принят |
+| Phase 3 | Left rail: сценарии, режимы, конфигурация | scenario click меняет KPI; ControlMode расширен |
+| Phase 4 | Right rail: status banner + 6 KPI rows + 4 health tiles | snapshot phase4, тесты зелёные |
+| Phase 5 | Central canvas: 3D + 2D + tabs + callouts | 8 callouts, compass, camera presets, 60 fps |
+| Phase 6 | Bottom strip + footer-nav + «Защищённый контур» pill | 4 нижних панели + 6 пунктов nav |
+| Phase 7 | Defense Day Variant (academic single-screen) | snapshot phase7 ≤ 2% от desktop макета |
+| Phase 8 | Mobile / responsive polish | iPhone/Android snapshot принят, Capacitor APK собран |
+| Phase 9 | Closeout: defense pack + demo + freeze | tag `v3.0.0-concept03-defense` создан |
+
+Подробный пакет: `docs/concept03-defense-ready-digital-twin/README.md`.
+Концепт-изображения:
+- `artifacts/visual-concepts/concept-03-defense-ready-digital-twin.png`
+- `artifacts/visual-concepts/concept-03-defense-ready-digital-twin-tablet.png`
+- `artifacts/visual-concepts/concept-03-defense-ready-digital-twin-mobile.png`

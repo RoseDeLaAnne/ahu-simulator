@@ -21,6 +21,8 @@ from app.services.validation_service import (
 from app.simulation.parameters import ControlMode
 from app.simulation.scenarios import ScenarioDefinition
 from app.simulation.state import SimulationResult, SimulationSession, SimulationSessionStatus
+from app.ui.concept03.page_router import DEFAULT_PAGE
+from app.ui.concept03.shell import build_concept03_shell
 from app.ui.scene.bindings import load_scene_bindings
 from app.ui.scene.model_catalog import build_scene_model_catalog
 from app.ui.scene.room_catalog import (
@@ -53,6 +55,10 @@ from app.ui.viewmodels.browser_diagnostics import (
     DemoBrowserReadinessView,
     build_browser_profile_view,
     build_demo_browser_readiness_view,
+)
+from app.ui.viewmodels.concept03_header import (
+    build_concept03_header_view,
+    build_header_state_payload,
 )
 from app.ui.viewmodels.run_comparison import (
     RunComparisonEntryView,
@@ -160,6 +166,11 @@ def build_dashboard_layout(
     scenario_archive_view = build_scenario_archive_view(scenario_archive)
     run_comparison_view = build_run_comparison_view(comparison_snapshot)
     event_log_view = build_event_log_view(event_log_snapshot)
+    concept03_header_view = build_concept03_header_view(
+        project_baseline=project_baseline,
+        current_result=current_result,
+        demo_readiness=demo_readiness,
+    )
     browser_profile_view = build_browser_profile_view(browser_profile)
     demo_browser_view = build_demo_browser_readiness_view(None, browser_profile)
     control_mode_view = build_control_mode_view(current_result.control)
@@ -207,6 +218,17 @@ def build_dashboard_layout(
         children=[
             dcc.Location(id="url", refresh=False),
             dcc.Store(id="scenario-preset-version", data=0),
+            dcc.Store(id="dashboard-page", data=DEFAULT_PAGE.value),
+            dcc.Store(id="central-canvas-tab", data="3d"),
+            dcc.Store(
+                id="concept03-header-state",
+                data=build_header_state_payload(current_result),
+            ),
+            dcc.Interval(
+                id="concept03-header-clock",
+                interval=1000,
+                n_intervals=0,
+            ),
             dcc.Interval(
                 id="simulation-interval",
                 interval=_session_interval_ms(current_session.playback_speed),
@@ -250,6 +272,11 @@ def build_dashboard_layout(
             ),
             html.Div(id="mnemonic-sync", style={"display": "none"}),
             html.Div(id="viewer3d-sync", style={"display": "none"}),
+            build_concept03_shell(
+                active_page=DEFAULT_PAGE.value,
+                root_id="concept03-shell",
+                header_view=concept03_header_view,
+            ),
             html.Nav(
                 className="site-nav",
                 children=[

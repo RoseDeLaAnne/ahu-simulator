@@ -21,4 +21,5 @@
 - `defaults.mobile.yaml` подключается через `AHU_SIMULATOR_SETTINGS_FILE` и рассчитан на запуск за reverse-proxy в мобильном контуре;
 - `local.env` автоматически подхватывается при локальном запуске и в загрузчике настроек; файл не хранится в git, а реальные переменные окружения имеют приоритет над ним;
 - в `defaults.yaml` теперь зафиксированы и `status_thresholds` для единого слоя `Норма/Риск/Авария` по KPI, alerts, мнемосхеме, трендам и export;
+- блок `ui` управляет миграционным toggle concept-03: `theme`, `concept03_enabled` и `defense_day_variant`; по умолчанию активен `legacy`, а `?theme=concept03` используется как безопасный development override;
 - post-MVP функции `Event Log`, `Scenario Archive` и `Export Pack` не требуют новых runtime-настроек и пишут артефакты в `artifacts/...` по конвенции проекта.

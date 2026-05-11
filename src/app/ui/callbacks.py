@@ -42,6 +42,8 @@ from app.ui.layout import (
     _format_scenario_metadata,
     build_manual_check_panel_content,
 )
+from app.ui.concept03.header_callbacks import register_header_callbacks
+from app.ui.concept03.page_router import select_page
 from app.ui.render_modes.scene3d import (
     SCENE3D_TRANSFORM_CONTROLS,
     scene3d_transform_input_id,
@@ -128,6 +130,43 @@ def register_callbacks(
     scene_model_map = {model.id: model for model in scene_model_catalog.models}
     room_catalog = build_room_catalog()
     developer_tools_enabled = get_settings().developer_tools_enabled
+
+    @app.callback(
+        Output("dashboard-page", "data"),
+        Input("url", "search"),
+    )
+    def sync_concept03_dashboard_page(search: str | None) -> str:
+        return select_page(search)
+
+    app.clientside_callback(
+        """
+        function(search) {
+            function breakpointName(width) {
+                if (width < 1024) return 'mobile';
+                if (width < 1280) return 'tablet';
+                return 'desktop';
+            }
+            function syncBreakpoint() {
+                if (!document.body) return breakpointName(window.innerWidth || 0);
+                var name = breakpointName(window.innerWidth || document.documentElement.clientWidth || 0);
+                document.body.setAttribute('data-breakpoint', name);
+                return name;
+            }
+            if (!window.__ahuConcept03BreakpointListener) {
+                window.__ahuConcept03BreakpointListener = true;
+                window.addEventListener('resize', function() {
+                    window.clearTimeout(window.__ahuConcept03BreakpointTimer);
+                    window.__ahuConcept03BreakpointTimer = window.setTimeout(syncBreakpoint, 80);
+                });
+            }
+            return syncBreakpoint();
+        }
+        """,
+        Output("concept03-breakpoint-probe", "children"),
+        Input("url", "search"),
+    )
+
+    register_header_callbacks(app)
 
     app.clientside_callback(
         ClientsideFunction(
