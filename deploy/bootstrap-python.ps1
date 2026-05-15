@@ -13,11 +13,12 @@ function Resolve-SystemPython {
     if ($pyLauncher) {
         foreach ($versionSelector in @("-3.12", "-3")) {
             try {
-                & $pyLauncher.Source $versionSelector -c "import sys; print(sys.executable)"
+                $pythonExe = & $pyLauncher.Source $versionSelector -c "import sys; print(sys.executable)"
                 if ($LASTEXITCODE -eq 0) {
                     return @{
                         Command = $pyLauncher.Source
                         Arguments = @($versionSelector)
+                        PythonExe = $pythonExe
                     }
                 }
             }
@@ -47,7 +48,13 @@ function Test-PythonModules {
     )
 
     foreach ($module in $Modules) {
-        & $PythonExe -c "import $module" 2>$null
+        try {
+            $null = & $PythonExe -c "import $module" 2>$null
+        }
+        catch {
+            return $false
+        }
+
         if ($LASTEXITCODE -ne 0) {
             return $false
         }

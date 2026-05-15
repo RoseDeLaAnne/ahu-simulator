@@ -2,7 +2,8 @@ param(
     [switch]$Dev,
     [switch]$RunTests,
     [switch]$Start,
-    [switch]$OpenDashboard
+    [switch]$OpenDashboard,
+    [switch]$CreateLocalEnv
 )
 
 Set-StrictMode -Version Latest
@@ -16,7 +17,7 @@ Write-Host "Project root: $projectRoot"
 
 $localEnv = Join-Path $projectRoot "config\local.env"
 $localEnvExample = Join-Path $projectRoot "config\local.env.example"
-if ((-not (Test-Path $localEnv)) -and (Test-Path $localEnvExample)) {
+if ($CreateLocalEnv -and (-not (Test-Path $localEnv)) -and (Test-Path $localEnvExample)) {
     Copy-Item -Path $localEnvExample -Destination $localEnv
     Write-Host "Created config\local.env from config\local.env.example"
 }
@@ -44,6 +45,7 @@ Write-Host "Common commands:"
 Write-Host "  .\start.bat"
 Write-Host "  .\deploy\run-local.ps1 -OpenDashboard"
 Write-Host "  .\.venv\Scripts\python.exe -m pytest"
+Write-Host "  .\setup.bat -CreateLocalEnv"
 
 if ($RunTests) {
     Write-Host ""

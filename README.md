@@ -55,8 +55,15 @@ cd ahu-simulator
 .\start.bat
 ```
 
-`setup.bat` создает `config/local.env` из примера, поднимает `.venv` и
-устанавливает Python-зависимости. Для проверки сразу после установки:
+`setup.bat` поднимает `.venv` и устанавливает Python-зависимости, оставляя
+штатные настройки из `config/defaults.yaml`. Локальный override-файл можно
+создать явно:
+
+```powershell
+.\setup.bat -CreateLocalEnv
+```
+
+Для проверки сразу после установки:
 
 ```powershell
 .\setup.bat -RunTests
