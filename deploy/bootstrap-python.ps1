@@ -77,6 +77,7 @@ $runtimeModules = @(
     "numpy",
     "plotly",
     "pydantic",
+    "reportlab",
     "uvicorn",
     "yaml"
 )

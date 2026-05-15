@@ -46,6 +46,30 @@
 
 ## Быстрый старт
 
+После чистого клона `main`:
+
+```powershell
+git clone <repo-url>
+cd ahu-simulator
+.\setup.bat
+.\start.bat
+```
+
+`setup.bat` создает `config/local.env` из примера, поднимает `.venv` и
+устанавливает Python-зависимости. Для проверки сразу после установки:
+
+```powershell
+.\setup.bat -RunTests
+```
+
+Для установки и немедленного запуска dashboard:
+
+```powershell
+.\setup.bat -Start -OpenDashboard
+```
+
+Повторный быстрый запуск уже подготовленного проекта:
+
 ```powershell
 .\start.bat
 ```

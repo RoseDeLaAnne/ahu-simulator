@@ -4,6 +4,8 @@
 
 ## Локальный запуск
 
+- `..\setup.ps1` / `..\setup.bat` — первичная подготовка после clean clone:
+  создание `config/local.env`, `.venv` и установка зависимостей.
 - `run-local.ps1` — dev-режим (`uvicorn --reload`) с автоподбором порта.
 - `run-desktop.ps1` — desktop launcher без `--reload`, c автоподбором порта и открытием `/dashboard` в отдельном app-окне Chromium (Edge/Chrome).
 
