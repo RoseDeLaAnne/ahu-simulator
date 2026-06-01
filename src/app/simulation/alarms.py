@@ -28,7 +28,7 @@ def build_alarms(
             )
         )
 
-    airflow_ratio = state.actual_airflow_m3_h / max(parameters.airflow_m3_h, 1.0)
+    airflow_ratio = state.actual_airflow_m3_h / max(state.demanded_airflow_m3_h, 1.0)
     if airflow_ratio <= thresholds.airflow_ratio.alarm:
         alarms.append(
             Alarm(

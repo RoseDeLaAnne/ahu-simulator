@@ -12,6 +12,7 @@ MIN_MASS_FLOW_KG_S = 1e-6
 @dataclass(slots=True)
 class OperatingPoint:
     actual_airflow_m3_h: float
+    demanded_airflow_m3_h: float
     mixed_air_temp_c: float
     recovered_air_temp_c: float
     supply_temp_c: float
@@ -36,6 +37,18 @@ def compute_actual_airflow_m3_h(parameters: SimulationParameters) -> float:
     return parameters.airflow_m3_h * parameters.fan_speed_ratio * fouling_factor
 
 
+def compute_demanded_airflow_m3_h(parameters: SimulationParameters) -> float:
+    """Throughput the fan is commanded to move at its current speed setting.
+
+    This is the airflow demand of the active operating point (design airflow
+    scaled by the commanded fan speed), *before* filter resistance losses.
+    The airflow KPI compares the actually delivered flow against this demand,
+    so it reports delivery efficiency (how much the filter is choking the fan)
+    rather than deviation from the full summer-peak design airflow.
+    """
+    return parameters.airflow_m3_h * parameters.fan_speed_ratio
+
+
 def compute_filter_pressure_drop_pa(parameters: SimulationParameters) -> float:
     return 120.0 + 300.0 * (parameters.filter_contamination**1.35)
 
@@ -45,6 +58,7 @@ def calculate_operating_point(
     step_minutes: int,
 ) -> OperatingPoint:
     actual_airflow_m3_h = compute_actual_airflow_m3_h(parameters)
+    demanded_airflow_m3_h = compute_demanded_airflow_m3_h(parameters)
     filter_pressure_drop_pa = compute_filter_pressure_drop_pa(parameters)
     mixed_air_temp_c = parameters.outdoor_temp_c
     recovered_air_temp_c = mixed_air_temp_c + (
@@ -99,6 +113,7 @@ def calculate_operating_point(
 
     return OperatingPoint(
         actual_airflow_m3_h=_round(actual_airflow_m3_h),
+        demanded_airflow_m3_h=_round(demanded_airflow_m3_h),
         mixed_air_temp_c=_round(mixed_air_temp_c),
         recovered_air_temp_c=_round(recovered_air_temp_c),
         supply_temp_c=_round(supply_temp_c),

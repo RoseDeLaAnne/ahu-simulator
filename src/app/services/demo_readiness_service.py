@@ -47,6 +47,17 @@ class DemoReadinessCheck(BaseModel):
     evidence_path: str | None = None
 
 
+class SecuredLoopStatus(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    state: str = "active"
+    label: str = "ЗАЩИЩЕННЫЙ КОНТУР"
+    detail: str = "Локальный контур демонстрации активен."
+    local_services_ready: int = 0
+    local_services_total: int = 0
+    external_dependencies: int = 0
+
+
 class DemoReadinessEvaluation(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -60,6 +71,7 @@ class DemoReadinessEvaluation(BaseModel):
     endpoints: list[DemoEndpoint] = Field(default_factory=list)
     runtime_versions: list[DemoRuntimeVersion] = Field(default_factory=list)
     checks: list[DemoReadinessCheck] = Field(default_factory=list)
+    secured_loop: SecuredLoopStatus = Field(default_factory=SecuredLoopStatus)
 
 
 class DemoPackageEntry(BaseModel):
@@ -210,6 +222,11 @@ class DemoReadinessService:
             endpoints=self._build_endpoints(),
             runtime_versions=runtime_versions,
             checks=checks,
+            secured_loop=self._build_secured_loop_status(
+                overall_status,
+                ready_checks,
+                len(checks),
+            ),
         )
 
     def build_package_snapshot(self) -> DemoPackageSnapshot:
@@ -530,6 +547,31 @@ class DemoReadinessService:
         return (
             f"{ready_checks} из {total_checks} пунктов готовы; "
             "в проектном предварительном контроле ещё остаются незакрытые шаги."
+        )
+
+    @staticmethod
+    def _build_secured_loop_status(
+        overall_status: OperationStatus,
+        ready_checks: int,
+        total_checks: int,
+    ) -> SecuredLoopStatus:
+        if overall_status == OperationStatus.ALARM:
+            state = "disabled"
+            detail = "Есть критичные локальные проверки; контур требует восстановления."
+        elif overall_status == OperationStatus.WARNING:
+            state = "reduced"
+            detail = "Контур локальный, но часть проверок находится в режиме внимания."
+        else:
+            state = "active"
+            detail = "Локальный контур демонстрации активен; внешних зависимостей нет."
+
+        return SecuredLoopStatus(
+            state=state,
+            label="ЗАЩИЩЕННЫЙ КОНТУР",
+            detail=detail,
+            local_services_ready=ready_checks,
+            local_services_total=total_checks,
+            external_dependencies=0,
         )
 
     def _build_package_entries(self) -> list[DemoPackageEntry]:

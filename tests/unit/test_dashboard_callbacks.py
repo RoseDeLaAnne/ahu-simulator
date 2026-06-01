@@ -1,13 +1,16 @@
 from pathlib import Path
 
 from app.services.simulation_service import SimulationService
-from app.services.comparison_service import RunComparisonService
+from app.services.comparison_service import ACTIVE_RUN_REFERENCE_ID, RunComparisonService
+from app.services.event_log_service import EventLogService
+from app.services.export_service import ExportService
 from app.services.scenario_archive_service import ScenarioArchiveService
 from app.services.scenario_preset_service import ScenarioPresetService
 from app.services.trend_service import TrendService
 from app.simulation.scenarios import load_scenarios
 from app.simulation.state import SimulationSessionStatus
 from app.ui.callbacks import (
+    _build_concept03_quick_report_package,
     _build_run_comparison_interpretation,
     _build_run_comparison_top_delta_items,
     _build_session_status_badge,
@@ -183,3 +186,53 @@ def test_dashboard_comparison_helpers_show_labels_and_top_deltas(tmp_path: Path)
     delta_items = _build_run_comparison_top_delta_items(comparison)
     assert delta_items
     assert "ΔP фильтра" in str(delta_items)
+
+
+def test_concept03_quick_report_package_exports_scenario_and_comparison(
+    tmp_path: Path,
+) -> None:
+    service = _build_service()
+    session = service.get_session()
+    archive_service = ScenarioArchiveService(project_root=tmp_path)
+    before_entry = archive_service.save_result(service.preview_scenario("winter")).entry
+    comparison_service = RunComparisonService(
+        project_root=tmp_path,
+        scenario_archive_service=archive_service,
+    )
+    comparison = comparison_service.build_comparison_from_references(
+        f"archive:{before_entry.archive_id}",
+        ACTIVE_RUN_REFERENCE_ID,
+        session.current_result,
+        session,
+    )
+    export_service = ExportService(project_root=tmp_path)
+    event_log_service = EventLogService(project_root=tmp_path)
+
+    scenario_manifest, comparison_manifest = _build_concept03_quick_report_package(
+        export_service=export_service,
+        comparison_service=comparison_service,
+        event_log_service=event_log_service,
+        session=session,
+        comparison=comparison,
+    )
+
+    comparison_snapshot = comparison_service.build_snapshot(
+        session.current_result,
+        session,
+    )
+    event_snapshot = event_log_service.build_snapshot()
+
+    assert comparison.compatibility.is_compatible is True
+    assert (tmp_path / scenario_manifest).exists()
+    assert comparison_manifest is not None
+    assert (tmp_path / comparison_manifest).exists()
+    defense_manifests = list(
+        (tmp_path / "artifacts" / "exports").rglob("pvu-defense-package-*.manifest.json")
+    )
+    assert len(defense_manifests) == 1
+    assert comparison_snapshot.latest_comparison_id is not None
+    assert event_snapshot.total_entries == 2
+    assert {entry.title for entry in event_snapshot.entries} == {
+        "Собран сценарный отчёт",
+        "Собран сравнительный отчёт",
+    }

@@ -48,7 +48,7 @@ def _minimal_binding(**overrides) -> dict:
 
 def _minimal_registry(**overrides) -> dict:
     base = {
-        "version": 2,
+        "version": 3,
         "bindings": [_minimal_binding()],
     }
     base.update(overrides)
@@ -370,7 +370,7 @@ class TestSceneBindingRegistryCrossRef:
         r = SceneBindingRegistry.model_validate(_minimal_registry(
             interactive_targets=["pvu.intake.outdoor_air"],
         ))
-        assert r.version == 2
+        assert r.version == 3
         assert len(r.bindings) == 1
 
     def test_rejects_extra_fields(self) -> None:
@@ -493,11 +493,11 @@ class TestLoadRealScene3d:
         from app.ui.scene.bindings import load_scene_bindings
         load_scene_bindings.cache_clear()
         registry = load_scene_bindings()
-        assert registry.version == 2
-        assert len(registry.bindings) == 15
+        assert registry.version == 3
+        assert len(registry.bindings) == 19
         assert registry.asset is not None
         assert registry.asset.format == "glb"
-        assert len(registry.interactive_targets) == 11
+        assert len(registry.interactive_targets) == 15
         assert registry.animation_rules is not None
         assert registry.animation_rules.fan_rotation is not None
         assert registry.animation_rules.flow_pulse is not None

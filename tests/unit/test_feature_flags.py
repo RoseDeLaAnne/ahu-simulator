@@ -59,6 +59,7 @@ ui:
     assert settings.feature_flags.theme == UITheme.CONCEPT03
     assert settings.feature_flags.concept03_enabled is True
     assert settings.feature_flags.defense_day_variant is True
+    assert settings.academic.program == "ВКР 2026"
 
 
 def test_get_feature_flags_returns_settings_defaults() -> None:

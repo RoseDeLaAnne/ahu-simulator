@@ -10,6 +10,60 @@ from app.ui.scene.room_catalog import (
     RoomCatalogDescriptor,
 )
 
+SCENE3D_BLOOM_CONTROLS = (
+    {
+        "key": "bloom_strength",
+        "label": "Интенсивность свечения",
+        "min": 0.0,
+        "max": 3.0,
+        "step": 0.1,
+        "value": 1.2,
+    },
+    {
+        "key": "bloom_radius",
+        "label": "Радиус размытия",
+        "min": 0.0,
+        "max": 1.0,
+        "step": 0.05,
+        "value": 0.4,
+    },
+    {
+        "key": "bloom_threshold",
+        "label": "Порог яркости",
+        "min": 0.0,
+        "max": 1.0,
+        "step": 0.05,
+        "value": 0.85,
+    },
+)
+
+SCENE3D_SSAO_CONTROLS = (
+    {
+        "key": "ssao_kernel_radius",
+        "label": "Радиус ядра (AO)",
+        "min": 0.0,
+        "max": 2.0,
+        "step": 0.05,
+        "value": 0.5,
+    },
+    {
+        "key": "ssao_min_distance",
+        "label": "Мин. дистанция",
+        "min": 0.0,
+        "max": 0.05,
+        "step": 0.001,
+        "value": 0.002,
+    },
+    {
+        "key": "ssao_max_distance",
+        "label": "Макс. дистанция",
+        "min": 0.0,
+        "max": 0.3,
+        "step": 0.005,
+        "value": 0.06,
+    },
+)
+
 SCENE3D_TRANSFORM_CONTROLS = (
     {
         "key": "model_scale",
@@ -571,7 +625,9 @@ def _scene3d_control_deck_card(
                     id="scene3d-control-mode",
                     options=[
                         {"label": "Авто", "value": "auto"},
+                        {"label": "Полуавто", "value": "semi_auto"},
                         {"label": "Ручной", "value": "manual"},
+                        {"label": "Тест", "value": "test"},
                     ],
                     value="auto",
                     clearable=False,
@@ -581,7 +637,18 @@ def _scene3d_control_deck_card(
                 ),
             ),
             *(
-                [_scene3d_developer_transform_controls()]
+                [
+                    _scene3d_heatmap_tools(),
+                    _scene3d_clipping_tools(),
+                    _scene3d_lod_tools(),
+                    _scene3d_flow_field_tools(),
+                    _scene3d_comparison_tools(),
+                    _scene3d_screenshot_tools(),
+                    _scene3d_measurement_tools(),
+                    _scene3d_bloom_controls(),
+                    _scene3d_ssao_controls(),
+                    _scene3d_developer_transform_controls(),
+                ]
                 if developer_tools_enabled
                 else []
             ),
@@ -855,6 +922,1125 @@ def _scene3d_developer_transform_controls() -> html.Details:
             ),
         ],
     )
+
+
+def _scene3d_bloom_controls() -> html.Details:
+    """Контролы для управления Bloom post-processing эффектом."""
+    return html.Details(
+        className="scene3d-dev-controls",
+        open=True,
+        children=[
+            html.Summary(
+                className="scene3d-dev-controls__summary",
+                children=[
+                    html.Span("Post-processing: Bloom"),
+                    html.Span("эффекты", className="detail-tag"),
+                ],
+            ),
+            html.Div(
+                className="scene3d-dev-controls__body",
+                children=[
+                    html.Div(
+                        className="scene3d-dev-controls__toolbar",
+                        children=[
+                            html.Label(
+                                children=[
+                                    dcc.Checklist(
+                                        id="scene3d-bloom-enabled",
+                                        options=[{"label": " Включить Bloom", "value": "enabled"}],
+                                        value=["enabled"],
+                                        className="scene3d-bloom-checkbox",
+                                    ),
+                                ],
+                                className="scene3d-bloom-toggle",
+                            ),
+                        ],
+                    ),
+                    html.Div(
+                        className="scene3d-transform-group",
+                        children=[
+                            html.H4("Параметры Bloom", className="scene3d-transform-group__title"),
+                            html.Div(
+                                className="scene3d-transform-grid",
+                                children=[
+                                    _scene3d_bloom_field(control)
+                                    for control in SCENE3D_BLOOM_CONTROLS
+                                ],
+                            ),
+                        ],
+                    ),
+                ],
+            ),
+        ],
+    )
+
+
+def _scene3d_ssao_controls() -> html.Details:
+    """Контролы для управления SSAO (ambient occlusion) post-processing эффектом."""
+    return html.Details(
+        className="scene3d-dev-controls",
+        open=False,
+        children=[
+            html.Summary(
+                className="scene3d-dev-controls__summary",
+                children=[
+                    html.Span("Post-processing: SSAO"),
+                    html.Span("затенение", className="detail-tag"),
+                ],
+            ),
+            html.Div(
+                className="scene3d-dev-controls__body",
+                children=[
+                    html.Div(
+                        className="scene3d-dev-controls__toolbar",
+                        children=[
+                            html.Label(
+                                children=[
+                                    dcc.Checklist(
+                                        id="scene3d-ssao-enabled",
+                                        options=[
+                                            {"label": " Включить SSAO", "value": "enabled"}
+                                        ],
+                                        value=[],
+                                        className="scene3d-ssao-checkbox",
+                                    ),
+                                ],
+                                className="scene3d-ssao-toggle",
+                            ),
+                        ],
+                    ),
+                    html.Div(
+                        className="scene3d-transform-group",
+                        children=[
+                            html.H4(
+                                "Параметры SSAO",
+                                className="scene3d-transform-group__title",
+                            ),
+                            html.Div(
+                                className="scene3d-transform-grid",
+                                children=[
+                                    _scene3d_ssao_field(control)
+                                    for control in SCENE3D_SSAO_CONTROLS
+                                ],
+                            ),
+                        ],
+                    ),
+                ],
+            ),
+        ],
+    )
+
+
+def _scene3d_measurement_tools() -> html.Details:
+    """Контролы для инструментов измерения расстояний и углов."""
+    return html.Details(
+        className="scene3d-dev-controls",
+        open=False,
+        children=[
+            html.Summary(
+                className="scene3d-dev-controls__summary",
+                children=[
+                    html.Span("Инструменты измерения"),
+                    html.Span("расстояния и углы", className="detail-tag"),
+                ],
+            ),
+            html.Div(
+                className="scene3d-dev-controls__body",
+                children=[
+                    html.Div(
+                        className="scene3d-dev-controls__toolbar",
+                        children=[
+                            html.Label(
+                                children=[
+                                    dcc.Checklist(
+                                        id="scene3d-measurement-mode",
+                                        options=[{"label": " Режим измерения", "value": "enabled"}],
+                                        value=[],
+                                        className="scene3d-measurement-checkbox",
+                                    ),
+                                ],
+                                className="scene3d-measurement-toggle",
+                            ),
+                            html.Button(
+                                "Очистить",
+                                id="scene3d-measurement-clear",
+                                n_clicks=0,
+                                type="button",
+                                className="action-btn scene3d-measurement-clear",
+                            ),
+                        ],
+                    ),
+                    html.Div(
+                        className="scene3d-measurement-mode-select",
+                        children=[
+                            html.Label("Тип измерения", className="field-label"),
+                            dcc.RadioItems(
+                                id="scene3d-measurement-type",
+                                options=[
+                                    {"label": " Расстояние", "value": "distance"},
+                                    {"label": " Угол", "value": "angle"},
+                                ],
+                                value="distance",
+                                className="scene3d-measurement-type",
+                                inline=True,
+                            ),
+                        ],
+                    ),
+                    html.Div(
+                        className="scene3d-dev-controls__toolbar",
+                        children=[
+                            html.Button(
+                                "Сохранить",
+                                id="scene3d-measurement-save",
+                                n_clicks=0,
+                                type="button",
+                                className="action-btn scene3d-measurement-save",
+                            ),
+                            html.Button(
+                                "Восстановить",
+                                id="scene3d-measurement-restore",
+                                n_clicks=0,
+                                type="button",
+                                className="action-btn scene3d-measurement-restore",
+                            ),
+                            html.Button(
+                                "Экспорт JSON",
+                                id="scene3d-measurement-export-json",
+                                n_clicks=0,
+                                type="button",
+                                className="action-btn scene3d-measurement-export-json",
+                            ),
+                            html.Button(
+                                "Экспорт CSV",
+                                id="scene3d-measurement-export-csv",
+                                n_clicks=0,
+                                type="button",
+                                className="action-btn scene3d-measurement-export-csv",
+                            ),
+                        ],
+                    ),
+                    html.Div(
+                        className="scene3d-measurement-info",
+                        children=[
+                            html.P(
+                                "Включите режим измерения и кликайте по модели. "
+                                "Расстояние: точки соединяются ломаной. "
+                                "Угол: укажите три точки (вершина — вторая), угол считается в градусах.",
+                                className="scene3d-measurement-hint",
+                            ),
+                            html.Div(
+                                id="scene3d-measurement-status",
+                                className="scene3d-measurement-status",
+                                children="",
+                            ),
+                            html.Div(
+                                id="scene3d-measurement-list",
+                                className="scene3d-measurement-list",
+                                children=[],
+                            ),
+                        ],
+                    ),
+                ],
+            ),
+        ],
+    )
+
+
+def _scene3d_screenshot_tools() -> html.Details:
+    """Контролы для захвата скриншотов высокого качества."""
+    return html.Details(
+        className="scene3d-dev-controls",
+        open=False,
+        children=[
+            html.Summary(
+                className="scene3d-dev-controls__summary",
+                children=[
+                    html.Span("Захват скриншотов"),
+                    html.Span("высокое качество", className="detail-tag"),
+                ],
+            ),
+            html.Div(
+                className="scene3d-dev-controls__body",
+                children=[
+                    html.Div(
+                        className="scene3d-screenshot-controls",
+                        children=[
+                            html.Div(
+                                className="scene3d-screenshot-options",
+                                children=[
+                                    html.Label(
+                                        "Масштаб разрешения:",
+                                        className="field-label",
+                                    ),
+                                    dcc.RadioItems(
+                                        id="scene3d-screenshot-scale",
+                                        options=[
+                                            {"label": " 1x (оригинал)", "value": 1},
+                                            {"label": " 2x (Full HD)", "value": 2},
+                                            {"label": " 4x (4K)", "value": 4},
+                                        ],
+                                        value=2,
+                                        className="scene3d-screenshot-scale-radio",
+                                    ),
+                                    html.Label(
+                                        "Формат:",
+                                        className="field-label",
+                                        style={"marginTop": "12px"},
+                                    ),
+                                    dcc.RadioItems(
+                                        id="scene3d-screenshot-format",
+                                        options=[
+                                            {"label": " PNG (без потерь)", "value": "png"},
+                                            {"label": " JPEG (сжатие)", "value": "jpg"},
+                                        ],
+                                        value="png",
+                                        className="scene3d-screenshot-format-radio",
+                                    ),
+                                    html.Label(
+                                        children=[
+                                            dcc.Checklist(
+                                                id="scene3d-screenshot-metadata",
+                                                options=[{"label": " Включить метаданные", "value": "enabled"}],
+                                                value=["enabled"],
+                                                className="scene3d-screenshot-metadata-checkbox",
+                                            ),
+                                        ],
+                                        style={"marginTop": "12px"},
+                                    ),
+                                ],
+                            ),
+                            html.Div(
+                                className="scene3d-screenshot-actions",
+                                children=[
+                                    html.Button(
+                                        "📷 Сделать скриншот",
+                                        id="scene3d-screenshot-capture",
+                                        n_clicks=0,
+                                        type="button",
+                                        className="action-btn action-btn--primary scene3d-screenshot-btn",
+                                    ),
+                                    html.Div(
+                                        id="scene3d-screenshot-status",
+                                        className="scene3d-screenshot-status",
+                                        children="",
+                                    ),
+                                ],
+                            ),
+                        ],
+                    ),
+                    html.P(
+                        "Скриншот будет автоматически загружен с именем, содержащим дату и время.",
+                        className="scene3d-screenshot-hint",
+                    ),
+                ],
+            ),
+        ],
+    )
+
+
+def _scene3d_heatmap_tools() -> html.Details:
+    """Контролы для тепловых карт на поверхностях."""
+    return html.Details(
+        className="scene3d-dev-controls",
+        open=False,
+        children=[
+            html.Summary(
+                className="scene3d-dev-controls__summary",
+                children=[
+                    html.Span("Тепловые карты"),
+                    html.Span("визуализация температуры", className="detail-tag"),
+                ],
+            ),
+            html.Div(
+                className="scene3d-dev-controls__body",
+                children=[
+                    html.Div(
+                        className="scene3d-heatmap-controls",
+                        children=[
+                            html.Label(
+                                children=[
+                                    dcc.Checklist(
+                                        id="scene3d-heatmap-enabled",
+                                        options=[{"label": " Включить тепловую карту", "value": "enabled"}],
+                                        value=[],
+                                        className="scene3d-heatmap-checkbox",
+                                    ),
+                                ],
+                                className="scene3d-heatmap-toggle",
+                            ),
+                            html.Div(
+                                className="scene3d-heatmap-range",
+                                children=[
+                                    html.Label(
+                                        "Диапазон температур:",
+                                        className="field-label",
+                                        style={"marginTop": "12px"},
+                                    ),
+                                    html.Div(
+                                        className="scene3d-heatmap-range-inputs",
+                                        children=[
+                                            html.Div(
+                                                children=[
+                                                    html.Label("Мин, °C:", className="field-label-small"),
+                                                    dcc.Input(
+                                                        id="scene3d-heatmap-min-temp",
+                                                        type="number",
+                                                        value=-10,
+                                                        step=1,
+                                                        className="number-input scene3d-number-input",
+                                                    ),
+                                                ],
+                                            ),
+                                            html.Div(
+                                                children=[
+                                                    html.Label("Макс, °C:", className="field-label-small"),
+                                                    dcc.Input(
+                                                        id="scene3d-heatmap-max-temp",
+                                                        type="number",
+                                                        value=40,
+                                                        step=1,
+                                                        className="number-input scene3d-number-input",
+                                                    ),
+                                                ],
+                                            ),
+                                        ],
+                                    ),
+                                ],
+                            ),
+                        ],
+                    ),
+                    html.P(
+                        "Тепловая карта отображает распределение температуры по установке. "
+                        "Данные берутся из текущих показаний датчиков.",
+                        className="scene3d-heatmap-hint",
+                    ),
+                ],
+            ),
+        ],
+    )
+
+
+def _scene3d_clipping_tools() -> html.Details:
+    """Контролы для режима сечений (clipping planes)."""
+    return html.Details(
+        className="scene3d-dev-controls",
+        open=False,
+        children=[
+            html.Summary(
+                className="scene3d-dev-controls__summary",
+                children=[
+                    html.Span("Режим сечений"),
+                    html.Span("clipping planes", className="detail-tag"),
+                ],
+            ),
+            html.Div(
+                className="scene3d-dev-controls__body",
+                children=[
+                    html.Div(
+                        className="scene3d-clipping-controls",
+                        children=[
+                            html.Label(
+                                children=[
+                                    dcc.Checklist(
+                                        id="scene3d-clipping-enabled",
+                                        options=[{"label": " Включить режим сечений", "value": "enabled"}],
+                                        value=[],
+                                        className="scene3d-clipping-checkbox",
+                                    ),
+                                ],
+                                className="scene3d-clipping-toggle",
+                            ),
+                            html.Div(
+                                className="scene3d-clipping-presets",
+                                children=[
+                                    html.Label(
+                                        "Пресеты сечений:",
+                                        className="field-label",
+                                        style={"marginTop": "12px"},
+                                    ),
+                                    html.Div(
+                                        className="scene3d-clipping-preset-buttons",
+                                        children=[
+                                            html.Button(
+                                                "X (YZ)",
+                                                id="scene3d-clipping-preset-x",
+                                                className="scene3d-preset-button",
+                                                n_clicks=0,
+                                            ),
+                                            html.Button(
+                                                "Y (XZ)",
+                                                id="scene3d-clipping-preset-y",
+                                                className="scene3d-preset-button",
+                                                n_clicks=0,
+                                            ),
+                                            html.Button(
+                                                "Z (XY)",
+                                                id="scene3d-clipping-preset-z",
+                                                className="scene3d-preset-button",
+                                                n_clicks=0,
+                                            ),
+                                            html.Button(
+                                                "Диагональ",
+                                                id="scene3d-clipping-preset-diagonal",
+                                                className="scene3d-preset-button",
+                                                n_clicks=0,
+                                            ),
+                                            html.Button(
+                                                "Крест",
+                                                id="scene3d-clipping-preset-cross",
+                                                className="scene3d-preset-button",
+                                                n_clicks=0,
+                                            ),
+                                        ],
+                                    ),
+                                ],
+                            ),
+                            html.Div(
+                                className="scene3d-clipping-plane-controls",
+                                id="scene3d-clipping-plane-controls",
+                                children=[
+                                    html.Label(
+                                        "Управление плоскостью:",
+                                        className="field-label",
+                                        style={"marginTop": "12px"},
+                                    ),
+                                    html.Div(
+                                        className="scene3d-clipping-plane-select",
+                                        children=[
+                                            dcc.Dropdown(
+                                                id="scene3d-clipping-plane-index",
+                                                options=[],
+                                                value=None,
+                                                placeholder="Выберите плоскость",
+                                                className="scene3d-dropdown",
+                                            ),
+                                        ],
+                                    ),
+                                    html.Div(
+                                        id="scene3d-clipping-plane-params",
+                                        className="scene3d-clipping-plane-params",
+                                        children=[
+                                            html.Div(
+                                                className="scene3d-clipping-param-row",
+                                                children=[
+                                                    html.Label("Нормаль X:", className="field-label-small"),
+                                                    dcc.Input(
+                                                        id="scene3d-clipping-normal-x",
+                                                        type="number",
+                                                        value=0,
+                                                        step=0.1,
+                                                        className="number-input scene3d-number-input",
+                                                    ),
+                                                ],
+                                            ),
+                                            html.Div(
+                                                className="scene3d-clipping-param-row",
+                                                children=[
+                                                    html.Label("Нормаль Y:", className="field-label-small"),
+                                                    dcc.Input(
+                                                        id="scene3d-clipping-normal-y",
+                                                        type="number",
+                                                        value=1,
+                                                        step=0.1,
+                                                        className="number-input scene3d-number-input",
+                                                    ),
+                                                ],
+                                            ),
+                                            html.Div(
+                                                className="scene3d-clipping-param-row",
+                                                children=[
+                                                    html.Label("Нормаль Z:", className="field-label-small"),
+                                                    dcc.Input(
+                                                        id="scene3d-clipping-normal-z",
+                                                        type="number",
+                                                        value=0,
+                                                        step=0.1,
+                                                        className="number-input scene3d-number-input",
+                                                    ),
+                                                ],
+                                            ),
+                                            html.Div(
+                                                className="scene3d-clipping-param-row",
+                                                children=[
+                                                    html.Label("Смещение:", className="field-label-small"),
+                                                    dcc.Input(
+                                                        id="scene3d-clipping-constant",
+                                                        type="number",
+                                                        value=0,
+                                                        step=0.1,
+                                                        className="number-input scene3d-number-input",
+                                                    ),
+                                                ],
+                                            ),
+                                            html.Div(
+                                                className="scene3d-clipping-param-row",
+                                                children=[
+                                                    dcc.Checklist(
+                                                        id="scene3d-clipping-inverted",
+                                                        options=[{"label": " Инвертировать", "value": "inverted"}],
+                                                        value=[],
+                                                        className="scene3d-clipping-checkbox-small",
+                                                    ),
+                                                ],
+                                            ),
+                                        ],
+                                    ),
+                                    html.Div(
+                                        className="scene3d-clipping-actions",
+                                        children=[
+                                            html.Button(
+                                                "Добавить плоскость",
+                                                id="scene3d-clipping-add",
+                                                className="scene3d-action-button",
+                                                n_clicks=0,
+                                            ),
+                                            html.Button(
+                                                "Удалить",
+                                                id="scene3d-clipping-remove",
+                                                className="scene3d-action-button scene3d-action-button--danger",
+                                                n_clicks=0,
+                                            ),
+                                            html.Button(
+                                                "Очистить всё",
+                                                id="scene3d-clipping-clear",
+                                                className="scene3d-action-button scene3d-action-button--danger",
+                                                n_clicks=0,
+                                            ),
+                                        ],
+                                    ),
+                                ],
+                            ),
+                        ],
+                    ),
+                    html.P(
+                        "Режим сечений позволяет 'разрезать' модель плоскостями для просмотра внутренних узлов. "
+                        "Используйте пресеты для быстрого создания стандартных сечений.",
+                        className="scene3d-clipping-hint",
+                    ),
+                ],
+            ),
+        ],
+    )
+
+
+def _scene3d_lod_tools() -> html.Details:
+    """Контролы для LOD-оптимизации (Level of Detail)."""
+    return html.Details(
+        className="scene3d-dev-controls",
+        children=[
+            html.Summary("🎯 LOD-оптимизация", className="scene3d-dev-controls__summary"),
+            html.Div(
+                className="scene3d-dev-controls__content",
+                children=[
+                    html.Div(
+                        className="scene3d-lod-controls",
+                        children=[
+                            html.Div(
+                                className="scene3d-lod-enable",
+                                children=[
+                                    dcc.Checklist(
+                                        id="scene3d-lod-enabled",
+                                        options=[{"label": " Включить LOD", "value": "enabled"}],
+                                        value=[],
+                                        className="scene3d-lod-checkbox",
+                                    ),
+                                ],
+                            ),
+                            html.Div(
+                                className="scene3d-lod-presets",
+                                children=[
+                                    html.Label("Пресеты:", className="field-label"),
+                                    html.Div(
+                                        className="scene3d-lod-preset-buttons",
+                                        children=[
+                                            html.Button(
+                                                "Производительность",
+                                                id="scene3d-lod-preset-performance",
+                                                className="scene3d-preset-button",
+                                                n_clicks=0,
+                                                title="Дистанции: 0/10/20м, максимальная производительность",
+                                            ),
+                                            html.Button(
+                                                "Сбалансированный",
+                                                id="scene3d-lod-preset-balanced",
+                                                className="scene3d-preset-button",
+                                                n_clicks=0,
+                                                title="Дистанции: 0/15/30м, баланс качества и производительности",
+                                            ),
+                                            html.Button(
+                                                "Качество",
+                                                id="scene3d-lod-preset-quality",
+                                                className="scene3d-preset-button",
+                                                n_clicks=0,
+                                                title="Дистанции: 0/25/50м, максимальное качество",
+                                            ),
+                                        ],
+                                    ),
+                                ],
+                            ),
+                            html.Div(
+                                className="scene3d-lod-distances",
+                                children=[
+                                    html.Label("Дистанции переключения (м):", className="field-label"),
+                                    html.Div(
+                                        className="scene3d-lod-distance-inputs",
+                                        children=[
+                                            html.Div(
+                                                className="scene3d-lod-distance-row",
+                                                children=[
+                                                    html.Label("Высокая детализация:", className="field-label-small"),
+                                                    dcc.Input(
+                                                        id="scene3d-lod-distance-high",
+                                                        type="number",
+                                                        value=0,
+                                                        min=0,
+                                                        step=1,
+                                                        className="number-input scene3d-number-input",
+                                                        disabled=True,
+                                                    ),
+                                                ],
+                                            ),
+                                            html.Div(
+                                                className="scene3d-lod-distance-row",
+                                                children=[
+                                                    html.Label("Средняя детализация:", className="field-label-small"),
+                                                    dcc.Input(
+                                                        id="scene3d-lod-distance-medium",
+                                                        type="number",
+                                                        value=15,
+                                                        min=0,
+                                                        step=1,
+                                                        className="number-input scene3d-number-input",
+                                                    ),
+                                                ],
+                                            ),
+                                            html.Div(
+                                                className="scene3d-lod-distance-row",
+                                                children=[
+                                                    html.Label("Низкая детализация:", className="field-label-small"),
+                                                    dcc.Input(
+                                                        id="scene3d-lod-distance-low",
+                                                        type="number",
+                                                        value=30,
+                                                        min=0,
+                                                        step=1,
+                                                        className="number-input scene3d-number-input",
+                                                    ),
+                                                ],
+                                            ),
+                                        ],
+                                    ),
+                                ],
+                            ),
+                            html.Div(
+                                className="scene3d-lod-stats",
+                                children=[
+                                    html.Label("Статистика:", className="field-label"),
+                                    html.Div(
+                                        id="scene3d-lod-stats-display",
+                                        className="scene3d-lod-stats-content",
+                                        children="LOD выключен",
+                                    ),
+                                ],
+                            ),
+                        ],
+                    ),
+                ],
+            ),
+            html.P(
+                "LOD (Level of Detail) автоматически упрощает геометрию объектов на расстоянии, "
+                "улучшая производительность на 30-50% без заметной потери качества.",
+                className="scene3d-lod-hint",
+            ),
+        ],
+    )
+
+
+def _scene3d_flow_field_tools() -> html.Details:
+    """Контролы для визуализации векторного поля потоков воздуха."""
+    return html.Details(
+        className="scene3d-dev-controls",
+        children=[
+            html.Summary("🌊 Векторное поле потоков", className="scene3d-dev-controls__summary"),
+            html.Div(
+                className="scene3d-dev-controls__content",
+                children=[
+                    html.Div(
+                        className="scene3d-flow-controls",
+                        children=[
+                            html.Div(
+                                className="scene3d-flow-enable",
+                                children=[
+                                    dcc.Checklist(
+                                        id="scene3d-flow-enabled",
+                                        options=[{"label": " Показать потоки", "value": "enabled"}],
+                                        value=[],
+                                        className="scene3d-flow-checkbox",
+                                    ),
+                                ],
+                            ),
+                            html.Div(
+                                className="scene3d-flow-mode",
+                                children=[
+                                    html.Label("Режим визуализации:", className="field-label"),
+                                    dcc.RadioItems(
+                                        id="scene3d-flow-mode",
+                                        options=[
+                                            {"label": " Стрелки", "value": "arrows"},
+                                            {"label": " Линии тока", "value": "streamlines"},
+                                            {"label": " Частицы", "value": "particles"},
+                                        ],
+                                        value="arrows",
+                                        className="scene3d-flow-radio",
+                                    ),
+                                ],
+                            ),
+                            html.Div(
+                                className="scene3d-flow-density",
+                                children=[
+                                    html.Label("Плотность векторов:", className="field-label"),
+                                    dcc.Slider(
+                                        id="scene3d-flow-density",
+                                        min=10,
+                                        max=100,
+                                        step=10,
+                                        value=50,
+                                        marks={
+                                            10: "10%",
+                                            30: "30%",
+                                            50: "50%",
+                                            70: "70%",
+                                            100: "100%",
+                                        },
+                                        className="scene3d-flow-slider",
+                                    ),
+                                ],
+                            ),
+                            html.Div(
+                                className="scene3d-flow-speed",
+                                children=[
+                                    html.Label("Скорость анимации:", className="field-label"),
+                                    dcc.Slider(
+                                        id="scene3d-flow-animation-speed",
+                                        min=0.1,
+                                        max=3.0,
+                                        step=0.1,
+                                        value=1.0,
+                                        marks={
+                                            0.1: "0.1x",
+                                            1.0: "1x",
+                                            2.0: "2x",
+                                            3.0: "3x",
+                                        },
+                                        className="scene3d-flow-slider",
+                                    ),
+                                ],
+                            ),
+                            html.Div(
+                                className="scene3d-flow-colors",
+                                children=[
+                                    html.Label("Цветовая схема:", className="field-label"),
+                                    dcc.Dropdown(
+                                        id="scene3d-flow-color-scheme",
+                                        options=[
+                                            {"label": "По скорости (синий→красный)", "value": "speed"},
+                                            {"label": "По направлению", "value": "direction"},
+                                            {"label": "По давлению", "value": "pressure"},
+                                        ],
+                                        value="speed",
+                                        clearable=False,
+                                        className="scene3d-flow-dropdown",
+                                    ),
+                                ],
+                            ),
+                            html.Div(
+                                className="scene3d-flow-stats",
+                                children=[
+                                    html.Label("Статистика:", className="field-label"),
+                                    html.Div(
+                                        id="scene3d-flow-stats-display",
+                                        className="scene3d-flow-stats-content",
+                                        children="Потоки выключены",
+                                    ),
+                                ],
+                            ),
+                        ],
+                    ),
+                ],
+            ),
+            html.P(
+                "Векторное поле визуализирует направление и скорость движения воздуха через систему ПВУ. "
+                "Используйте режим 'Стрелки' для статического отображения, 'Частицы' для анимированного потока.",
+                className="scene3d-flow-hint",
+            ),
+        ],
+    )
+
+
+def _scene3d_comparison_tools() -> html.Details:
+    """Контролы для режима сравнения side-by-side."""
+    return html.Details(
+        className="scene3d-dev-controls",
+        children=[
+            html.Summary("⚖️ Режим сравнения", className="scene3d-dev-controls__summary"),
+            html.Div(
+                className="scene3d-dev-controls__content",
+                children=[
+                    html.Div(
+                        className="scene3d-comparison-controls",
+                        children=[
+                            html.Div(
+                                className="scene3d-comparison-enable",
+                                children=[
+                                    dcc.Checklist(
+                                        id="scene3d-comparison-enabled",
+                                        options=[{"label": " Включить сравнение", "value": "enabled"}],
+                                        value=[],
+                                        className="scene3d-comparison-checkbox",
+                                    ),
+                                ],
+                            ),
+                            html.Div(
+                                className="scene3d-comparison-sources",
+                                children=[
+                                    html.Label("Источник 'До':", className="field-label"),
+                                    dcc.Dropdown(
+                                        id="scene3d-comparison-before-source",
+                                        options=[],  # Will be populated dynamically
+                                        value=None,
+                                        placeholder="Выберите источник 'до'",
+                                        clearable=False,
+                                        className="scene3d-comparison-dropdown",
+                                    ),
+                                    html.Label("Источник 'После':", className="field-label", style={"marginTop": "8px"}),
+                                    dcc.Dropdown(
+                                        id="scene3d-comparison-after-source",
+                                        options=[],  # Will be populated dynamically
+                                        value=None,
+                                        placeholder="Выберите источник 'после'",
+                                        clearable=False,
+                                        className="scene3d-comparison-dropdown",
+                                    ),
+                                ],
+                            ),
+                            html.Div(
+                                className="scene3d-comparison-split",
+                                children=[
+                                    html.Label("Соотношение разделения:", className="field-label"),
+                                    dcc.Slider(
+                                        id="scene3d-comparison-split",
+                                        min=0.3,
+                                        max=0.7,
+                                        step=0.1,
+                                        value=0.5,
+                                        marks={
+                                            0.3: "30/70",
+                                            0.4: "40/60",
+                                            0.5: "50/50",
+                                            0.6: "60/40",
+                                            0.7: "70/30",
+                                        },
+                                        className="scene3d-comparison-slider",
+                                    ),
+                                ],
+                            ),
+                            html.Div(
+                                className="scene3d-comparison-orientation",
+                                children=[
+                                    html.Label("Ориентация:", className="field-label"),
+                                    dcc.RadioItems(
+                                        id="scene3d-comparison-orientation",
+                                        options=[
+                                            {"label": " Вертикальное (лево/право)", "value": "vertical"},
+                                            {"label": " Горизонтальное (верх/низ)", "value": "horizontal"},
+                                        ],
+                                        value="vertical",
+                                        className="scene3d-comparison-radio",
+                                    ),
+                                ],
+                            ),
+                            html.Div(
+                                className="scene3d-comparison-sync",
+                                children=[
+                                    dcc.Checklist(
+                                        id="scene3d-comparison-sync-cameras",
+                                        options=[{"label": " Синхронизировать камеры", "value": "sync"}],
+                                        value=["sync"],
+                                        className="scene3d-comparison-checkbox",
+                                    ),
+                                ],
+                            ),
+                            html.Div(
+                                className="scene3d-comparison-diff-mode",
+                                children=[
+                                    html.Label("Режим выделения различий:", className="field-label"),
+                                    dcc.Dropdown(
+                                        id="scene3d-comparison-diff-mode",
+                                        options=[
+                                            {"label": "По статусу узлов", "value": "status"},
+                                            {"label": "По температуре", "value": "temperature"},
+                                            {"label": "По мощности", "value": "power"},
+                                            {"label": "По тревогам", "value": "alarms"},
+                                        ],
+                                        value="status",
+                                        clearable=False,
+                                        className="scene3d-comparison-dropdown",
+                                    ),
+                                ],
+                            ),
+                            html.Div(
+                                className="scene3d-comparison-compatibility",
+                                children=[
+                                    html.Label("Совместимость:", className="field-label"),
+                                    html.Div(
+                                        id="scene3d-comparison-compatibility",
+                                        className="scene3d-comparison-status",
+                                        children="Выберите источники для сравнения",
+                                    ),
+                                ],
+                            ),
+                            html.Div(
+                                className="scene3d-comparison-stats",
+                                children=[
+                                    html.Label("Статистика:", className="field-label"),
+                                    html.Div(
+                                        id="scene3d-comparison-stats",
+                                        className="scene3d-comparison-stats-content",
+                                        children="",
+                                    ),
+                                ],
+                            ),
+                        ],
+                    ),
+                ],
+            ),
+            html.P(
+                "Режим сравнения позволяет визуально сопоставить два состояния системы ПВУ side-by-side. "
+                "Выберите источники 'до' и 'после' из доступных прогонов, архивов или сохранённых снимков.",
+                className="scene3d-comparison-hint",
+            ),
+        ],
+    )
+
+
+def _scene3d_bloom_field(control: dict[str, object]) -> html.Div:
+    """Создает поле для управления параметром Bloom эффекта."""
+    input_id = scene3d_bloom_input_id(str(control["key"]))
+    slider_id = scene3d_bloom_slider_id(str(control["key"]))
+    min_value = float(control["min"])
+    max_value = float(control["max"])
+    step = float(control["step"])
+    value = float(control["value"])
+
+    return html.Div(
+        className="scene3d-transform-field",
+        children=[
+            html.Div(
+                className="scene3d-transform-field__header",
+                children=[
+                    html.Label(
+                        str(control["label"]),
+                        className="field-label",
+                        htmlFor=input_id,
+                    ),
+                    dcc.Input(
+                        id=input_id,
+                        type="number",
+                        min=min_value,
+                        max=max_value,
+                        step=step,
+                        value=value,
+                        debounce=False,
+                        className=(
+                            "number-input scene3d-number-input "
+                            "scene3d-transform-input"
+                        ),
+                    ),
+                ],
+            ),
+            dcc.Slider(
+                id=slider_id,
+                min=min_value,
+                max=max_value,
+                step=step,
+                value=value,
+                marks=None,
+                updatemode="drag",
+                tooltip={"placement": "bottom", "always_visible": False},
+                className="scene3d-transform-slider",
+            ),
+        ],
+    )
+
+
+def scene3d_bloom_input_id(key: str) -> str:
+    """Генерирует ID для input элемента Bloom контрола."""
+    return f"scene3d-bloom-{key.replace('bloom_', '')}"
+
+
+def scene3d_bloom_slider_id(key: str) -> str:
+    """Генерирует ID для slider элемента Bloom контрола."""
+    return f"{scene3d_bloom_input_id(key)}-slider"
+
+
+def _scene3d_ssao_field(control: dict[str, object]) -> html.Div:
+    """Создает поле для управления параметром SSAO эффекта."""
+    input_id = scene3d_ssao_input_id(str(control["key"]))
+    slider_id = scene3d_ssao_slider_id(str(control["key"]))
+    min_value = float(control["min"])
+    max_value = float(control["max"])
+    step = float(control["step"])
+    value = float(control["value"])
+
+    return html.Div(
+        className="scene3d-transform-field",
+        children=[
+            html.Div(
+                className="scene3d-transform-field__header",
+                children=[
+                    html.Label(
+                        str(control["label"]),
+                        className="field-label",
+                        htmlFor=input_id,
+                    ),
+                    dcc.Input(
+                        id=input_id,
+                        type="number",
+                        min=min_value,
+                        max=max_value,
+                        step=step,
+                        value=value,
+                        debounce=False,
+                        className=(
+                            "number-input scene3d-number-input "
+                            "scene3d-transform-input"
+                        ),
+                    ),
+                ],
+            ),
+            dcc.Slider(
+                id=slider_id,
+                min=min_value,
+                max=max_value,
+                step=step,
+                value=value,
+                marks=None,
+                updatemode="drag",
+                tooltip={"placement": "bottom", "always_visible": False},
+                className="scene3d-transform-slider",
+            ),
+        ],
+    )
+
+
+def scene3d_ssao_input_id(key: str) -> str:
+    """Генерирует ID для input элемента SSAO контрола."""
+    return f"scene3d-ssao-{key.replace('ssao_', '')}"
+
+
+def scene3d_ssao_slider_id(key: str) -> str:
+    """Генерирует ID для slider элемента SSAO контрола."""
+    return f"{scene3d_ssao_input_id(key)}-slider"
 
 
 def _scene3d_transform_group(

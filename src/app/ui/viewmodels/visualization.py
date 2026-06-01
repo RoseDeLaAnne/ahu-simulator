@@ -28,7 +28,7 @@ class VisualizationSignalMap(BaseModel):
     scenario_title: str | None = None
     status: OperationStatus
     summary: str
-    bindings_version: int = 2
+    bindings_version: int = 3
     active_alarm_codes: list[str] = Field(default_factory=list)
     nodes: dict[str, VisualElementState] = Field(default_factory=dict)
     sensors: dict[str, VisualElementState] = Field(default_factory=dict)
@@ -42,7 +42,7 @@ class VisualizationSignalMap(BaseModel):
 
 def build_visualization_signal_map(
     result: SimulationResult,
-    bindings_version: int = 2,
+    bindings_version: int = 3,
     room_context: dict[str, object] | None = None,
     status_service: StatusService | None = None,
 ) -> VisualizationSignalMap:
@@ -54,7 +54,12 @@ def build_visualization_signal_map(
     metric_map = status_service.build_metric_status_map(result)
     flow_status = metric_map["airflow"].status
     flow_intensity = _clamp(round(airflow_ratio, 2), lower=0.18, upper=1.0)
-    control_label = "Ручной режим" if parameters.control_mode == ControlMode.MANUAL else "Авто"
+    control_label = {
+        ControlMode.AUTO: "Авто",
+        ControlMode.SEMI_AUTO: "Полуавтоматический",
+        ControlMode.MANUAL: "Ручной режим",
+        ControlMode.TEST: "Тестовый режим",
+    }[parameters.control_mode]
 
     filter_state = metric_map["filter_pressure"].status
     heater_state = max_status(metric_map["supply_temp"].status, metric_map["heating_power"].status)
@@ -62,6 +67,8 @@ def build_visualization_signal_map(
     supply_state = max_status(flow_status, heater_state)
     room_state = metric_map["room_temp"].status
     outdoor_state = status_service.outdoor_temp_status(result)
+    fine_filter_pressure_drop = state.filter_pressure_drop_pa * 0.56
+    cooler_delta_c = max(0.0, parameters.outdoor_temp_c - state.supply_temp_c)
 
     nodes = {
         "outdoor_air": VisualElementState(
@@ -96,6 +103,31 @@ def build_visualization_signal_map(
             state=fan_state,
             alarm_text=_alarm_marker(fan_state),
         ),
+        "filter_fine": VisualElementState(
+            visual_id="filter_fine",
+            label="Фильтр тонкой очистки",
+            value=_pressure(fine_filter_pressure_drop),
+            detail="F9 после вентилятора",
+            state=filter_state,
+            alarm_text=_alarm_marker(filter_state),
+            intensity=_clamp(fine_filter_pressure_drop / 260.0, lower=0.15, upper=1.0),
+        ),
+        "cooler_coil": VisualElementState(
+            visual_id="cooler_coil",
+            label="Водяной охладитель",
+            value=f"{cooler_delta_c:.1f} °C",
+            detail="Летний контур / байпас",
+            state=metric_map["supply_temp"].status,
+            alarm_text=_alarm_marker(metric_map["supply_temp"].status),
+        ),
+        "silencer": VisualElementState(
+            visual_id="silencer",
+            label="Шумоглушитель",
+            value="28 Па",
+            detail="Акустическая секция",
+            state=flow_status,
+            alarm_text=_alarm_marker(flow_status),
+        ),
         "supply_duct": VisualElementState(
             visual_id="supply_duct",
             label="Приточный воздуховод",
@@ -103,6 +135,18 @@ def build_visualization_signal_map(
             detail=f"Приток {_temperature(state.supply_temp_c)}",
             state=supply_state,
             alarm_text=_alarm_marker(supply_state),
+        ),
+        "room_supply": VisualElementState(
+            visual_id="room_supply",
+            label="Приточный воздух",
+            value=_temperature(state.supply_temp_c),
+            detail=(
+                f"{state.actual_airflow_m3_h / 3600.0:.1f} м³/с | "
+                f"{state.actual_airflow_m3_h:.0f} м³/ч"
+            ),
+            state=supply_state,
+            alarm_text=_alarm_marker(supply_state),
+            intensity=flow_intensity,
         ),
         "room_zone": VisualElementState(
             visual_id="room_zone",

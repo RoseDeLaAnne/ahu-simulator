@@ -54,5 +54,6 @@ class TrendService:
             heating_power_kw=operating_point.heating_power_kw,
             total_power_kw=operating_point.total_power_kw,
             airflow_m3_h=operating_point.actual_airflow_m3_h,
+            demanded_airflow_m3_h=operating_point.demanded_airflow_m3_h,
             filter_pressure_drop_pa=operating_point.filter_pressure_drop_pa,
         )

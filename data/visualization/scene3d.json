@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "asset": {
     "model_path": "data/visualization/assets/pvu_installation.glb",
     "format": "glb",
@@ -53,7 +53,11 @@
     "pvu.filter.bank",
     "pvu.heater.coil",
     "pvu.fan.supply",
+    "pvu.filter.fine",
+    "pvu.cooler.coil",
+    "pvu.silencer",
     "pvu.duct.supply",
+    "building.room.supply_air",
     "building.room.zone_a",
     "pvu.sensors.outdoor_temp",
     "pvu.sensors.filter_pressure",
@@ -77,7 +81,9 @@
       "target_node": "pvu.fan.rotor",
       "axis": "X",
       "speed_signal": "flows.flow_fan_to_room.intensity",
-      "max_rpm": 3.0
+      "max_rpm": 3.0,
+      "acceleration": 2.5,
+      "blur_threshold": 0.6
     },
     "flow_pulse": {
       "target_nodes": [
@@ -183,11 +189,39 @@
       "scene_node": "pvu.fan.supply"
     },
     {
+      "visual_id": "filter_fine",
+      "kind": "node",
+      "signal_path": "nodes.filter_fine",
+      "svg_element_id": "filter_fine",
+      "scene_node": "pvu.filter.fine"
+    },
+    {
+      "visual_id": "cooler_coil",
+      "kind": "node",
+      "signal_path": "nodes.cooler_coil",
+      "svg_element_id": "cooler_coil",
+      "scene_node": "pvu.cooler.coil"
+    },
+    {
+      "visual_id": "silencer",
+      "kind": "node",
+      "signal_path": "nodes.silencer",
+      "svg_element_id": "silencer",
+      "scene_node": "pvu.silencer"
+    },
+    {
       "visual_id": "supply_duct",
       "kind": "node",
       "signal_path": "nodes.supply_duct",
       "svg_element_id": "supply_duct",
       "scene_node": "pvu.duct.supply"
+    },
+    {
+      "visual_id": "room_supply",
+      "kind": "node",
+      "signal_path": "nodes.room_supply",
+      "svg_element_id": "room_supply",
+      "scene_node": "building.room.supply_air"
     },
     {
       "visual_id": "room_zone",

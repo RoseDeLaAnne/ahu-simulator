@@ -417,6 +417,7 @@ class SimulationService:
             heating_power_kw=state.heating_power_kw,
             total_power_kw=state.total_power_kw,
             airflow_m3_h=state.actual_airflow_m3_h,
+            demanded_airflow_m3_h=state.demanded_airflow_m3_h,
             filter_pressure_drop_pa=state.filter_pressure_drop_pa,
         )
 
@@ -659,6 +660,7 @@ class SimulationService:
             timestamp=timestamp,
             control_mode=parameters.control_mode,
             actual_airflow_m3_h=operating_point.actual_airflow_m3_h,
+            demanded_airflow_m3_h=operating_point.demanded_airflow_m3_h,
             mixed_air_temp_c=operating_point.mixed_air_temp_c,
             recovered_air_temp_c=operating_point.recovered_air_temp_c,
             supply_temp_c=operating_point.supply_temp_c,

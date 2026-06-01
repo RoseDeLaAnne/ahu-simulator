@@ -32,7 +32,11 @@ def test_visualization_signal_map_contains_stable_visual_ids() -> None:
         "filter_bank",
         "heater_coil",
         "supply_fan",
+        "filter_fine",
+        "cooler_coil",
+        "silencer",
         "supply_duct",
+        "room_supply",
         "room_zone",
         "sensor_outdoor_temp",
         "sensor_filter_pressure",
@@ -68,6 +72,22 @@ def test_scene_bindings_cover_visualization_signals() -> None:
 
     assert bindings.version == signals.bindings_version
     assert {binding.visual_id for binding in bindings.bindings} == signals.all_visual_ids()
+
+
+def test_visualization_signal_map_v3_contains_phase5_callout_nodes() -> None:
+    service = _build_service()
+    result = service.run_scenario("summer")
+
+    signals = build_visualization_signal_map(
+        result,
+        bindings_version=load_scene_bindings().version,
+    )
+
+    assert signals.bindings_version == 3
+    assert signals.nodes["filter_fine"].label == "Фильтр тонкой очистки"
+    assert signals.nodes["cooler_coil"].label == "Водяной охладитель"
+    assert signals.nodes["silencer"].label == "Шумоглушитель"
+    assert signals.nodes["room_supply"].value.endswith("°C")
 
 
 def test_visualization_signal_map_builds_room_sensors_from_room_context() -> None:

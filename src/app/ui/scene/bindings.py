@@ -143,6 +143,8 @@ class FanRotationRule(BaseModel):
     axis: RotationAxis = "X"
     speed_signal: str = Field(min_length=1)
     max_rpm: float = Field(ge=0, default=2.0)
+    acceleration: float = Field(gt=0, default=2.5)
+    blur_threshold: float = Field(ge=0, le=1, default=0.6)
 
 
 class FlowPulseRule(BaseModel):

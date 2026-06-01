@@ -12,6 +12,19 @@ from app.infrastructure.feature_flags import FeatureFlags, UITheme
 from app.simulation.status_policy import StatusThresholds
 
 
+class AcademicSettings(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    program: str = "ВКР 2026"
+    speciality: str = "09.04.01 Информатика и вычислительная техника"
+    profile: str = (
+        "Информационное и программное обеспечение вычислительной техники "
+        "и автоматизированных систем"
+    )
+    department: str = "Информационные технологии и системы управления"
+    model_version: str = "1.3.2"
+
+
 class ApplicationSettings(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -40,6 +53,7 @@ class ApplicationSettings(BaseModel):
     enforce_https_redirect: bool = False
     developer_tools_enabled: bool = False
     ui: FeatureFlags = Field(default_factory=FeatureFlags)
+    academic: AcademicSettings = Field(default_factory=AcademicSettings)
 
     @property
     def feature_flags(self) -> FeatureFlags:

@@ -48,6 +48,18 @@ def build_control_diagnostics(
             "уставку и скорость вентилятора, а система лишь показывает фактический "
             "результат без автоматической перенастройки сценария."
         )
+    elif parameters.control_mode == ControlMode.SEMI_AUTO:
+        target_state = ControlTargetState.TRACKING
+        summary = (
+            "Полуавтоматический режим сохраняет расчётный контур активным, но "
+            "оставляет оператору право точечной корректировки сценария перед пуском."
+        )
+    elif parameters.control_mode == ControlMode.TEST:
+        target_state = ControlTargetState.OVERRIDE
+        summary = (
+            "Тестовый режим предназначен для наладки и учебной проверки: расчёт "
+            "выполняется штатно, а результат помечается как испытательный прогон."
+        )
     elif setpoint_gap_c <= 0.3:
         target_state = ControlTargetState.TRACKING
         summary = (

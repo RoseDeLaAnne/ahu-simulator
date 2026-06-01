@@ -29,6 +29,7 @@ REPORT_SECTION_ORDER = (
     "status_events",
     "trend",
 )
+DEFENSE_EXPORT_SCHEMA_VERSION = "defense-export-package.v1"
 
 
 class ReportSection(BaseModel):
@@ -185,6 +186,40 @@ class ResultExportBatchBuildResult(BaseModel):
     generated_at: datetime
     summary: str
     entries: list[ResultExportEntry] = Field(default_factory=list)
+
+
+class DefenseExportPackageArtifact(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    artifact_id: str
+    label: str
+    kind: str
+    path: str
+    required: bool = True
+    exists: bool
+    size_bytes: int | None = None
+    sha256: str | None = None
+
+
+class DefenseExportPackageManifest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    schema_version: str = DEFENSE_EXPORT_SCHEMA_VERSION
+    package_id: str
+    generated_at: datetime
+    source_report_manifest_path: str
+    comparison_manifest_path: str | None = None
+    scene_capture_manifest_path: str | None = None
+    artifacts: list[DefenseExportPackageArtifact] = Field(default_factory=list)
+
+
+class DefenseExportPackageBuildResult(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    generated_at: datetime
+    summary: str
+    manifest_path: str
+    package: DefenseExportPackageManifest
 
 
 class ExportService:
@@ -494,6 +529,73 @@ class ExportService:
             generated_at=generated_at,
             summary=f"Собрано {len(entries)} сценарных отчётов CSV/PDF/manifest.",
             entries=entries,
+        )
+
+    def build_defense_export_package(
+        self,
+        *,
+        scenario_manifest_path: str,
+        comparison_manifest_path: str | None = None,
+        scene_capture_manifest_path: str | None = None,
+    ) -> DefenseExportPackageBuildResult:
+        generated_at = datetime.now(timezone.utc)
+        target_directory = self._export_directory(generated_at)
+        target_directory.mkdir(parents=True, exist_ok=True)
+        package_stem = f"pvu-defense-package-{generated_at.astimezone():%Y%m%d-%H%M%S}"
+        manifest_path = target_directory / f"{package_stem}.manifest.json"
+
+        artifacts = [
+            self._defense_package_artifact(
+                "scenario-report",
+                "Сценарный отчёт CSV/PDF",
+                "manifest",
+                scenario_manifest_path,
+            ),
+            self._defense_package_artifact(
+                "comparison-report",
+                "Сравнительный отчёт",
+                "manifest",
+                comparison_manifest_path or "artifacts/exports/pvu-comparison-pending.manifest.json",
+                required=comparison_manifest_path is not None,
+            ),
+            self._defense_package_artifact(
+                "mnemonic-svg",
+                "2D схема ПВУ",
+                "svg",
+                "src/app/ui/assets/pvu_mnemonic.svg",
+            ),
+            self._defense_package_artifact(
+                "scene-bindings",
+                "3D bindings и camera presets",
+                "json",
+                "data/visualization/scene3d.json",
+            ),
+            self._defense_package_artifact(
+                "scene-capture-png",
+                "3D PNG снимок из браузера",
+                "png",
+                scene_capture_manifest_path or "browser-download:concept03-3d-current.png",
+                required=False,
+            ),
+        ]
+        package = DefenseExportPackageManifest(
+            package_id=package_stem,
+            generated_at=generated_at,
+            source_report_manifest_path=scenario_manifest_path,
+            comparison_manifest_path=comparison_manifest_path,
+            scene_capture_manifest_path=scene_capture_manifest_path,
+            artifacts=artifacts,
+        )
+        manifest_path.write_text(package.model_dump_json(indent=2), encoding="utf-8")
+        return DefenseExportPackageBuildResult(
+            generated_at=generated_at,
+            summary=(
+                f"Defense-пакет {package_stem} собран: "
+                f"{sum(1 for artifact in artifacts if artifact.exists)} из {len(artifacts)} "
+                "артефактов доступны."
+            ),
+            manifest_path=self._relative_path(manifest_path),
+            package=package,
         )
 
     def _load_entries(self) -> list[ResultExportEntry]:
@@ -1082,6 +1184,38 @@ class ExportService:
             sha256=self._sha256(path) if exists and artifact_id != "manifest" else None,
         )
 
+    def _defense_package_artifact(
+        self,
+        artifact_id: str,
+        label: str,
+        kind: str,
+        display_path: str,
+        *,
+        required: bool = True,
+    ) -> DefenseExportPackageArtifact:
+        if display_path.startswith("browser-download:"):
+            return DefenseExportPackageArtifact(
+                artifact_id=artifact_id,
+                label=label,
+                kind=kind,
+                path=display_path,
+                required=required,
+                exists=False,
+            )
+
+        path = self._path_resolver.resolve_display_path(display_path)
+        exists = path.exists()
+        return DefenseExportPackageArtifact(
+            artifact_id=artifact_id,
+            label=label,
+            kind=kind,
+            path=self._relative_path(path) if exists else display_path,
+            required=required,
+            exists=exists,
+            size_bytes=path.stat().st_size if exists else None,
+            sha256=self._sha256(path) if exists and path.is_file() else None,
+        )
+
     def _sha256(self, path: Path) -> str:
         digest = hashlib.sha256()
         with path.open("rb") as handle:
@@ -1241,7 +1375,9 @@ class ExportService:
     def _control_mode_label(self, control_mode: str) -> str:
         control_mode_labels = {
             "auto": "Авто",
+            "semi_auto": "Полуавтоматический",
             "manual": "Ручной",
+            "test": "Тестовый",
         }
         return control_mode_labels.get(control_mode, control_mode)
 

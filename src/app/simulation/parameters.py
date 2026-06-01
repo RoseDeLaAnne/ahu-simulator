@@ -5,7 +5,9 @@ from pydantic import BaseModel, ConfigDict, Field
 
 class ControlMode(StrEnum):
     AUTO = "auto"
+    SEMI_AUTO = "semi_auto"
     MANUAL = "manual"
+    TEST = "test"
 
 
 class SimulationParameters(BaseModel):

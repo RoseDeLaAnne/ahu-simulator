@@ -49,3 +49,33 @@ def test_manual_control_diagnostics_marks_operator_override() -> None:
     assert diagnostics.target_state == ControlTargetState.OVERRIDE
     assert "вмешательство оператора" in diagnostics.summary
     assert diagnostics.commanded_fan_speed_ratio == pytest.approx(0.82, abs=0.01)
+
+
+@pytest.mark.parametrize(
+    ("mode", "expected_state", "summary_fragment"),
+    [
+        (
+            ControlMode.SEMI_AUTO,
+            ControlTargetState.TRACKING,
+            "Полуавтоматический режим",
+        ),
+        (
+            ControlMode.TEST,
+            ControlTargetState.OVERRIDE,
+            "Тестовый режим",
+        ),
+    ],
+)
+def test_extended_control_modes_have_diagnostics(
+    mode: ControlMode,
+    expected_state: ControlTargetState,
+    summary_fragment: str,
+) -> None:
+    parameters = SimulationParameters(control_mode=mode)
+
+    operating_point = calculate_operating_point(parameters, step_minutes=10)
+    diagnostics = build_control_diagnostics(parameters, operating_point)
+
+    assert diagnostics.mode == mode
+    assert diagnostics.target_state == expected_state
+    assert summary_fragment in diagnostics.summary

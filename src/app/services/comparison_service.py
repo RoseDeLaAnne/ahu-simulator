@@ -183,6 +183,8 @@ class RunComparisonSnapshot(BaseModel):
     overall_status: OperationStatus
     summary: str
     note: str
+    selected_metric_id: str = "supply_temp_c"
+    selected_metric_title: str = "Температура приточного воздуха, °C"
     available_sources: list[RunComparisonSource] = Field(default_factory=list)
     named_snapshots: list[RunComparisonNamedSnapshot] = Field(default_factory=list)
     default_before_reference_id: str | None = None
@@ -284,7 +286,9 @@ class RunComparisonService:
         active_session: SimulationSession | None = None,
         *,
         limit: int = 8,
+        metric_id: str | None = None,
     ) -> RunComparisonSnapshot:
+        selected_metric_id, selected_metric_title = self._resolve_metric(metric_id)
         active_source = self._build_active_source(active_result, active_session)
         named_snapshots = self._load_named_snapshots()
         snapshot_sources = [
@@ -348,6 +352,8 @@ class RunComparisonService:
                 "одинаковый горизонт и совпадающая временная сетка тренда. Все дельты "
                 "считаются как после - до."
             ),
+            selected_metric_id=selected_metric_id,
+            selected_metric_title=selected_metric_title,
             available_sources=available_sources,
             named_snapshots=named_snapshots,
             default_before_reference_id=(
@@ -949,6 +955,15 @@ class RunComparisonService:
 
     def _metric_tolerance(self, metric: ComparisonMetricDelta) -> float:
         return max(abs(metric.before_value) * 0.005, 0.01)
+
+    def _resolve_metric(self, metric_id: str | None) -> tuple[str, str]:
+        metric_map = {
+            catalog_metric_id: (catalog_title, catalog_unit)
+            for catalog_metric_id, catalog_title, catalog_unit in self._METRIC_CATALOG
+        }
+        selected_metric_id = metric_id if metric_id in metric_map else "supply_temp_c"
+        title, unit = metric_map[selected_metric_id]
+        return selected_metric_id, f"{title}, {unit}"
 
     def _status_severity(self, status: OperationStatus) -> int:
         severity = {

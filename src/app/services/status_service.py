@@ -132,7 +132,7 @@ class StatusService:
         parameters = result.parameters
         state = result.state
         supply_gap_c = parameters.supply_temp_setpoint_c - state.supply_temp_c
-        airflow_ratio = state.actual_airflow_m3_h / max(parameters.airflow_m3_h, 1.0)
+        airflow_ratio = state.actual_airflow_m3_h / max(state.demanded_airflow_m3_h, 1.0)
         heater_load_percent = state.heater_load_ratio * 100.0
         energy_intensity = state.energy_intensity_kw_per_1000_m3_h
         return [
@@ -179,7 +179,7 @@ class StatusService:
                 title="Фактический расход",
                 value_text=f"{state.actual_airflow_m3_h:.0f} м³/ч",
                 status=self.airflow_status(result),
-                detail=f"{airflow_ratio * 100:.0f}% от заданного расхода",
+                detail=f"{airflow_ratio * 100:.0f}% от требуемого расхода",
             ),
             DashboardMetricStatus(
                 metric_id="filter_pressure",
@@ -200,6 +200,19 @@ class StatusService:
         return {
             entry.metric_id: entry
             for entry in self.build_dashboard_metric_statuses(result)
+        }
+
+    def build_metric_status_map_for_concept03(
+        self,
+        result: SimulationResult,
+    ) -> dict[str, OperationStatus]:
+        return {
+            "kpi-row-airflow": self.airflow_status(result),
+            "kpi-row-pressure": self.filter_pressure_status(result),
+            "kpi-row-supply-temp": self.supply_temp_status(result),
+            "kpi-row-humidity": OperationStatus.NORMAL,
+            "kpi-row-recovery": OperationStatus.NORMAL,
+            "kpi-row-power": self.total_power_status(result),
         }
 
     def build_alert_block_status(self, result: SimulationResult) -> OperationStatus:
@@ -269,7 +282,7 @@ class StatusService:
                     room_temp_status(point.room_temp_c, self.thresholds),
                     heater_load_status(heater_ratio, self.thresholds),
                     energy_intensity_status(energy_intensity, self.thresholds),
-                    airflow_status(parameters, point.airflow_m3_h, self.thresholds),
+                    airflow_status(parameters, point.airflow_m3_h, point.demanded_airflow_m3_h, self.thresholds),
                     filter_pressure_status(point.filter_pressure_drop_pa, self.thresholds),
                 )
             )
@@ -286,6 +299,7 @@ class StatusService:
         return airflow_status(
             result.parameters,
             result.state.actual_airflow_m3_h,
+            result.state.demanded_airflow_m3_h,
             self.thresholds,
         )
 

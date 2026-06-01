@@ -2121,6 +2121,39 @@ input[type="number"]:disabled {
   }
 }
 
+/* Mobile 375px — минимальная легенда */
+@media (max-width: 480px) {
+  .viewer3d-legend {
+    left: 6px;
+    bottom: 6px;
+    padding: 6px 8px;
+    font-size: 0.58rem;
+    max-width: 140px;
+  }
+  .viewer3d-legend__title {
+    font-size: 0.56rem;
+    margin-bottom: 4px;
+  }
+  .viewer3d-legend__group {
+    margin-top: 4px;
+  }
+  .viewer3d-legend__group-title {
+    font-size: 0.54rem;
+    margin-bottom: 2px;
+  }
+  .viewer3d-legend__row {
+    gap: 6px;
+    margin-top: 1px;
+  }
+  .viewer3d-legend__dot {
+    width: 8px;
+    height: 8px;
+  }
+  .viewer3d-legend__hint {
+    display: none;
+  }
+}
+
 /* ================================================================== */
 /*  3D Studio — Immersive Full-screen Viewer (NUHAUS-inspired)         */
 /*  Activated via .studio-mode class on #app-shell                     */

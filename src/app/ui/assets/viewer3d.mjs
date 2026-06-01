@@ -1,6 +1,11 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.mjs";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.mjs";
+import { EffectComposer } from "three/addons/postprocessing/EffectComposer.mjs";
+import { RenderPass } from "three/addons/postprocessing/RenderPass.mjs";
+import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.mjs";
+import { OutputPass } from "three/addons/postprocessing/OutputPass.mjs";
+import { SSAOPass } from "three/addons/postprocessing/SSAOPass.mjs";
 
 const STATUS_COLORS = {
   normal: 0x22c55e,
@@ -49,6 +54,8 @@ const TEMPERATURE_VISUAL_IDS = {
   outdoor_air: true,
   supply_duct: true,
   heater_coil: true,
+  cooler_coil: true,
+  room_supply: true,
   room_zone: true,
   flow_heater_to_fan: true,
   flow_fan_to_room: true,
@@ -60,6 +67,7 @@ const TEMPERATURE_VISUAL_IDS = {
 // Visual IDs, чьё состояние отражает давление на фильтре.
 const FILTER_PRESSURE_VISUAL_IDS = {
   filter_bank: true,
+  filter_fine: true,
   sensor_filter_pressure: true,
 };
 
@@ -225,6 +233,9 @@ function _classifyAhuRole(meshName) {
 }
 
 let renderer = null;
+let composer = null;
+let bloomPass = null;
+let ssaoPass = null;
 let scene = null;
 let camera = null;
 let controls = null;
@@ -245,6 +256,10 @@ let ambientLight = null;
 let keyLight = null;
 let rimLight = null;
 let fillLight = null;
+let pmremGenerator = null;
+let environmentTexture = null;
+let shadowCatcher = null;
+let shadowsEnabled = false;
 let nodeMap = {};
 let bindingMap = {};
 let bindingByVisualId = {};
@@ -259,6 +274,71 @@ let currentCameraPreset = "hero";
 let currentModelDescriptor = null;
 let currentSceneProfile = null;
 let currentRoomDescriptor = null;
+let measurementMode = false;
+let measurementType = "distance"; // "distance" | "angle"
+let measurementPoints = []; // маркеры точек режима расстояния (упорядоченная ломаная)
+let measurementAngleMarkers = []; // маркеры точек режима угла
+let measurementLines = []; // линии (расстояния и лучи углов)
+let measurementArcs = []; // дуги визуализации углов
+let measurementLabels = []; // подписи (метры/градусы)
+let measurementAngles = []; // [{ a:[x,y,z], vertex:[x,y,z], c:[x,y,z], angle: deg }]
+let measurementAnglePending = []; // рабочий буфер Vector3 для текущего угла (макс. 3)
+const MEASUREMENT_SESSION_KEY = "pvu3d.measurements.v1";
+const MEASUREMENT_SCHEMA_VERSION = "pvu-3d-measurements.v1";
+let heatmapMode = false;
+let heatmapOverlay = null;
+let heatmapLegend = null;
+let heatmapDataPoints = [];
+let heatmapPreviousDataPoints = [];
+let heatmapAnimationProgress = 1.0; // 0.0 = старые данные, 1.0 = новые данные
+let heatmapAnimationDuration = 1000; // миллисекунды
+let heatmapAnimationStartTime = 0;
+let heatmapMinTemp = -10;
+let heatmapMaxTemp = 40;
+// Clipping planes state
+let clippingEnabled = false;
+let clippingPlanes = []; // Array of THREE.Plane objects
+let clippingHelpers = []; // Visual representation of planes
+let clippingPlanesData = []; // Metadata: {normal, constant, enabled, inverted}
+let maxClippingPlanes = 3;
+// LOD (Level of Detail) state
+let lodEnabled = false;
+let lodObjects = []; // Array of THREE.LOD objects
+let lodDistances = [0, 15, 30]; // Distance thresholds: [high, medium, low]
+let lodQuality = "auto"; // "high", "medium", "low", "auto"
+let lodStats = { high: 0, medium: 0, low: 0 }; // Current LOD level counts
+// Flow field (airflow visualization) state
+let flowFieldEnabled = false;
+let flowFieldMode = "arrows"; // "arrows" | "streamlines" | "particles"
+let flowFieldData = null; // Loaded vector field data
+let flowFieldObjects = []; // Visual objects (arrows, lines, particles)
+let flowFieldParticles = null; // Particle system for "particles" mode
+let flowFieldAnimationTime = 0; // Animation time accumulator
+let flowFieldDensity = 0.5; // 0.0 to 1.0, controls vector density
+let flowFieldAnimationSpeed = 1.0; // Animation speed multiplier
+let flowFieldColorScheme = "speed"; // "speed" | "direction" | "pressure"
+// Comparison mode (side-by-side) state
+let comparisonMode = false; // true when split-screen is active
+let comparisonSplit = 0.5; // Split ratio: 0.3 to 0.7 (left/right)
+let comparisonOrientation = "vertical"; // "vertical" | "horizontal"
+let comparisonSyncCameras = true; // Sync camera position/target between views
+let comparisonBeforeRefId = null; // Reference ID for "before" state
+let comparisonAfterRefId = null; // Reference ID for "after" state
+let comparisonBeforeData = null; // Loaded "before" comparison data
+let comparisonAfterData = null; // Loaded "after" comparison data
+let comparisonDiffMode = "status"; // "status" | "temperature" | "power" | "alarms"
+let comparisonCompatibility = null; // Compatibility check result
+// Dual scene system for comparison mode
+let comparisonSceneAfter = null; // Second scene for "after" state
+let comparisonCameraAfter = null; // Second camera for "after" state (when not synced)
+let comparisonModelRootAfter = null; // Model root for "after" scene
+let comparisonOverlayRootAfter = null; // Overlay root for "after" scene
+let comparisonEnvironmentRootAfter = null; // Environment root for "after" scene
+let comparisonNodeMapAfter = {}; // Node map for "after" scene
+let comparisonBindingMapAfter = {}; // Binding map for "after" scene
+let comparisonInteractiveObjectsAfter = []; // Interactive objects for "after" scene
+// Note: In comparison mode, we use the main renderer with viewport splitting
+// and render two different scenes (before/after) for better performance
 let currentScaleTuning = {
   model_scale: 1,
   model_long_scale: 1,
@@ -830,7 +910,7 @@ function _prepareModelMesh(mesh, modelDescriptor) {
     return material;
   });
   mesh.material = Array.isArray(mesh.material) ? normalized : normalized[0];
-  mesh.castShadow = false;
+  mesh.castShadow = shadowsEnabled;
   mesh.receiveShadow = true;
 }
 
@@ -975,6 +1055,2806 @@ function _createLegendOverlay() {
   container.appendChild(legendOverlay);
 }
 
+function _initPostProcessing() {
+  if (!renderer || !scene || !camera) return;
+
+  // Create EffectComposer
+  composer = new EffectComposer(renderer);
+
+  // Add RenderPass (основной проход рендеринга)
+  var renderPass = new RenderPass(scene, camera);
+  composer.addPass(renderPass);
+
+  // Add SSAOPass (ambient occlusion) — опционально, выключено по умолчанию.
+  // Когда выключен, EffectComposer пропускает проход (поведение идентично прежнему).
+  // SSAO требует depth/normal render targets; если конструктор упадёт
+  // (например, WebGL1-контекст без depth texture), деградируем мягко: оставляем
+  // ssaoPass = null и не роняем весь вьюер. Все вызовы setSSAO*/getSSAO* уже
+  // защищены null-проверкой, поэтому эффект просто будет недоступен.
+  try {
+    ssaoPass = new SSAOPass(
+      scene,
+      camera,
+      window.innerWidth,
+      window.innerHeight
+    );
+    // Параметры подобраны под масштаб модели (несколько метров);
+    // дефолты three.js (8 / 0.005 / 0.1) рассчитаны на крупные сцены.
+    ssaoPass.kernelRadius = 0.5;
+    ssaoPass.minDistance = 0.002;
+    ssaoPass.maxDistance = 0.06;
+    ssaoPass.output = SSAOPass.OUTPUT.Default;
+    ssaoPass.enabled = false;
+    composer.addPass(ssaoPass);
+  } catch (err) {
+    ssaoPass = null;
+    if (window.console && console.warn) {
+      console.warn("SSAO недоступен в этом окружении, эффект отключён:", err);
+    }
+  }
+
+  // Add UnrealBloomPass (эффект свечения)
+  bloomPass = new UnrealBloomPass(
+    new THREE.Vector2(window.innerWidth, window.innerHeight),
+    1.2,    // strength - интенсивность свечения
+    0.4,    // radius - радиус размытия
+    0.85    // threshold - порог яркости для свечения
+  );
+  bloomPass.enabled = true;
+  composer.addPass(bloomPass);
+
+  // Add OutputPass (финальный проход для корректного цветового пространства)
+  var outputPass = new OutputPass();
+  composer.addPass(outputPass);
+}
+
+function _createSphereMarker(position, color) {
+  var pointGeometry = new THREE.SphereGeometry(0.05, 16, 16);
+  var pointMaterial = new THREE.MeshBasicMaterial({
+    color: color,
+    transparent: true,
+    opacity: 0.8,
+  });
+  var point = new THREE.Mesh(pointGeometry, pointMaterial);
+  point.position.copy(position);
+
+  // Добавляем glow эффект
+  var glowGeometry = new THREE.SphereGeometry(0.08, 16, 16);
+  var glowMaterial = new THREE.MeshBasicMaterial({
+    color: color,
+    transparent: true,
+    opacity: 0.3,
+    depthWrite: false,
+  });
+  var glow = new THREE.Mesh(glowGeometry, glowMaterial);
+  point.add(glow);
+
+  overlayRoot.add(point);
+  return point;
+}
+
+function _createMeasurementPoint(position) {
+  var point = _createSphereMarker(position, 0x00ff00);
+  measurementPoints.push(point);
+  return point;
+}
+
+function _createAngleMarker(position) {
+  var point = _createSphereMarker(position, 0x22d3ee);
+  measurementAngleMarkers.push(point);
+  return point;
+}
+
+function _createMeasurementSegment(from, to, color) {
+  var lineGeometry = new THREE.BufferGeometry().setFromPoints([from, to]);
+  var lineMaterial = new THREE.LineBasicMaterial({
+    color: color,
+    linewidth: 2,
+    transparent: true,
+    opacity: 0.8,
+  });
+  var line = new THREE.Line(lineGeometry, lineMaterial);
+  overlayRoot.add(line);
+  measurementLines.push(line);
+  return line;
+}
+
+function _createMeasurementLine(point1, point2, distance) {
+  var lineGeometry = new THREE.BufferGeometry().setFromPoints([
+    point1.position,
+    point2.position,
+  ]);
+  var lineMaterial = new THREE.LineBasicMaterial({
+    color: 0x00ff00,
+    linewidth: 2,
+    transparent: true,
+    opacity: 0.8,
+  });
+  var line = new THREE.Line(lineGeometry, lineMaterial);
+  overlayRoot.add(line);
+  measurementLines.push(line);
+
+  // Создаём label с расстоянием
+  var midpoint = new THREE.Vector3()
+    .addVectors(point1.position, point2.position)
+    .multiplyScalar(0.5);
+  _createMeasurementLabel(midpoint, distance.toFixed(2) + " м");
+
+  return line;
+}
+
+function _createMeasurementLabel(position, text) {
+  var canvas = document.createElement("canvas");
+  var context = canvas.getContext("2d");
+  canvas.width = 256;
+  canvas.height = 64;
+
+  context.fillStyle = "rgba(0, 0, 0, 0.7)";
+  context.fillRect(0, 0, canvas.width, canvas.height);
+
+  context.font = "Bold 24px Arial";
+  context.fillStyle = "white";
+  context.textAlign = "center";
+  context.textBaseline = "middle";
+  context.fillText(text, canvas.width / 2, canvas.height / 2);
+
+  var texture = new THREE.CanvasTexture(canvas);
+  var spriteMaterial = new THREE.SpriteMaterial({
+    map: texture,
+    transparent: true,
+    depthTest: false,
+  });
+  var sprite = new THREE.Sprite(spriteMaterial);
+  sprite.position.copy(position);
+  sprite.scale.set(0.5, 0.125, 1);
+
+  overlayRoot.add(sprite);
+  measurementLabels.push(sprite);
+  return sprite;
+}
+
+function _disposeMeasurementObject(obj) {
+  obj.traverse(function (child) {
+    if (child.geometry) child.geometry.dispose();
+    if (child.material) {
+      if (child.material.map) child.material.map.dispose();
+      child.material.dispose();
+    }
+  });
+}
+
+function _clearMeasurements() {
+  [
+    measurementPoints,
+    measurementAngleMarkers,
+    measurementLines,
+    measurementArcs,
+    measurementLabels,
+  ].forEach(function (collection) {
+    collection.forEach(function (obj) {
+      overlayRoot.remove(obj);
+      _disposeMeasurementObject(obj);
+    });
+  });
+  measurementPoints = [];
+  measurementAngleMarkers = [];
+  measurementLines = [];
+  measurementArcs = [];
+  measurementLabels = [];
+  measurementAngles = [];
+  measurementAnglePending = [];
+}
+
+function setMeasurementMode(enabled) {
+  measurementMode = enabled === true;
+  if (!measurementMode) {
+    _clearMeasurements();
+  }
+  return true;
+}
+
+function setMeasurementType(type) {
+  measurementType = type === "angle" ? "angle" : "distance";
+  // Сбрасываем незавершённый угол при смене режима
+  measurementAnglePending = [];
+  return measurementType;
+}
+
+function _computeAngleDegrees(a, vertex, c) {
+  var v1 = new THREE.Vector3().subVectors(a, vertex);
+  var v2 = new THREE.Vector3().subVectors(c, vertex);
+  if (v1.lengthSq() === 0 || v2.lengthSq() === 0) {
+    return 0;
+  }
+  return (v1.angleTo(v2) * 180) / Math.PI;
+}
+
+function _createAngleArc(a, vertex, c, angleDeg) {
+  var v1 = new THREE.Vector3().subVectors(a, vertex);
+  var v2 = new THREE.Vector3().subVectors(c, vertex);
+  var len1 = v1.length();
+  var len2 = v2.length();
+  if (len1 === 0 || len2 === 0) {
+    return;
+  }
+  var radius = _clamp(Math.min(len1, len2) * 0.3, 0.1, 0.6);
+  v1.normalize();
+  v2.normalize();
+  var axis = new THREE.Vector3().crossVectors(v1, v2);
+  if (axis.lengthSq() < 1e-8) {
+    // Точки коллинеарны — дугу не строим, только подпись.
+    // Для 180° сумма v1+v2 ≈ 0 (даёт NaN после normalize), поэтому подстраховываемся.
+    var flatDir = new THREE.Vector3().addVectors(v1, v2);
+    if (flatDir.lengthSq() < 1e-8) {
+      flatDir.copy(v1);
+    }
+    flatDir.normalize().multiplyScalar(radius * 1.5).add(vertex);
+    _createMeasurementLabel(flatDir, angleDeg.toFixed(1) + "°");
+    return;
+  }
+  axis.normalize();
+  var totalRad = v1.angleTo(v2);
+  var segments = 32;
+  var points = [];
+  for (var i = 0; i <= segments; i += 1) {
+    var t = (i / segments) * totalRad;
+    var quat = new THREE.Quaternion().setFromAxisAngle(axis, t);
+    var dir = v1.clone().applyQuaternion(quat).multiplyScalar(radius);
+    points.push(new THREE.Vector3().addVectors(vertex, dir));
+  }
+  var arcGeometry = new THREE.BufferGeometry().setFromPoints(points);
+  var arcMaterial = new THREE.LineBasicMaterial({
+    color: 0xfbbf24,
+    transparent: true,
+    opacity: 0.9,
+  });
+  var arc = new THREE.Line(arcGeometry, arcMaterial);
+  overlayRoot.add(arc);
+  measurementArcs.push(arc);
+
+  var midQuat = new THREE.Quaternion().setFromAxisAngle(axis, totalRad / 2);
+  var labelPos = v1
+    .clone()
+    .applyQuaternion(midQuat)
+    .multiplyScalar(radius * 1.5)
+    .add(vertex);
+  _createMeasurementLabel(labelPos, angleDeg.toFixed(1) + "°");
+}
+
+function _createAngleVisual(a, vertex, c, angleDeg) {
+  _createMeasurementSegment(vertex, a, 0x22d3ee);
+  _createMeasurementSegment(vertex, c, 0x22d3ee);
+  _createAngleArc(a, vertex, c, angleDeg);
+}
+
+function _pushAngleRecord(a, vertex, c, angleDeg) {
+  measurementAngles.push({
+    a: a.toArray(),
+    vertex: vertex.toArray(),
+    c: c.toArray(),
+    angle: angleDeg,
+  });
+}
+
+function _addAnglePoint(position) {
+  _createAngleMarker(position);
+  measurementAnglePending.push(position.clone());
+  if (measurementAnglePending.length >= 3) {
+    var a = measurementAnglePending[0];
+    var vertex = measurementAnglePending[1];
+    var c = measurementAnglePending[2];
+    var angleDeg = _computeAngleDegrees(a, vertex, c);
+    _createAngleVisual(a, vertex, c, angleDeg);
+    _pushAngleRecord(a, vertex, c, angleDeg);
+    measurementAnglePending = [];
+  }
+  // Сохраняем состояние и для незавершённого угла (1–2 точки)
+  _persistMeasurements();
+}
+
+function getMeasurements() {
+  var measurements = [];
+  for (var i = 0; i < measurementPoints.length - 1; i += 1) {
+    var p1 = measurementPoints[i].position;
+    var p2 = measurementPoints[i + 1].position;
+    var distance = p1.distanceTo(p2);
+    measurements.push({
+      point1: p1.toArray(),
+      point2: p2.toArray(),
+      distance: distance,
+    });
+  }
+  return measurements;
+}
+
+function getMeasurementAngles() {
+  return measurementAngles.map(function (record) {
+    return {
+      a: record.a.slice(),
+      vertex: record.vertex.slice(),
+      c: record.c.slice(),
+      angle: record.angle,
+    };
+  });
+}
+
+function getAllMeasurements() {
+  return {
+    distances: getMeasurements(),
+    angles: getMeasurementAngles(),
+  };
+}
+
+function clearMeasurements() {
+  _clearMeasurements();
+  _persistMeasurements();
+  return true;
+}
+
+// --- Сохранение измерений в session storage ---
+
+function _isVec3Array(arr) {
+  return (
+    Array.isArray(arr) &&
+    arr.length >= 3 &&
+    isFinite(arr[0]) &&
+    isFinite(arr[1]) &&
+    isFinite(arr[2])
+  );
+}
+
+function _serializeMeasurements() {
+  return {
+    distancePoints: measurementPoints.map(function (point) {
+      return point.position.toArray();
+    }),
+    angles: getMeasurementAngles(),
+    pendingAngle: measurementAnglePending.map(function (vec) {
+      return vec.toArray();
+    }),
+  };
+}
+
+function _persistMeasurements() {
+  try {
+    if (typeof sessionStorage === "undefined") {
+      return false;
+    }
+    var payload = {
+      schemaVersion: MEASUREMENT_SCHEMA_VERSION,
+      savedAt: new Date().toISOString(),
+      data: _serializeMeasurements(),
+    };
+    sessionStorage.setItem(MEASUREMENT_SESSION_KEY, JSON.stringify(payload));
+    return true;
+  } catch (err) {
+    return false;
+  }
+}
+
+function saveMeasurementsToSession() {
+  return _persistMeasurements();
+}
+
+function loadMeasurementsFromSession() {
+  try {
+    if (typeof sessionStorage === "undefined") {
+      return null;
+    }
+    var raw = sessionStorage.getItem(MEASUREMENT_SESSION_KEY);
+    if (!raw) {
+      return null;
+    }
+    return JSON.parse(raw);
+  } catch (err) {
+    return null;
+  }
+}
+
+function restoreMeasurementsFromSession() {
+  var payload = loadMeasurementsFromSession();
+  if (!payload || payload.schemaVersion !== MEASUREMENT_SCHEMA_VERSION || !payload.data) {
+    return false;
+  }
+  _clearMeasurements();
+  var data = payload.data;
+
+  if (Array.isArray(data.distancePoints)) {
+    data.distancePoints.forEach(function (coords) {
+      if (!_isVec3Array(coords)) {
+        return;
+      }
+      var position = new THREE.Vector3().fromArray(coords);
+      _createMeasurementPoint(position);
+      if (measurementPoints.length >= 2) {
+        var p1 = measurementPoints[measurementPoints.length - 2];
+        var p2 = measurementPoints[measurementPoints.length - 1];
+        _createMeasurementLine(p1, p2, p1.position.distanceTo(p2.position));
+      }
+    });
+  }
+
+  if (Array.isArray(data.angles)) {
+    data.angles.forEach(function (record) {
+      if (
+        !record ||
+        !_isVec3Array(record.a) ||
+        !_isVec3Array(record.vertex) ||
+        !_isVec3Array(record.c)
+      ) {
+        return;
+      }
+      var a = new THREE.Vector3().fromArray(record.a);
+      var vertex = new THREE.Vector3().fromArray(record.vertex);
+      var c = new THREE.Vector3().fromArray(record.c);
+      _createAngleMarker(a);
+      _createAngleMarker(vertex);
+      _createAngleMarker(c);
+      var angleDeg =
+        typeof record.angle === "number"
+          ? record.angle
+          : _computeAngleDegrees(a, vertex, c);
+      _createAngleVisual(a, vertex, c, angleDeg);
+      _pushAngleRecord(a, vertex, c, angleDeg);
+    });
+  }
+
+  if (Array.isArray(data.pendingAngle)) {
+    data.pendingAngle.forEach(function (coords) {
+      // Незавершённый угол содержит максимум 2 точки
+      if (measurementAnglePending.length >= 2 || !_isVec3Array(coords)) {
+        return;
+      }
+      var position = new THREE.Vector3().fromArray(coords);
+      _createAngleMarker(position);
+      measurementAnglePending.push(position.clone());
+    });
+  }
+
+  return true;
+}
+
+// --- Экспорт измерений ---
+
+function _triggerMeasurementDownload(content, filename, mimeType) {
+  var blob = new Blob([content], { type: mimeType });
+  var url = URL.createObjectURL(blob);
+  var link = document.createElement("a");
+  link.download = filename;
+  link.href = url;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  setTimeout(function () {
+    URL.revokeObjectURL(url);
+  }, 0);
+  return true;
+}
+
+function _measurementExportFilename(ext) {
+  var timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+  return "pvu3d_measurements_" + timestamp + "." + ext;
+}
+
+function _fmtCoord(value) {
+  return Number(value).toFixed(4);
+}
+
+function exportMeasurements(format) {
+  var fmt = format === "csv" ? "csv" : "json";
+  var all = getAllMeasurements();
+  var total = all.distances.length + all.angles.length;
+  if (total === 0) {
+    return null;
+  }
+
+  if (fmt === "json") {
+    var payload = {
+      schemaVersion: MEASUREMENT_SCHEMA_VERSION,
+      generatedAt: new Date().toISOString(),
+      units: { distance: "m", angle: "deg" },
+      distances: all.distances,
+      angles: all.angles,
+    };
+    _triggerMeasurementDownload(
+      JSON.stringify(payload, null, 2),
+      _measurementExportFilename("json"),
+      "application/json"
+    );
+  } else {
+    var rows = [];
+    rows.push(
+      [
+        "type",
+        "index",
+        "p1_x",
+        "p1_y",
+        "p1_z",
+        "p2_x",
+        "p2_y",
+        "p2_z",
+        "p3_x",
+        "p3_y",
+        "p3_z",
+        "value",
+        "unit",
+      ].join(",")
+    );
+    all.distances.forEach(function (d, index) {
+      rows.push(
+        [
+          "distance",
+          index + 1,
+          _fmtCoord(d.point1[0]),
+          _fmtCoord(d.point1[1]),
+          _fmtCoord(d.point1[2]),
+          _fmtCoord(d.point2[0]),
+          _fmtCoord(d.point2[1]),
+          _fmtCoord(d.point2[2]),
+          "",
+          "",
+          "",
+          d.distance.toFixed(4),
+          "m",
+        ].join(",")
+      );
+    });
+    all.angles.forEach(function (g, index) {
+      rows.push(
+        [
+          "angle",
+          index + 1,
+          _fmtCoord(g.a[0]),
+          _fmtCoord(g.a[1]),
+          _fmtCoord(g.a[2]),
+          _fmtCoord(g.vertex[0]),
+          _fmtCoord(g.vertex[1]),
+          _fmtCoord(g.vertex[2]),
+          _fmtCoord(g.c[0]),
+          _fmtCoord(g.c[1]),
+          _fmtCoord(g.c[2]),
+          g.angle.toFixed(2),
+          "deg",
+        ].join(",")
+      );
+    });
+    _triggerMeasurementDownload(
+      rows.join("\n") + "\n",
+      _measurementExportFilename("csv"),
+      "text/csv"
+    );
+  }
+
+  return {
+    format: fmt,
+    distances: all.distances.length,
+    angles: all.angles.length,
+  };
+}
+
+function captureScreenshot(options) {
+  if (!renderer || !scene || !camera) {
+    return Promise.reject(new Error("Viewer not initialized"));
+  }
+
+  var opts = options || {};
+  var scale = opts.scale || 1;
+  var format = opts.format || "png";
+  var includeMetadata = opts.includeMetadata !== false;
+  var transparent = opts.transparent === true;
+
+  // Сохраняем текущие размеры
+  var originalWidth = renderer.domElement.width;
+  var originalHeight = renderer.domElement.height;
+  var originalPixelRatio = renderer.getPixelRatio();
+
+  try {
+    // Устанавливаем новые размеры для высокого разрешения
+    var targetWidth = originalWidth * scale;
+    var targetHeight = originalHeight * scale;
+
+    renderer.setPixelRatio(1);
+    renderer.setSize(targetWidth, targetHeight, false);
+
+    if (composer) {
+      composer.setSize(targetWidth, targetHeight);
+      if (bloomPass) {
+        bloomPass.resolution.set(targetWidth, targetHeight);
+      }
+    }
+
+    // Рендерим сцену
+    if (composer) {
+      composer.render();
+    } else {
+      renderer.render(scene, camera);
+    }
+
+    // Захватываем изображение
+    var mimeType = format === "jpg" || format === "jpeg"
+      ? "image/jpeg"
+      : "image/png";
+    var dataUrl = renderer.domElement.toDataURL(mimeType, 0.95);
+
+    // Восстанавливаем оригинальные размеры
+    renderer.setPixelRatio(originalPixelRatio);
+    renderer.setSize(originalWidth, originalHeight, false);
+
+    if (composer) {
+      composer.setSize(originalWidth, originalHeight);
+      if (bloomPass) {
+        bloomPass.resolution.set(originalWidth, originalHeight);
+      }
+    }
+
+    // Формируем метаданные
+    var metadata = null;
+    if (includeMetadata) {
+      metadata = {
+        timestamp: new Date().toISOString(),
+        resolution: {
+          width: targetWidth,
+          height: targetHeight,
+          scale: scale,
+        },
+        camera: {
+          position: camera.position.toArray(),
+          target: controls ? controls.target.toArray() : null,
+          preset: currentCameraPreset,
+        },
+        scene: {
+          displayMode: currentDisplayMode,
+          modelId: currentModelDescriptor ? currentModelDescriptor.id : null,
+          scenario: currentSignals ? currentSignals.scenario_id : null,
+        },
+        effects: {
+          bloom: bloomPass ? {
+            enabled: bloomPass.enabled,
+            strength: bloomPass.strength,
+            radius: bloomPass.radius,
+            threshold: bloomPass.threshold,
+          } : null,
+        },
+      };
+    }
+
+    return Promise.resolve({
+      dataUrl: dataUrl,
+      width: targetWidth,
+      height: targetHeight,
+      format: format,
+      metadata: metadata,
+      filename: _generateScreenshotFilename(format),
+    });
+  } catch (error) {
+    // Восстанавливаем размеры в случае ошибки
+    renderer.setPixelRatio(originalPixelRatio);
+    renderer.setSize(originalWidth, originalHeight, false);
+
+    if (composer) {
+      composer.setSize(originalWidth, originalHeight);
+    }
+
+    return Promise.reject(error);
+  }
+}
+
+function _generateScreenshotFilename(format) {
+  var now = new Date();
+  var timestamp = now.toISOString()
+    .replace(/:/g, "-")
+    .replace(/\..+/, "")
+    .replace("T", "_");
+  var modelName = currentModelDescriptor && currentModelDescriptor.id
+    ? currentModelDescriptor.id
+    : "scene";
+  var ext = format === "jpg" || format === "jpeg" ? "jpg" : "png";
+  return "pvu3d_" + modelName + "_" + timestamp + "." + ext;
+}
+
+function downloadScreenshot(screenshotData) {
+  if (!screenshotData || !screenshotData.dataUrl) {
+    return false;
+  }
+
+  var link = document.createElement("a");
+  link.download = screenshotData.filename;
+  link.href = screenshotData.dataUrl;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  return true;
+}
+
+function _createHeatmapGradientTexture() {
+  var canvas = document.createElement("canvas");
+  canvas.width = 256;
+  canvas.height = 1;
+  var ctx = canvas.getContext("2d");
+
+  var gradient = ctx.createLinearGradient(0, 0, 256, 0);
+  // Холодный → Комфортный → Тёплый → Горячий
+  gradient.addColorStop(0.0, "#0ea5e9");  // Холодный синий
+  gradient.addColorStop(0.25, "#22d3ee"); // Голубой
+  gradient.addColorStop(0.5, "#10b981");  // Зелёный (комфорт)
+  gradient.addColorStop(0.75, "#f59e0b"); // Оранжевый
+  gradient.addColorStop(1.0, "#ef4444");  // Красный (горячий)
+
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, 256, 1);
+
+  var texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = THREE.ClampToEdgeWrapping;
+  texture.wrapT = THREE.ClampToEdgeWrapping;
+  texture.needsUpdate = true;
+  return texture;
+}
+
+function _createHeatmapLegend() {
+  if (!container) return null;
+
+  var legend = document.createElement("div");
+  legend.className = "viewer3d-heatmap-legend";
+  legend.innerHTML =
+    '<div class="viewer3d-heatmap-legend__title">Тепловая карта</div>' +
+    '<div class="viewer3d-heatmap-legend__gradient"></div>' +
+    '<div class="viewer3d-heatmap-legend__labels">' +
+    '<span class="viewer3d-heatmap-legend__label">Холодно</span>' +
+    '<span class="viewer3d-heatmap-legend__label">Комфорт</span>' +
+    '<span class="viewer3d-heatmap-legend__label">Тепло</span>' +
+    '<span class="viewer3d-heatmap-legend__label">Горячо</span>' +
+    '</div>' +
+    '<div class="viewer3d-heatmap-legend__range">' +
+    '<span id="heatmap-min-temp">-10°C</span>' +
+    '<span id="heatmap-max-temp">+40°C</span>' +
+    '</div>';
+
+  container.appendChild(legend);
+  return legend;
+}
+
+function _removeHeatmapLegend() {
+  if (heatmapLegend && heatmapLegend.parentNode) {
+    heatmapLegend.parentNode.removeChild(heatmapLegend);
+  }
+  heatmapLegend = null;
+}
+
+function _temperatureToGradient(celsius, minTemp, maxTemp) {
+  if (celsius === null || !Number.isFinite(celsius)) return 0.5;
+  var t = (celsius - minTemp) / (maxTemp - minTemp);
+  return _clamp(t, 0, 1);
+}
+
+function _interpolateTemperatureAtVertex(vertex, dataPoints) {
+  if (!dataPoints || !dataPoints.length) return 20; // Температура по умолчанию
+
+  // Интерполяция по методу обратных расстояний (IDW)
+  var weightedSum = 0;
+  var weightSum = 0;
+  var minDist = Infinity;
+  var closestTemp = 20;
+
+  for (var j = 0; j < dataPoints.length; j++) {
+    var point = dataPoints[j];
+    var distance = vertex.distanceTo(point.position);
+
+    if (distance < 0.01) {
+      // Очень близко к точке данных - используем точное значение
+      return point.temperature;
+    }
+
+    var weight = 1 / Math.pow(distance, 2);
+    weightedSum += point.temperature * weight;
+    weightSum += weight;
+
+    if (distance < minDist) {
+      minDist = distance;
+      closestTemp = point.temperature;
+    }
+  }
+
+  if (weightSum > 0) {
+    return weightedSum / weightSum;
+  }
+
+  return closestTemp;
+}
+
+function _applyHeatmapToMesh(mesh, dataPoints, minTemp, maxTemp, previousDataPoints, animProgress) {
+  if (!mesh || !mesh.isMesh || !mesh.geometry) return;
+
+  var geometry = mesh.geometry;
+  var positions = geometry.getAttribute("position");
+  if (!positions) return;
+
+  // Создаём UV координаты для тепловой карты, если их нет
+  var uvs = geometry.getAttribute("uv");
+  if (!uvs) {
+    var uvArray = new Float32Array(positions.count * 2);
+    for (var i = 0; i < positions.count; i++) {
+      uvArray[i * 2] = 0.5;
+      uvArray[i * 2 + 1] = 0.5;
+    }
+    geometry.setAttribute("uv", new THREE.BufferAttribute(uvArray, 2));
+    uvs = geometry.getAttribute("uv");
+  }
+
+  // Определяем, нужна ли анимация
+  var useAnimation = previousDataPoints && previousDataPoints.length > 0 && animProgress < 1.0;
+
+  // Для каждой вершины находим температуру с интерполяцией
+  for (var i = 0; i < positions.count; i++) {
+    var vx = positions.getX(i);
+    var vy = positions.getY(i);
+    var vz = positions.getZ(i);
+    var vertex = new THREE.Vector3(vx, vy, vz);
+    mesh.localToWorld(vertex);
+
+    var currentTemp = _interpolateTemperatureAtVertex(vertex, dataPoints);
+
+    // Если есть анимация, интерполируем между старой и новой температурой
+    if (useAnimation) {
+      var previousTemp = _interpolateTemperatureAtVertex(vertex, previousDataPoints);
+      currentTemp = previousTemp + (currentTemp - previousTemp) * animProgress;
+    }
+
+    // Преобразуем температуру в UV координату для градиента
+    var gradientT = _temperatureToGradient(currentTemp, minTemp, maxTemp);
+    uvs.setX(i, gradientT);
+    uvs.setY(i, 0.5);
+  }
+
+  uvs.needsUpdate = true;
+
+  // Применяем градиентную текстуру
+  if (!mesh.userData.originalMaterial) {
+    mesh.userData.originalMaterial = mesh.material;
+  }
+
+  var heatmapTexture = _createHeatmapGradientTexture();
+  var heatmapMaterial = new THREE.MeshBasicMaterial({
+    map: heatmapTexture,
+    transparent: true,
+    opacity: 0.8,
+    side: THREE.DoubleSide,
+  });
+
+  mesh.material = heatmapMaterial;
+}
+
+function _clearHeatmap() {
+  if (!modelRoot) return;
+
+  modelRoot.traverse(function (child) {
+    if (child.isMesh && child.userData.originalMaterial) {
+      child.material = child.userData.originalMaterial;
+      child.userData.originalMaterial = null;
+    }
+  });
+
+  _removeHeatmapLegend();
+
+  // Сбрасываем данные анимации
+  heatmapPreviousDataPoints = [];
+  heatmapAnimationProgress = 1.0;
+}
+
+function _updateHeatmapAnimation() {
+  if (!heatmapMode || !modelRoot) return;
+  if (heatmapAnimationProgress >= 1.0) return;
+
+  var now = performance.now();
+  var elapsed = now - heatmapAnimationStartTime;
+  heatmapAnimationProgress = Math.min(1.0, elapsed / heatmapAnimationDuration);
+
+  // Применяем анимированную тепловую карту
+  modelRoot.traverse(function (child) {
+    if (child.isMesh) {
+      var role = _classifyMeshContext(child);
+      if (role.section && !ENCLOSURE_KINDS[role.kind]) {
+        _applyHeatmapToMesh(
+          child,
+          heatmapDataPoints,
+          heatmapMinTemp,
+          heatmapMaxTemp,
+          heatmapPreviousDataPoints,
+          heatmapAnimationProgress
+        );
+      }
+    }
+  });
+}
+
+function setHeatmapMode(enabled, dataPoints, options) {
+  heatmapMode = enabled === true;
+
+  if (!heatmapMode) {
+    _clearHeatmap();
+    return true;
+  }
+
+  if (!dataPoints || !dataPoints.length) {
+    console.warn("[Heatmap] No data points provided");
+    return false;
+  }
+
+  var opts = options || {};
+  var minTemp = opts.minTemp !== undefined ? opts.minTemp : -10;
+  var maxTemp = opts.maxTemp !== undefined ? opts.maxTemp : 40;
+  var animate = opts.animate !== undefined ? opts.animate : true;
+  var animDuration = opts.animationDuration !== undefined ? opts.animationDuration : 1000;
+
+  heatmapMinTemp = minTemp;
+  heatmapMaxTemp = maxTemp;
+
+  // Сохраняем предыдущие данные для анимации
+  if (animate && heatmapDataPoints.length > 0) {
+    heatmapPreviousDataPoints = heatmapDataPoints.slice();
+    heatmapAnimationProgress = 0.0;
+    heatmapAnimationStartTime = performance.now();
+    heatmapAnimationDuration = animDuration;
+  } else {
+    heatmapPreviousDataPoints = [];
+    heatmapAnimationProgress = 1.0;
+  }
+
+  // Преобразуем точки данных в формат с THREE.Vector3
+  heatmapDataPoints = dataPoints.map(function (point) {
+    return {
+      position: new THREE.Vector3(point.x || 0, point.y || 0, point.z || 0),
+      temperature: point.temperature || 20,
+    };
+  });
+
+  // Создаём легенду
+  if (!heatmapLegend) {
+    heatmapLegend = _createHeatmapLegend();
+  }
+
+  // Обновляем диапазон температур в легенде
+  var minLabel = document.getElementById("heatmap-min-temp");
+  var maxLabel = document.getElementById("heatmap-max-temp");
+  if (minLabel) minLabel.textContent = minTemp.toFixed(0) + "°C";
+  if (maxLabel) maxLabel.textContent = maxTemp.toFixed(0) + "°C";
+
+  // Применяем тепловую карту к модели
+  if (modelRoot) {
+    modelRoot.traverse(function (child) {
+      if (child.isMesh) {
+        var role = _classifyMeshContext(child);
+        // Применяем только к основным секциям, не к корпусу
+        if (role.section && !ENCLOSURE_KINDS[role.kind]) {
+          _applyHeatmapToMesh(
+            child,
+            heatmapDataPoints,
+            minTemp,
+            maxTemp,
+            heatmapPreviousDataPoints,
+            heatmapAnimationProgress
+          );
+        }
+      }
+    });
+  }
+
+  return true;
+}
+
+function updateHeatmapData(dataPoints, options) {
+  if (!heatmapMode) {
+    console.warn("[Heatmap] Cannot update data when heatmap mode is disabled");
+    return false;
+  }
+
+  if (!dataPoints || !dataPoints.length) {
+    console.warn("[Heatmap] No data points provided");
+    return false;
+  }
+
+  var opts = options || {};
+  var minTemp = opts.minTemp !== undefined ? opts.minTemp : heatmapMinTemp;
+  var maxTemp = opts.maxTemp !== undefined ? opts.maxTemp : heatmapMaxTemp;
+  var animate = opts.animate !== undefined ? opts.animate : true;
+  var animDuration = opts.animationDuration !== undefined ? opts.animationDuration : 1000;
+
+  heatmapMinTemp = minTemp;
+  heatmapMaxTemp = maxTemp;
+
+  // Сохраняем предыдущие данные для анимации
+  if (animate) {
+    heatmapPreviousDataPoints = heatmapDataPoints.slice();
+    heatmapAnimationProgress = 0.0;
+    heatmapAnimationStartTime = performance.now();
+    heatmapAnimationDuration = animDuration;
+  } else {
+    heatmapPreviousDataPoints = [];
+    heatmapAnimationProgress = 1.0;
+  }
+
+  // Преобразуем точки данных в формат с THREE.Vector3
+  heatmapDataPoints = dataPoints.map(function (point) {
+    return {
+      position: new THREE.Vector3(point.x || 0, point.y || 0, point.z || 0),
+      temperature: point.temperature || 20,
+    };
+  });
+
+  // Обновляем диапазон температур в легенде
+  var minLabel = document.getElementById("heatmap-min-temp");
+  var maxLabel = document.getElementById("heatmap-max-temp");
+  if (minLabel) minLabel.textContent = minTemp.toFixed(0) + "°C";
+  if (maxLabel) maxLabel.textContent = maxTemp.toFixed(0) + "°C";
+
+  // Применяем обновлённую тепловую карту
+  if (modelRoot) {
+    modelRoot.traverse(function (child) {
+      if (child.isMesh) {
+        var role = _classifyMeshContext(child);
+        if (role.section && !ENCLOSURE_KINDS[role.kind]) {
+          _applyHeatmapToMesh(
+            child,
+            heatmapDataPoints,
+            minTemp,
+            maxTemp,
+            heatmapPreviousDataPoints,
+            heatmapAnimationProgress
+          );
+        }
+      }
+    });
+  }
+
+  return true;
+}
+
+function getHeatmapData() {
+  return {
+    enabled: heatmapMode,
+    dataPoints: heatmapDataPoints.map(function (point) {
+      return {
+        x: point.position.x,
+        y: point.position.y,
+        z: point.position.z,
+        temperature: point.temperature,
+      };
+    }),
+  };
+}
+
+// ============================================================================
+// Clipping Planes (Режим сечений)
+// ============================================================================
+
+/**
+ * Включить/выключить режим сечений.
+ * @param {boolean} enabled - включить режим
+ * @param {Object} options - опции: planes (массив плоскостей)
+ */
+function setClippingMode(enabled, options) {
+  if (!renderer) return false;
+
+  clippingEnabled = enabled === true;
+  renderer.localClippingEnabled = clippingEnabled;
+
+  if (clippingEnabled && options && options.planes) {
+    // Инициализировать плоскости из опций
+    _clearClippingPlanes();
+    for (var i = 0; i < options.planes.length && i < maxClippingPlanes; i++) {
+      var planeData = options.planes[i];
+      addClippingPlane(planeData);
+    }
+  } else if (!clippingEnabled) {
+    // Выключить режим - скрыть helpers, но сохранить данные
+    _updateClippingHelpersVisibility();
+  }
+
+  _updateMaterialsClipping();
+  return true;
+}
+
+/**
+ * Добавить новую плоскость сечения.
+ * @param {Object} planeData - {normal: [x,y,z], constant: number, enabled: boolean, inverted: boolean}
+ * @returns {number} индекс добавленной плоскости или -1
+ */
+function addClippingPlane(planeData) {
+  if (clippingPlanes.length >= maxClippingPlanes) {
+    console.warn("Maximum clipping planes reached:", maxClippingPlanes);
+    return -1;
+  }
+
+  var normal = planeData.normal || [0, 1, 0];
+  var constant = planeData.constant !== undefined ? planeData.constant : 0;
+  var enabled = planeData.enabled !== false;
+  var inverted = planeData.inverted === true;
+
+  // Создать THREE.Plane
+  var normalVec = new THREE.Vector3(normal[0], normal[1], normal[2]).normalize();
+  if (inverted) {
+    normalVec.negate();
+  }
+  var plane = new THREE.Plane(normalVec, constant);
+
+  // Создать визуальный helper
+  var helper = _createClippingPlaneHelper(plane, enabled);
+
+  // Сохранить данные
+  var index = clippingPlanes.length;
+  clippingPlanes.push(plane);
+  clippingHelpers.push(helper);
+  clippingPlanesData.push({
+    normal: [normal[0], normal[1], normal[2]],
+    constant: constant,
+    enabled: enabled,
+    inverted: inverted,
+  });
+
+  if (scene && helper) {
+    scene.add(helper);
+  }
+
+  _updateMaterialsClipping();
+  return index;
+}
+
+/**
+ * Обновить параметры плоскости сечения.
+ * @param {number} index - индекс плоскости
+ * @param {Object} params - {normal, constant, enabled, inverted}
+ */
+function updateClippingPlane(index, params) {
+  if (index < 0 || index >= clippingPlanes.length) {
+    console.warn("Invalid clipping plane index:", index);
+    return false;
+  }
+
+  var plane = clippingPlanes[index];
+  var data = clippingPlanesData[index];
+  var helper = clippingHelpers[index];
+
+  var needsUpdate = false;
+
+  if (params.normal !== undefined) {
+    data.normal = [params.normal[0], params.normal[1], params.normal[2]];
+    needsUpdate = true;
+  }
+
+  if (params.constant !== undefined) {
+    data.constant = params.constant;
+    needsUpdate = true;
+  }
+
+  if (params.inverted !== undefined) {
+    data.inverted = params.inverted === true;
+    needsUpdate = true;
+  }
+
+  if (params.enabled !== undefined) {
+    data.enabled = params.enabled !== false;
+    if (helper) {
+      helper.visible = data.enabled && clippingEnabled;
+    }
+  }
+
+  if (needsUpdate) {
+    // Пересоздать plane с новыми параметрами
+    var normalVec = new THREE.Vector3(
+      data.normal[0],
+      data.normal[1],
+      data.normal[2]
+    ).normalize();
+
+    if (data.inverted) {
+      normalVec.negate();
+    }
+
+    plane.normal.copy(normalVec);
+    plane.constant = data.constant;
+
+    // Обновить helper
+    if (helper) {
+      _updateClippingPlaneHelper(helper, plane);
+    }
+
+    _updateMaterialsClipping();
+  }
+
+  return true;
+}
+
+/**
+ * Удалить плоскость сечения.
+ * @param {number} index - индекс плоскости
+ */
+function removeClippingPlane(index) {
+  if (index < 0 || index >= clippingPlanes.length) {
+    console.warn("Invalid clipping plane index:", index);
+    return false;
+  }
+
+  var helper = clippingHelpers[index];
+  if (helper && scene) {
+    scene.remove(helper);
+    if (helper.geometry) helper.geometry.dispose();
+    if (helper.material) helper.material.dispose();
+  }
+
+  clippingPlanes.splice(index, 1);
+  clippingHelpers.splice(index, 1);
+  clippingPlanesData.splice(index, 1);
+
+  _updateMaterialsClipping();
+  return true;
+}
+
+/**
+ * Получить данные всех плоскостей сечения.
+ */
+function getClippingPlanes() {
+  return {
+    enabled: clippingEnabled,
+    planes: clippingPlanesData.map(function (data, index) {
+      return {
+        index: index,
+        normal: data.normal.slice(),
+        constant: data.constant,
+        enabled: data.enabled,
+        inverted: data.inverted,
+      };
+    }),
+  };
+}
+
+/**
+ * Очистить все плоскости сечения.
+ */
+function clearClippingPlanes() {
+  _clearClippingPlanes();
+  _updateMaterialsClipping();
+  return true;
+}
+
+// ============================================================================
+// LOD (Level of Detail) System
+// ============================================================================
+
+/**
+ * Создать упрощённую версию геометрии.
+ * @param {THREE.BufferGeometry} geometry - исходная геометрия
+ * @param {number} ratio - коэффициент упрощения (0.0-1.0)
+ * @returns {THREE.BufferGeometry} упрощённая геометрия
+ */
+function _simplifyGeometry(geometry, ratio) {
+  if (!geometry || !geometry.isBufferGeometry) {
+    return geometry;
+  }
+
+  // Для очень простой геометрии (< 100 вершин) не упрощаем
+  var vertexCount = geometry.attributes.position ? geometry.attributes.position.count : 0;
+  if (vertexCount < 100) {
+    return geometry.clone();
+  }
+
+  var simplified = geometry.clone();
+
+  // Простое упрощение: прореживание вершин
+  // Для production можно использовать SimplifyModifier из three/examples
+  if (ratio >= 0.9) {
+    return simplified;
+  }
+
+  // Базовое упрощение через decimation
+  var targetCount = Math.max(Math.floor(vertexCount * ratio), 12);
+  var step = Math.max(1, Math.floor(vertexCount / targetCount));
+
+  if (step > 1 && simplified.index) {
+    var indices = simplified.index.array;
+    var newIndices = [];
+
+    for (var i = 0; i < indices.length; i += step * 3) {
+      if (i + 2 < indices.length) {
+        newIndices.push(indices[i], indices[i + 1], indices[i + 2]);
+      }
+    }
+
+    simplified.setIndex(newIndices);
+  }
+
+  return simplified;
+}
+
+/**
+ * Создать LOD-версии для mesh.
+ * @param {THREE.Mesh} mesh - исходный mesh
+ * @returns {THREE.LOD|null} LOD объект или null
+ */
+function _createLODForMesh(mesh) {
+  if (!mesh || !mesh.isMesh || !mesh.geometry) {
+    return null;
+  }
+
+  // Не создаём LOD для очень простых объектов
+  var vertexCount = mesh.geometry.attributes.position ? mesh.geometry.attributes.position.count : 0;
+  if (vertexCount < 100) {
+    return null;
+  }
+
+  var lod = new THREE.LOD();
+  lod.name = mesh.name + "_LOD";
+  lod.position.copy(mesh.position);
+  lod.rotation.copy(mesh.rotation);
+  lod.scale.copy(mesh.scale);
+  lod.userData = Object.assign({}, mesh.userData);
+
+  // Level 0: High detail (оригинал)
+  var highDetail = mesh.clone();
+  lod.addLevel(highDetail, lodDistances[0]);
+
+  // Level 1: Medium detail (60% вершин)
+  var mediumGeometry = _simplifyGeometry(mesh.geometry, 0.6);
+  var mediumDetail = new THREE.Mesh(mediumGeometry, mesh.material);
+  mediumDetail.name = mesh.name + "_medium";
+  mediumDetail.userData = Object.assign({}, mesh.userData);
+  lod.addLevel(mediumDetail, lodDistances[1]);
+
+  // Level 2: Low detail (30% вершин)
+  var lowGeometry = _simplifyGeometry(mesh.geometry, 0.3);
+  var lowDetail = new THREE.Mesh(lowGeometry, mesh.material);
+  lowDetail.name = mesh.name + "_low";
+  lowDetail.userData = Object.assign({}, mesh.userData);
+  lod.addLevel(lowDetail, lodDistances[2]);
+
+  return lod;
+}
+
+/**
+ * Конвертировать модель в LOD-версию.
+ * @param {THREE.Object3D} root - корень модели
+ */
+function _convertModelToLOD(root) {
+  if (!root) return;
+
+  var meshesToConvert = [];
+
+  root.traverse(function (child) {
+    if (child.isMesh && child.geometry) {
+      var vertexCount = child.geometry.attributes.position ? child.geometry.attributes.position.count : 0;
+      if (vertexCount >= 100) {
+        meshesToConvert.push(child);
+      }
+    }
+  });
+
+  meshesToConvert.forEach(function (mesh) {
+    var lodObject = _createLODForMesh(mesh);
+    if (lodObject) {
+      var parent = mesh.parent;
+      if (parent) {
+        var index = parent.children.indexOf(mesh);
+        parent.remove(mesh);
+        parent.children.splice(index, 0, lodObject);
+        lodObject.parent = parent;
+        lodObjects.push(lodObject);
+      }
+    }
+  });
+}
+
+/**
+ * Удалить все LOD объекты из модели.
+ * @param {THREE.Object3D} root - корень модели
+ */
+function _removeLODFromModel(root) {
+  if (!root) return;
+
+  var lodsToRemove = [];
+
+  root.traverse(function (child) {
+    if (child.isLOD) {
+      lodsToRemove.push(child);
+    }
+  });
+
+  lodsToRemove.forEach(function (lod) {
+    var parent = lod.parent;
+    if (parent && lod.levels.length > 0) {
+      // Восстановить оригинальный mesh (level 0)
+      var originalMesh = lod.levels[0].object.clone();
+      originalMesh.position.copy(lod.position);
+      originalMesh.rotation.copy(lod.rotation);
+      originalMesh.scale.copy(lod.scale);
+
+      var index = parent.children.indexOf(lod);
+      parent.remove(lod);
+      parent.children.splice(index, 0, originalMesh);
+      originalMesh.parent = parent;
+
+      // Очистка
+      lod.levels.forEach(function (level) {
+        if (level.object.geometry) {
+          level.object.geometry.dispose();
+        }
+      });
+    }
+  });
+
+  lodObjects = [];
+}
+
+/**
+ * Обновить LOD объекты (вызывается в render loop).
+ */
+function _updateLOD() {
+  if (!lodEnabled || !camera || lodObjects.length === 0) {
+    return;
+  }
+
+  lodStats = { high: 0, medium: 0, low: 0 };
+
+  lodObjects.forEach(function (lod) {
+    lod.update(camera);
+
+    // Статистика текущего уровня
+    var currentLevel = lod.getCurrentLevel();
+    if (currentLevel === 0) {
+      lodStats.high++;
+    } else if (currentLevel === 1) {
+      lodStats.medium++;
+    } else {
+      lodStats.low++;
+    }
+  });
+}
+
+/**
+ * Включить/выключить LOD режим.
+ * @param {boolean} enabled - включить LOD
+ * @param {object} options - параметры: {distances: [0, 15, 30], quality: "auto"}
+ */
+function setLODMode(enabled, options) {
+  if (!modelRoot) {
+    console.warn("No model loaded");
+    return false;
+  }
+
+  options = options || {};
+
+  // Обновить параметры
+  if (options.distances && Array.isArray(options.distances) && options.distances.length === 3) {
+    lodDistances = options.distances.slice();
+  }
+
+  if (options.quality) {
+    lodQuality = options.quality;
+  }
+
+  var wasEnabled = lodEnabled;
+  lodEnabled = enabled === true;
+
+  if (lodEnabled && !wasEnabled) {
+    // Включаем LOD
+    _convertModelToLOD(modelRoot);
+    console.log("[LOD] Enabled:", lodObjects.length, "objects converted");
+  } else if (!lodEnabled && wasEnabled) {
+    // Выключаем LOD
+    _removeLODFromModel(modelRoot);
+    console.log("[LOD] Disabled");
+  } else if (lodEnabled && wasEnabled) {
+    // Обновляем параметры существующих LOD
+    lodObjects.forEach(function (lod) {
+      if (lod.levels.length >= 3) {
+        lod.levels[0].distance = lodDistances[0];
+        lod.levels[1].distance = lodDistances[1];
+        lod.levels[2].distance = lodDistances[2];
+      }
+    });
+  }
+
+  return true;
+}
+
+/**
+ * Получить статистику LOD.
+ */
+function getLODStats() {
+  return {
+    enabled: lodEnabled,
+    totalObjects: lodObjects.length,
+    distances: lodDistances.slice(),
+    quality: lodQuality,
+    currentLevels: Object.assign({}, lodStats),
+  };
+}
+
+/**
+ * Применить пресет LOD.
+ * @param {string} preset - "performance", "balanced", "quality", "off"
+ */
+function applyLODPreset(preset) {
+  var presets = {
+    performance: { enabled: true, distances: [0, 10, 20], quality: "low" },
+    balanced: { enabled: true, distances: [0, 15, 30], quality: "medium" },
+    quality: { enabled: true, distances: [0, 25, 50], quality: "high" },
+    off: { enabled: false, distances: [0, 15, 30], quality: "auto" },
+  };
+
+  var config = presets[preset];
+  if (!config) {
+    console.warn("Unknown LOD preset:", preset);
+    return false;
+  }
+
+  return setLODMode(config.enabled, {
+    distances: config.distances,
+    quality: config.quality,
+  });
+}
+
+// ============================================================================
+// Flow Field (Airflow Visualization)
+// ============================================================================
+
+/**
+ * Загрузить данные векторного поля из JSON файла.
+ * @param {string} url - URL файла с данными векторного поля
+ * @returns {Promise<boolean>} - true если загрузка успешна
+ */
+function loadFlowFieldData(url) {
+  return fetch(url)
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`Failed to load flow field: ${response.statusText}`);
+      }
+      return response.json();
+    })
+    .then((data) => {
+      // Validate data structure
+      if (!data.points || !Array.isArray(data.points)) {
+        throw new Error("Invalid flow field data: missing points array");
+      }
+
+      flowFieldData = data;
+      console.log(
+        `Flow field loaded: ${data.points.length} vectors, bounds:`,
+        data.metadata?.bounds
+      );
+
+      // If flow field is enabled, recreate visualization with new data
+      if (flowFieldEnabled) {
+        _clearFlowField();
+        _createFlowFieldVisualization();
+      }
+
+      return true;
+    })
+    .catch((error) => {
+      console.error("Error loading flow field:", error);
+      flowFieldData = null;
+      return false;
+    });
+}
+
+/**
+ * Очистить все объекты векторного поля из сцены.
+ */
+function _clearFlowField() {
+  flowFieldObjects.forEach((obj) => {
+    if (obj.parent) {
+      obj.parent.remove(obj);
+    }
+    if (obj.geometry) obj.geometry.dispose();
+    if (obj.material) {
+      if (Array.isArray(obj.material)) {
+        obj.material.forEach((m) => m.dispose());
+      } else {
+        obj.material.dispose();
+      }
+    }
+  });
+  flowFieldObjects = [];
+
+  if (flowFieldParticles) {
+    if (flowFieldParticles.parent) {
+      flowFieldParticles.parent.remove(flowFieldParticles);
+    }
+    if (flowFieldParticles.geometry) flowFieldParticles.geometry.dispose();
+    if (flowFieldParticles.material) flowFieldParticles.material.dispose();
+    flowFieldParticles = null;
+  }
+}
+
+/**
+ * Создать визуализацию векторного поля в текущем режиме.
+ */
+function _createFlowFieldVisualization() {
+  if (!flowFieldData || !flowFieldData.points) {
+    console.warn("No flow field data loaded");
+    return;
+  }
+
+  _clearFlowField();
+
+  switch (flowFieldMode) {
+    case "arrows":
+      _createArrowField();
+      break;
+    case "streamlines":
+      _createStreamlines();
+      break;
+    case "particles":
+      _createParticleField();
+      break;
+    default:
+      console.warn("Unknown flow field mode:", flowFieldMode);
+  }
+}
+
+/**
+ * Создать поле стрелок для визуализации векторов.
+ */
+function _createArrowField() {
+  if (!flowFieldData || !scene) return;
+
+  const points = flowFieldData.points;
+  const densityFactor = flowFieldDensity;
+  const step = Math.max(1, Math.floor(1 / densityFactor));
+
+  // Find min/max speed for color mapping
+  let minSpeed = Infinity;
+  let maxSpeed = -Infinity;
+  points.forEach((p) => {
+    if (p.speed < minSpeed) minSpeed = p.speed;
+    if (p.speed > maxSpeed) maxSpeed = p.speed;
+  });
+
+  const speedRange = maxSpeed - minSpeed || 1;
+
+  // Create arrows with instanced rendering for performance
+  for (let i = 0; i < points.length; i += step) {
+    const point = points[i];
+    const pos = new THREE.Vector3(point.pos[0], point.pos[1], point.pos[2]);
+    const vel = new THREE.Vector3(point.vel[0], point.vel[1], point.vel[2]);
+    const speed = point.speed;
+
+    // Skip zero-velocity vectors
+    if (speed < 0.01) continue;
+
+    // Normalize velocity for direction
+    const dir = vel.clone().normalize();
+
+    // Arrow length based on speed (scaled for visibility)
+    const length = Math.max(0.1, speed * 0.3);
+
+    // Color based on speed (blue -> cyan -> green -> yellow -> red)
+    let color;
+    if (flowFieldColorScheme === "speed") {
+      const t = (speed - minSpeed) / speedRange;
+      color = new THREE.Color();
+      if (t < 0.25) {
+        // Blue to cyan
+        color.setRGB(0, t * 4, 1);
+      } else if (t < 0.5) {
+        // Cyan to green
+        const t2 = (t - 0.25) * 4;
+        color.setRGB(0, 1, 1 - t2);
+      } else if (t < 0.75) {
+        // Green to yellow
+        const t2 = (t - 0.5) * 4;
+        color.setRGB(t2, 1, 0);
+      } else {
+        // Yellow to red
+        const t2 = (t - 0.75) * 4;
+        color.setRGB(1, 1 - t2, 0);
+      }
+    } else if (flowFieldColorScheme === "direction") {
+      // Color based on direction (X=red, Y=green, Z=blue)
+      const absDir = new THREE.Vector3(
+        Math.abs(dir.x),
+        Math.abs(dir.y),
+        Math.abs(dir.z)
+      );
+      color = new THREE.Color(absDir.x, absDir.y, absDir.z);
+    } else {
+      // Default: cyan
+      color = new THREE.Color(0x00ffff);
+    }
+
+    // Create arrow
+    const arrow = new THREE.ArrowHelper(
+      dir,
+      pos,
+      length,
+      color.getHex(),
+      length * 0.2,
+      length * 0.15
+    );
+
+    scene.add(arrow);
+    flowFieldObjects.push(arrow);
+  }
+
+  console.log(`Created ${flowFieldObjects.length} arrows`);
+}
+
+/**
+ * Создать линии тока (streamlines) для визуализации потока.
+ */
+function _createStreamlines() {
+  if (!flowFieldData || !scene) return;
+
+  const points = flowFieldData.points;
+  const numLines = Math.floor(20 * flowFieldDensity);
+
+  // Find bounds for seeding streamlines
+  const bounds = flowFieldData.metadata?.bounds || {
+    min: [-3, -2, -1],
+    max: [3, 2, 1],
+  };
+
+  // Create streamlines by integrating the vector field
+  for (let i = 0; i < numLines; i++) {
+    // Random seed point within bounds
+    const seedX =
+      bounds.min[0] + Math.random() * (bounds.max[0] - bounds.min[0]);
+    const seedY =
+      bounds.min[1] + Math.random() * (bounds.max[1] - bounds.min[1]);
+    const seedZ =
+      bounds.min[2] + Math.random() * (bounds.max[2] - bounds.min[2]);
+
+    const linePoints = [];
+    let currentPos = new THREE.Vector3(seedX, seedY, seedZ);
+
+    // Integrate forward
+    const maxSteps = 100;
+    const stepSize = 0.1;
+
+    for (let step = 0; step < maxSteps; step++) {
+      linePoints.push(currentPos.clone());
+
+      // Interpolate velocity at current position
+      const vel = _interpolateVelocity(currentPos);
+      if (!vel || vel.length() < 0.01) break;
+
+      // Move to next position
+      currentPos.add(vel.multiplyScalar(stepSize));
+
+      // Check bounds
+      if (
+        currentPos.x < bounds.min[0] ||
+        currentPos.x > bounds.max[0] ||
+        currentPos.y < bounds.min[1] ||
+        currentPos.y > bounds.max[1] ||
+        currentPos.z < bounds.min[2] ||
+        currentPos.z > bounds.max[2]
+      ) {
+        break;
+      }
+    }
+
+    if (linePoints.length < 2) continue;
+
+    // Create line geometry
+    const geometry = new THREE.BufferGeometry().setFromPoints(linePoints);
+    const material = new THREE.LineBasicMaterial({
+      color: 0x00ffff,
+      opacity: 0.6,
+      transparent: true,
+    });
+    const line = new THREE.Line(geometry, material);
+
+    scene.add(line);
+    flowFieldObjects.push(line);
+  }
+
+  console.log(`Created ${flowFieldObjects.length} streamlines`);
+}
+
+/**
+ * Создать систему частиц для визуализации потока.
+ */
+function _createParticleField() {
+  if (!flowFieldData || !scene) return;
+
+  const numParticles = Math.floor(1000 * flowFieldDensity);
+  const bounds = flowFieldData.metadata?.bounds || {
+    min: [-3, -2, -1],
+    max: [3, 2, 1],
+  };
+
+  // Create particle geometry
+  const positions = new Float32Array(numParticles * 3);
+  const velocities = new Float32Array(numParticles * 3);
+  const colors = new Float32Array(numParticles * 3);
+  const sizes = new Float32Array(numParticles);
+
+  // Initialize particles
+  for (let i = 0; i < numParticles; i++) {
+    const i3 = i * 3;
+
+    // Random position within bounds
+    positions[i3] =
+      bounds.min[0] + Math.random() * (bounds.max[0] - bounds.min[0]);
+    positions[i3 + 1] =
+      bounds.min[1] + Math.random() * (bounds.max[1] - bounds.min[1]);
+    positions[i3 + 2] =
+      bounds.min[2] + Math.random() * (bounds.max[2] - bounds.min[2]);
+
+    // Get velocity at this position
+    const pos = new THREE.Vector3(
+      positions[i3],
+      positions[i3 + 1],
+      positions[i3 + 2]
+    );
+    const vel = _interpolateVelocity(pos);
+
+    if (vel) {
+      velocities[i3] = vel.x;
+      velocities[i3 + 1] = vel.y;
+      velocities[i3 + 2] = vel.z;
+    }
+
+    // Color: cyan
+    colors[i3] = 0;
+    colors[i3 + 1] = 1;
+    colors[i3 + 2] = 1;
+
+    // Size
+    sizes[i] = 0.05;
+  }
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute("velocity", new THREE.BufferAttribute(velocities, 3));
+  geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+  geometry.setAttribute("size", new THREE.BufferAttribute(sizes, 1));
+
+  const material = new THREE.PointsMaterial({
+    size: 0.05,
+    vertexColors: true,
+    transparent: true,
+    opacity: 0.8,
+    sizeAttenuation: true,
+  });
+
+  flowFieldParticles = new THREE.Points(geometry, material);
+  scene.add(flowFieldParticles);
+
+  console.log(`Created ${numParticles} particles`);
+}
+
+/**
+ * Интерполировать скорость в произвольной точке пространства.
+ * Использует ближайший сосед (можно улучшить до trilinear interpolation).
+ * @param {THREE.Vector3} position - позиция для интерполяции
+ * @returns {THREE.Vector3|null} - вектор скорости или null
+ */
+function _interpolateVelocity(position) {
+  if (!flowFieldData || !flowFieldData.points) return null;
+
+  const points = flowFieldData.points;
+
+  // Find nearest point (simple nearest neighbor)
+  let nearestDist = Infinity;
+  let nearestPoint = null;
+
+  for (let i = 0; i < points.length; i++) {
+    const p = points[i];
+    const dx = position.x - p.pos[0];
+    const dy = position.y - p.pos[1];
+    const dz = position.z - p.pos[2];
+    const dist = dx * dx + dy * dy + dz * dz;
+
+    if (dist < nearestDist) {
+      nearestDist = dist;
+      nearestPoint = p;
+    }
+  }
+
+  if (!nearestPoint) return null;
+
+  return new THREE.Vector3(
+    nearestPoint.vel[0],
+    nearestPoint.vel[1],
+    nearestPoint.vel[2]
+  );
+}
+
+/**
+ * Обновить анимацию векторного поля (вызывается каждый кадр).
+ * @param {number} deltaTime - время с предыдущего кадра в секундах
+ */
+function _updateFlowFieldAnimation(deltaTime) {
+  if (!flowFieldEnabled || !flowFieldData) return;
+
+  flowFieldAnimationTime += deltaTime * flowFieldAnimationSpeed;
+
+  // Update particles
+  if (flowFieldMode === "particles" && flowFieldParticles) {
+    const positions = flowFieldParticles.geometry.attributes.position.array;
+    const velocities = flowFieldParticles.geometry.attributes.velocity.array;
+    const bounds = flowFieldData.metadata?.bounds || {
+      min: [-3, -2, -1],
+      max: [3, 2, 1],
+    };
+
+    const numParticles = positions.length / 3;
+
+    for (let i = 0; i < numParticles; i++) {
+      const i3 = i * 3;
+
+      // Update position based on velocity
+      positions[i3] += velocities[i3] * deltaTime * flowFieldAnimationSpeed;
+      positions[i3 + 1] +=
+        velocities[i3 + 1] * deltaTime * flowFieldAnimationSpeed;
+      positions[i3 + 2] +=
+        velocities[i3 + 2] * deltaTime * flowFieldAnimationSpeed;
+
+      // Wrap around or regenerate if out of bounds
+      if (
+        positions[i3] < bounds.min[0] ||
+        positions[i3] > bounds.max[0] ||
+        positions[i3 + 1] < bounds.min[1] ||
+        positions[i3 + 1] > bounds.max[1] ||
+        positions[i3 + 2] < bounds.min[2] ||
+        positions[i3 + 2] > bounds.max[2]
+      ) {
+        // Regenerate at random position
+        positions[i3] =
+          bounds.min[0] + Math.random() * (bounds.max[0] - bounds.min[0]);
+        positions[i3 + 1] =
+          bounds.min[1] + Math.random() * (bounds.max[1] - bounds.min[1]);
+        positions[i3 + 2] =
+          bounds.min[2] + Math.random() * (bounds.max[2] - bounds.min[2]);
+
+        // Update velocity
+        const pos = new THREE.Vector3(
+          positions[i3],
+          positions[i3 + 1],
+          positions[i3 + 2]
+        );
+        const vel = _interpolateVelocity(pos);
+        if (vel) {
+          velocities[i3] = vel.x;
+          velocities[i3 + 1] = vel.y;
+          velocities[i3 + 2] = vel.z;
+        }
+      }
+    }
+
+    flowFieldParticles.geometry.attributes.position.needsUpdate = true;
+  }
+}
+
+/**
+ * Включить/выключить визуализацию векторного поля.
+ * @param {string} mode - режим: "off", "arrows", "streamlines", "particles"
+ * @param {Object} options - опции: {density, animationSpeed, colorScheme}
+ * @returns {boolean} - true если успешно
+ */
+function setFlowFieldMode(mode, options = {}) {
+  if (mode === "off") {
+    flowFieldEnabled = false;
+    _clearFlowField();
+    return true;
+  }
+
+  if (!["arrows", "streamlines", "particles"].includes(mode)) {
+    console.warn("Invalid flow field mode:", mode);
+    return false;
+  }
+
+  flowFieldEnabled = true;
+  flowFieldMode = mode;
+
+  if (options.density !== undefined) {
+    flowFieldDensity = Math.max(0, Math.min(1, options.density));
+  }
+  if (options.animationSpeed !== undefined) {
+    flowFieldAnimationSpeed = Math.max(0.1, Math.min(5, options.animationSpeed));
+  }
+  if (options.colorScheme !== undefined) {
+    flowFieldColorScheme = options.colorScheme;
+  }
+
+  _createFlowFieldVisualization();
+  return true;
+}
+
+/**
+ * Получить статистику векторного поля.
+ * @returns {Object} - статистика
+ */
+function getFlowFieldStats() {
+  return {
+    enabled: flowFieldEnabled,
+    mode: flowFieldMode,
+    dataLoaded: flowFieldData !== null,
+    vectorCount: flowFieldData ? flowFieldData.points.length : 0,
+    visibleObjects: flowFieldObjects.length,
+    particleCount:
+      flowFieldParticles && flowFieldParticles.geometry
+        ? flowFieldParticles.geometry.attributes.position.count
+        : 0,
+    density: flowFieldDensity,
+    animationSpeed: flowFieldAnimationSpeed,
+    colorScheme: flowFieldColorScheme,
+  };
+}
+
+// ============================================================================
+// COMPARISON MODE (SIDE-BY-SIDE)
+// ============================================================================
+
+/**
+ * Загрузить данные сравнения из API.
+ * @param {string} beforeRefId - Reference ID для состояния "до"
+ * @param {string} afterRefId - Reference ID для состояния "после"
+ * @returns {Promise<object>} - Данные сравнения
+ */
+async function loadComparisonData(beforeRefId, afterRefId) {
+  try {
+    const response = await fetch("/api/comparison/runs/build", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        before_reference_id: beforeRefId,
+        after_reference_id: afterRefId,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to load comparison data: " + response.statusText);
+    }
+
+    const comparison = await response.json();
+
+    // Store comparison data
+    comparisonBeforeRefId = beforeRefId;
+    comparisonAfterRefId = afterRefId;
+    comparisonBeforeData = comparison.before_source;
+    comparisonAfterData = comparison.after_source;
+    comparisonCompatibility = comparison.compatibility;
+
+    console.log("[PVU3D] Comparison data loaded:", {
+      before: comparison.before_source.display_label,
+      after: comparison.after_source.display_label,
+      compatible: comparison.compatibility.is_compatible,
+    });
+
+    return comparison;
+  } catch (error) {
+    console.error("[PVU3D] Failed to load comparison data:", error);
+    throw error;
+  }
+}
+
+/**
+ * Включить/выключить режим сравнения.
+ * @param {string} mode - "off" | "split"
+ * @param {object} options - Опции: {split, orientation, syncCameras, diffMode}
+ */
+function setComparisonMode(mode, options = {}) {
+  if (mode === "off") {
+    if (comparisonMode) {
+      comparisonMode = false;
+      // Dispose comparison scene
+      _disposeComparisonSceneAfter();
+      // Restore full viewport
+      if (renderer && camera) {
+        renderer.setViewport(0, 0, renderer.domElement.width, renderer.domElement.height);
+        renderer.setScissor(0, 0, renderer.domElement.width, renderer.domElement.height);
+        renderer.setScissorTest(false);
+        camera.aspect = renderer.domElement.width / renderer.domElement.height;
+        camera.updateProjectionMatrix();
+      }
+
+      // Remove visual elements
+      _updateComparisonLabels(); // This will remove labels
+      const divider = document.getElementById('pvu3d-comparison-divider');
+      if (divider) divider.remove();
+
+      console.log("[PVU3D] Comparison mode disabled");
+    }
+    return;
+  }
+
+  if (mode === "split") {
+    if (!comparisonBeforeData || !comparisonAfterData) {
+      console.warn("[PVU3D] Cannot enable comparison mode: data not loaded");
+      return;
+    }
+
+    if (!comparisonCompatibility || !comparisonCompatibility.is_compatible) {
+      console.warn("[PVU3D] Cannot enable comparison mode: sources are incompatible");
+      return;
+    }
+
+    comparisonMode = true;
+    comparisonSplit = options.split !== undefined ? options.split : 0.5;
+    comparisonOrientation = options.orientation || "vertical";
+    comparisonSyncCameras = options.syncCameras !== undefined ? options.syncCameras : true;
+    comparisonDiffMode = options.diffMode || "status";
+
+    console.log("[PVU3D] Comparison mode enabled:", {
+      split: comparisonSplit,
+      orientation: comparisonOrientation,
+      syncCameras: comparisonSyncCameras,
+      diffMode: comparisonDiffMode,
+    });
+
+    // Create and load comparison scene
+    _createComparisonSceneAfter();
+    _loadComparisonModelAfter().then(function () {
+      // Apply signals to both scenes
+      if (comparisonBeforeData && comparisonBeforeData.simulation_result) {
+        _applyComparisonSignals(comparisonBeforeData.simulation_result, "before");
+      }
+      if (comparisonAfterData && comparisonAfterData.simulation_result) {
+        _applyComparisonSignals(comparisonAfterData.simulation_result, "after");
+      }
+
+      // Apply difference highlighting if diff mode is enabled
+      if (comparisonDiffMode && comparisonDiffMode !== "none") {
+        _highlightDifferences();
+      }
+
+      // Update viewport and labels
+      _updateComparisonViewport();
+      _updateComparisonLabels();
+    }).catch(function (error) {
+      console.error("[PVU3D] Failed to load comparison model:", error);
+      comparisonMode = false;
+    });
+  }
+}
+
+/**
+ * Обновить viewport для split-screen режима.
+ * @private
+ */
+function _updateComparisonViewport() {
+  if (!renderer || !camera || !comparisonMode) return;
+
+  const width = renderer.domElement.width;
+  const height = renderer.domElement.height;
+
+  if (comparisonOrientation === "vertical") {
+    // Vertical split (left/right)
+    const leftWidth = Math.floor(width * comparisonSplit);
+    const rightWidth = width - leftWidth;
+
+    // Left viewport will be rendered first
+    // Right viewport will be rendered second
+    // We'll handle this in the render loop
+
+    // For now, just update camera aspect for the left side
+    camera.aspect = leftWidth / height;
+    camera.updateProjectionMatrix();
+  } else {
+    // Horizontal split (top/bottom)
+    const topHeight = Math.floor(height * comparisonSplit);
+    const bottomHeight = height - topHeight;
+
+    camera.aspect = width / topHeight;
+    camera.updateProjectionMatrix();
+  }
+
+  // Update labels position
+  _updateComparisonLabels();
+}
+
+/**
+ * Получить статистику режима сравнения.
+ * @returns {object} - Статистика
+ */
+function getComparisonStats() {
+  return {
+    enabled: comparisonMode,
+    split: comparisonSplit,
+    orientation: comparisonOrientation,
+    syncCameras: comparisonSyncCameras,
+    diffMode: comparisonDiffMode,
+    beforeRefId: comparisonBeforeRefId,
+    afterRefId: comparisonAfterRefId,
+    beforeLabel: comparisonBeforeData ? comparisonBeforeData.display_label : null,
+    afterLabel: comparisonAfterData ? comparisonAfterData.display_label : null,
+    compatibility: comparisonCompatibility,
+    dataLoaded: comparisonBeforeData !== null && comparisonAfterData !== null,
+  };
+}
+
+/**
+ * Создать вторую сцену для режима сравнения.
+ * @private
+ */
+function _createComparisonSceneAfter() {
+  if (comparisonSceneAfter) {
+    _disposeComparisonSceneAfter();
+  }
+
+  // Create second scene with same structure as main scene
+  comparisonSceneAfter = new THREE.Scene();
+  comparisonEnvironmentRootAfter = new THREE.Group();
+  comparisonOverlayRootAfter = new THREE.Group();
+  comparisonEnvironmentRootAfter.name = "comparison-environment-after";
+  comparisonOverlayRootAfter.name = "comparison-overlay-after";
+  comparisonSceneAfter.add(comparisonEnvironmentRootAfter);
+  comparisonSceneAfter.add(comparisonOverlayRootAfter);
+
+  // Add lights (same as main scene)
+  const ambientLightAfter = new THREE.AmbientLight(0xe6f3ff, 0.9);
+  const keyLightAfter = new THREE.DirectionalLight(0xffffff, 2.0);
+  const rimLightAfter = new THREE.DirectionalLight(0x7dd3fc, 0.9);
+  const fillLightAfter = new THREE.DirectionalLight(0xfef3c7, 0.55);
+  keyLightAfter.position.set(6, 10, 8);
+  rimLightAfter.position.set(-8, 7, -10);
+  fillLightAfter.position.set(0, 4, 10);
+  if (shadowsEnabled) {
+    keyLightAfter.castShadow = true;
+    keyLightAfter.shadow.mapSize.set(2048, 2048);
+    keyLightAfter.shadow.bias = -0.0005;
+    keyLightAfter.shadow.normalBias = 0.02;
+    keyLightAfter.shadow.radius = 4;
+    const keyShadowCamAfter = keyLightAfter.shadow.camera;
+    keyShadowCamAfter.near = 0.5;
+    keyShadowCamAfter.far = 60;
+    keyShadowCamAfter.left = -14;
+    keyShadowCamAfter.right = 14;
+    keyShadowCamAfter.top = 14;
+    keyShadowCamAfter.bottom = -14;
+    keyShadowCamAfter.updateProjectionMatrix();
+
+    const shadowCatcherAfter = new THREE.Mesh(
+      new THREE.PlaneGeometry(40, 40),
+      new THREE.ShadowMaterial({ opacity: 0.32 })
+    );
+    shadowCatcherAfter.rotation.x = -Math.PI / 2;
+    shadowCatcherAfter.receiveShadow = true;
+    comparisonEnvironmentRootAfter.add(shadowCatcherAfter);
+  }
+  comparisonSceneAfter.add(ambientLightAfter);
+  comparisonSceneAfter.add(keyLightAfter);
+  comparisonSceneAfter.add(rimLightAfter);
+  comparisonSceneAfter.add(fillLightAfter);
+
+  // Reuse the same procedural IBL environment as the main scene.
+  _applyEnvironmentLighting(comparisonSceneAfter);
+
+  // Create camera for "after" scene (used when cameras are not synced)
+  if (!comparisonCameraAfter && camera) {
+    comparisonCameraAfter = camera.clone();
+    comparisonCameraAfter.position.copy(camera.position);
+    comparisonCameraAfter.rotation.copy(camera.rotation);
+  }
+
+  console.log("[PVU3D] Comparison scene 'after' created");
+}
+
+/**
+ * Обновить режим выделения различий.
+ * @param {string} mode - Новый режим: "status" | "temperature" | "power" | "alarms" | "none"
+ */
+function updateComparisonDiffMode(mode) {
+  if (!comparisonMode) {
+    console.warn("[PVU3D] Cannot update diff mode: comparison mode is not active");
+    return;
+  }
+
+  comparisonDiffMode = mode;
+
+  // Re-apply signals to clear previous highlighting
+  if (comparisonAfterData && comparisonAfterData.simulation_result) {
+    _applyComparisonSignals(comparisonAfterData.simulation_result, "after");
+  }
+
+  // Apply new highlighting if mode is not "none"
+  if (mode && mode !== "none") {
+    _highlightDifferences();
+  }
+
+  console.log("[PVU3D] Comparison diff mode updated to:", mode);
+}
+
+/**
+ * Удалить вторую сцену для режима сравнения.
+ * @private
+ */
+function _disposeComparisonSceneAfter() {
+  if (comparisonModelRootAfter) {
+    _disposeObject(comparisonModelRootAfter);
+    comparisonModelRootAfter = null;
+  }
+  if (comparisonSceneAfter) {
+    _disposeObject(comparisonSceneAfter);
+    comparisonSceneAfter = null;
+  }
+  comparisonEnvironmentRootAfter = null;
+  comparisonOverlayRootAfter = null;
+  comparisonNodeMapAfter = {};
+  comparisonBindingMapAfter = {};
+  comparisonInteractiveObjectsAfter = [];
+  comparisonCameraAfter = null;
+  console.log("[PVU3D] Comparison scene 'after' disposed");
+}
+
+/**
+ * Загрузить модель для "after" сцены.
+ * @private
+ */
+async function _loadComparisonModelAfter() {
+  if (!comparisonAfterData || !currentModelDescriptor) {
+    console.warn("[PVU3D] Cannot load comparison model: missing data or descriptor");
+    return;
+  }
+
+  // Ensure comparison scene exists
+  if (!comparisonSceneAfter) {
+    _createComparisonSceneAfter();
+  }
+
+  // Clone the current model for the "after" scene
+  // We reuse the cached model entry to avoid loading the same GLB twice
+  const modelKey = _descriptorKey(currentModelDescriptor, currentModelDescriptor.model_url);
+  const entry = cachedModelEntries[modelKey];
+
+  if (!entry || !entry.root) {
+    console.warn("[PVU3D] Cannot load comparison model: model not cached");
+    return;
+  }
+
+  // Clone the model root
+  comparisonModelRootAfter = entry.root.clone(true);
+  comparisonModelRootAfter.name = "comparison-model-after";
+  comparisonSceneAfter.add(comparisonModelRootAfter);
+
+  // Build node map for "after" scene
+  comparisonNodeMapAfter = {};
+  comparisonModelRootAfter.traverse(function (node) {
+    if (node.name) {
+      const normalizedName = _normalizeSceneNodeId(node.name);
+      comparisonNodeMapAfter[node.name] = node;
+      comparisonNodeMapAfter[normalizedName] = node;
+    }
+  });
+
+  // Copy binding map
+  comparisonBindingMapAfter = { ...bindingMap };
+
+  console.log("[PVU3D] Comparison model 'after' loaded:", {
+    nodes: Object.keys(comparisonNodeMapAfter).length / 2,
+  });
+}
+
+/**
+ * Применить signals к "before" или "after" сцене.
+ * @param {object} signals - Simulation signals
+ * @param {string} side - "before" | "after"
+ * @private
+ */
+function _applyComparisonSignals(signals, side) {
+  if (!signals) return;
+
+  const targetNodeMap = side === "after" ? comparisonNodeMapAfter : nodeMap;
+  const targetBindingMap = side === "after" ? comparisonBindingMapAfter : bindingMap;
+
+  if (Object.keys(targetNodeMap).length === 0) {
+    console.warn("[PVU3D] Cannot apply signals to", side, "scene: node map is empty");
+    return;
+  }
+
+  const statusColors = sceneMeta.status_colors || STATUS_COLORS;
+
+  ["nodes", "sensors", "flows", "room_sensors"].forEach(function (section) {
+    const items = signals[section] || {};
+    Object.keys(items).forEach(function (visualId) {
+      const signal = items[visualId];
+      const binding = targetBindingMap[visualId];
+      if (!binding) return;
+
+      const node = targetNodeMap[binding.scene_node] || targetNodeMap[_normalizeSceneNodeId(binding.scene_node)];
+      if (!node) return;
+
+      const colorHex = _statusToColor(signal.state, statusColors);
+      _applyNodeSignal(node, signal, binding.kind, colorHex);
+    });
+  });
+
+  console.log("[PVU3D] Signals applied to", side, "scene");
+}
+
+/**
+ * Синхронизировать камеру "after" с основной камерой.
+ * Копирует position, rotation, zoom и target из основной камеры.
+ * @private
+ */
+function _syncCameras() {
+  if (!comparisonCameraAfter || !camera || !controls) return;
+
+  // Copy camera position and rotation
+  comparisonCameraAfter.position.copy(camera.position);
+  comparisonCameraAfter.rotation.copy(camera.rotation);
+  comparisonCameraAfter.quaternion.copy(camera.quaternion);
+
+  // Copy camera properties
+  comparisonCameraAfter.zoom = camera.zoom;
+  comparisonCameraAfter.fov = camera.fov;
+  comparisonCameraAfter.near = camera.near;
+  comparisonCameraAfter.far = camera.far;
+
+  // Note: aspect ratio is set per-viewport in _renderSplitScreen()
+  // so we don't copy it here to avoid conflicts
+}
+
+/**
+ * Применить цветовое выделение различий.
+ * Сравнивает метрики между "before" и "after" состояниями
+ * и применяет цветовое кодирование на основе дельт.
+ * @private
+ */
+function _highlightDifferences() {
+  if (!comparisonMode || !comparisonBeforeData || !comparisonAfterData) {
+    console.warn("[PVU3D] Cannot highlight differences: missing data");
+    return;
+  }
+
+  const beforeSignals = comparisonBeforeData.simulation_result;
+  const afterSignals = comparisonAfterData.simulation_result;
+
+  if (!beforeSignals || !afterSignals) {
+    console.warn("[PVU3D] Cannot highlight differences: missing simulation results");
+    return;
+  }
+
+  // Color palette for difference highlighting
+  const DIFF_COLORS = {
+    improved: 0x10b981,    // Green - metric improved
+    worsened: 0xef4444,    // Red - metric worsened
+    unchanged: 0x6b7280,   // Gray - no significant change
+    new: 0x3b82f6,         // Blue - new element
+    removed: 0x8b5cf6,     // Purple - removed element
+  };
+
+  const DIFF_THRESHOLD = 0.05; // 5% change threshold
+
+  console.log("[PVU3D] Highlighting differences, mode:", comparisonDiffMode);
+
+  // Process each section
+  ["nodes", "sensors", "flows", "room_sensors"].forEach(function (section) {
+    const beforeItems = beforeSignals[section] || {};
+    const afterItems = afterSignals[section] || {};
+
+    // Get all unique IDs from both states
+    const allIds = new Set([...Object.keys(beforeItems), ...Object.keys(afterItems)]);
+
+    allIds.forEach(function (visualId) {
+      const beforeSignal = beforeItems[visualId];
+      const afterSignal = afterItems[visualId];
+
+      // Determine difference type
+      let diffColor = DIFF_COLORS.unchanged;
+      let diffType = "unchanged";
+
+      if (!beforeSignal && afterSignal) {
+        // New element in "after" state
+        diffColor = DIFF_COLORS.new;
+        diffType = "new";
+      } else if (beforeSignal && !afterSignal) {
+        // Element removed in "after" state
+        diffColor = DIFF_COLORS.removed;
+        diffType = "removed";
+      } else if (beforeSignal && afterSignal) {
+        // Compare based on diff mode
+        const delta = _computeSignalDelta(beforeSignal, afterSignal, comparisonDiffMode);
+
+        if (Math.abs(delta) > DIFF_THRESHOLD) {
+          if (delta > 0) {
+            diffColor = DIFF_COLORS.improved;
+            diffType = "improved";
+          } else {
+            diffColor = DIFF_COLORS.worsened;
+            diffType = "worsened";
+          }
+        }
+      }
+
+      // Apply highlight to "after" scene only
+      if (diffType !== "unchanged") {
+        const binding = comparisonBindingMapAfter[visualId];
+        if (binding) {
+          const node = comparisonNodeMapAfter[binding.scene_node] ||
+                      comparisonNodeMapAfter[_normalizeSceneNodeId(binding.scene_node)];
+          if (node) {
+            _applyDifferenceHighlight(node, diffColor, binding.kind);
+          }
+        }
+      }
+    });
+  });
+
+  console.log("[PVU3D] Differences highlighted");
+}
+
+/**
+ * Вычислить дельту между двумя signals на основе режима сравнения.
+ * @param {object} beforeSignal - Signal "до"
+ * @param {object} afterSignal - Signal "после"
+ * @param {string} mode - Режим сравнения: "status" | "temperature" | "power" | "alarms"
+ * @returns {number} - Нормализованная дельта (-1 до 1)
+ * @private
+ */
+function _computeSignalDelta(beforeSignal, afterSignal, mode) {
+  switch (mode) {
+    case "status":
+      // Compare status: green=1, amber=0, red=-1
+      const statusValue = { green: 1, amber: 0, red: -1, inactive: -0.5 };
+      const beforeValue = statusValue[beforeSignal.state] || 0;
+      const afterValue = statusValue[afterSignal.state] || 0;
+      return afterValue - beforeValue;
+
+    case "temperature":
+      // Compare temperature (if available)
+      if (beforeSignal.temperature !== undefined && afterSignal.temperature !== undefined) {
+        const tempDelta = afterSignal.temperature - beforeSignal.temperature;
+        // Normalize: -10°C to +10°C -> -1 to 1
+        return Math.max(-1, Math.min(1, tempDelta / 10));
+      }
+      return 0;
+
+    case "power":
+      // Compare power consumption (if available)
+      if (beforeSignal.power !== undefined && afterSignal.power !== undefined) {
+        const powerDelta = beforeSignal.power - afterSignal.power; // Lower is better
+        const avgPower = (beforeSignal.power + afterSignal.power) / 2;
+        if (avgPower > 0) {
+          return Math.max(-1, Math.min(1, powerDelta / avgPower));
+        }
+      }
+      return 0;
+
+    case "alarms":
+      // Compare alarm count (if available)
+      if (beforeSignal.alarms !== undefined && afterSignal.alarms !== undefined) {
+        const alarmDelta = beforeSignal.alarms - afterSignal.alarms; // Lower is better
+        return alarmDelta > 0 ? 0.5 : (alarmDelta < 0 ? -0.5 : 0);
+      }
+      return 0;
+
+    default:
+      return 0;
+  }
+}
+
+/**
+ * Применить цветовое выделение различия к узлу.
+ * @param {THREE.Object3D} node - Узел сцены
+ * @param {number} color - Цвет выделения (hex)
+ * @param {string} kind - Тип узла: "node" | "sensor" | "flow" | "room_sensor"
+ * @private
+ */
+function _applyDifferenceHighlight(node, color, kind) {
+  if (!node) return;
+
+  // Apply highlight based on node kind
+  if (kind === "node" || kind === "sensor") {
+    // For nodes and sensors, add emissive glow
+    node.traverse(function (child) {
+      if (child.isMesh && child.material) {
+        if (Array.isArray(child.material)) {
+          child.material.forEach(function (mat) {
+            if (mat.emissive) {
+              mat.emissive.setHex(color);
+              mat.emissiveIntensity = 0.3;
+            }
+          });
+        } else {
+          if (child.material.emissive) {
+            child.material.emissive.setHex(color);
+            child.material.emissiveIntensity = 0.3;
+          }
+        }
+      }
+    });
+  } else if (kind === "flow") {
+    // For flows, change line color
+    if (node.material && node.material.color) {
+      node.material.color.setHex(color);
+    }
+  }
+}
+
+/**
+ * Применить пресет плоскостей сечения.
+ * @param {string} preset - имя пресета: "x", "y", "z", "diagonal", "cross"
+ */
+function applyClippingPreset(preset) {
+  _clearClippingPlanes();
+
+  // Получить центр модели для позиционирования плоскостей
+  var center = new THREE.Vector3(0, 0, 0);
+  if (modelRoot) {
+    var box = new THREE.Box3().setFromObject(modelRoot);
+    if (!box.isEmpty()) {
+      box.getCenter(center);
+    }
+  }
+
+  switch (preset) {
+    case "x":
+      // Сечение по оси X (вертикальная плоскость YZ)
+      addClippingPlane({
+        normal: [1, 0, 0],
+        constant: -center.x,
+        enabled: true,
+        inverted: false,
+      });
+      break;
+
+    case "y":
+      // Сечение по оси Y (горизонтальная плоскость XZ)
+      addClippingPlane({
+        normal: [0, 1, 0],
+        constant: -center.y,
+        enabled: true,
+        inverted: false,
+      });
+      break;
+
+    case "z":
+      // Сечение по оси Z (вертикальная плоскость XY)
+      addClippingPlane({
+        normal: [0, 0, 1],
+        constant: -center.z,
+        enabled: true,
+        inverted: false,
+      });
+      break;
+
+    case "diagonal":
+      // Диагональное сечение
+      addClippingPlane({
+        normal: [1, 0, 1],
+        constant: -(center.x + center.z) / Math.sqrt(2),
+        enabled: true,
+        inverted: false,
+      });
+      break;
+
+    case "cross":
+      // Крестообразное сечение (X + Z)
+      addClippingPlane({
+        normal: [1, 0, 0],
+        constant: -center.x,
+        enabled: true,
+        inverted: false,
+      });
+      addClippingPlane({
+        normal: [0, 0, 1],
+        constant: -center.z,
+        enabled: true,
+        inverted: false,
+      });
+      break;
+
+    default:
+      console.warn("Unknown clipping preset:", preset);
+      return false;
+  }
+
+  setClippingMode(true);
+  return true;
+}
+
+/**
+ * Внутренняя функция: создать визуальный helper для плоскости.
+ */
+function _createClippingPlaneHelper(plane, enabled) {
+  // Создать PlaneHelper для визуализации
+  var size = 5; // размер helper в метрах
+  var helper = new THREE.PlaneHelper(plane, size, 0xffff00);
+  helper.visible = enabled && clippingEnabled;
+
+  // Добавить рамку для лучшей видимости
+  var edgesGeometry = new THREE.EdgesGeometry(helper.geometry);
+  var edgesMaterial = new THREE.LineBasicMaterial({
+    color: 0xffffff,
+    linewidth: 2,
+    transparent: true,
+    opacity: 0.8,
+  });
+  var edges = new THREE.LineSegments(edgesGeometry, edgesMaterial);
+  helper.add(edges);
+
+  return helper;
+}
+
+/**
+ * Внутренняя функция: обновить helper после изменения plane.
+ */
+function _updateClippingPlaneHelper(helper, plane) {
+  if (!helper || !plane) return;
+
+  // PlaneHelper автоматически следует за plane через референс
+  // Но нужно обновить позицию и ориентацию
+  var distance = plane.constant;
+  var normal = plane.normal.clone();
+
+  helper.position.copy(normal.multiplyScalar(-distance));
+  helper.lookAt(helper.position.clone().add(normal));
+}
+
+/**
+ * Внутренняя функция: обновить видимость helpers.
+ */
+function _updateClippingHelpersVisibility() {
+  for (var i = 0; i < clippingHelpers.length; i++) {
+    var helper = clippingHelpers[i];
+    var data = clippingPlanesData[i];
+    if (helper) {
+      helper.visible = data.enabled && clippingEnabled;
+    }
+  }
+}
+
+/**
+ * Внутренняя функция: очистить все плоскости.
+ */
+function _clearClippingPlanes() {
+  for (var i = 0; i < clippingHelpers.length; i++) {
+    var helper = clippingHelpers[i];
+    if (helper && scene) {
+      scene.remove(helper);
+      if (helper.geometry) helper.geometry.dispose();
+      if (helper.material) helper.material.dispose();
+    }
+  }
+
+  clippingPlanes = [];
+  clippingHelpers = [];
+  clippingPlanesData = [];
+}
+
+/**
+ * Внутренняя функция: обновить clipping planes во всех материалах.
+ */
+function _updateMaterialsClipping() {
+  if (!modelRoot && !roomModelRoot) return;
+
+  // Собрать активные плоскости
+  var activePlanes = [];
+  for (var i = 0; i < clippingPlanes.length; i++) {
+    if (clippingPlanesData[i].enabled) {
+      activePlanes.push(clippingPlanes[i]);
+    }
+  }
+
+  // Применить к материалам модели
+  var updateMaterial = function (material) {
+    if (!material) return;
+    material.clippingPlanes = clippingEnabled && activePlanes.length > 0
+      ? activePlanes
+      : null;
+    material.clipShadows = true;
+    material.needsUpdate = true;
+  };
+
+  var traverse = function (root) {
+    if (!root) return;
+    root.traverse(function (child) {
+      if (child.isMesh) {
+        if (Array.isArray(child.material)) {
+          child.material.forEach(updateMaterial);
+        } else {
+          updateMaterial(child.material);
+        }
+      }
+    });
+  };
+
+  traverse(modelRoot);
+  traverse(roomModelRoot);
+}
+
 function _removeLegendOverlay() {
   if (legendOverlay && legendOverlay.parentNode) {
     legendOverlay.parentNode.removeChild(legendOverlay);
@@ -1047,12 +3927,112 @@ function _createSceneScaffold() {
   keyLight.position.set(6, 10, 8);
   rimLight.position.set(-8, 7, -10);
   fillLight.position.set(0, 4, 10);
+  if (shadowsEnabled) {
+    keyLight.castShadow = true;
+    keyLight.shadow.mapSize.set(2048, 2048);
+    keyLight.shadow.bias = -0.0005;
+    keyLight.shadow.normalBias = 0.02;
+    keyLight.shadow.radius = 4;
+    var keyShadowCam = keyLight.shadow.camera;
+    keyShadowCam.near = 0.5;
+    keyShadowCam.far = 60;
+    keyShadowCam.left = -14;
+    keyShadowCam.right = 14;
+    keyShadowCam.top = 14;
+    keyShadowCam.bottom = -14;
+    keyShadowCam.updateProjectionMatrix();
+  }
   scene.add(ambientLight);
   scene.add(keyLight);
   scene.add(rimLight);
   scene.add(fillLight);
 
+  _applyEnvironmentLighting(scene);
+
   _buildEnvironmentDecor();
+}
+
+/**
+ * Построить процедурную "студийную" среду и назначить её scene.environment
+ * через PMREM. Это даёт image-based lighting: металлические корпуса и патрубки
+ * установки получают правдоподобные отражения и мягкую заливку без внешних
+ * HDR-ассетов. Отключается через performance_budget.image_based_lighting === false.
+ * @private
+ */
+function _buildEnvironmentTexture() {
+  if (environmentTexture) return environmentTexture;
+  if (!renderer) return null;
+  if (((sceneMeta.performance_budget || {}).image_based_lighting === false)) return null;
+
+  if (!pmremGenerator) {
+    pmremGenerator = new THREE.PMREMGenerator(renderer);
+    pmremGenerator.compileEquirectangularShader();
+  }
+
+  // Мини-сцена-источник: тёмный "пол", светлый "потолок" и пара цветных
+  // софт-боксов. PMREM свернёт её в свёртку освещения по шероховатости.
+  var envScene = new THREE.Scene();
+  envScene.background = new THREE.Color(0x0b1722);
+
+  var domeGeo = new THREE.SphereGeometry(40, 24, 16);
+  var domeMat = new THREE.MeshBasicMaterial({
+    color: 0x1a2b3a,
+    side: THREE.BackSide,
+  });
+  envScene.add(new THREE.Mesh(domeGeo, domeMat));
+
+  // Верхняя заливка (холодный дневной свет).
+  var ceiling = new THREE.Mesh(
+    new THREE.PlaneGeometry(60, 60),
+    new THREE.MeshBasicMaterial({ color: 0xeaf4ff })
+  );
+  ceiling.position.set(0, 24, 0);
+  ceiling.rotation.x = Math.PI / 2;
+  envScene.add(ceiling);
+
+  // Тёплый ключевой софт-бокс.
+  var keyPanel = new THREE.Mesh(
+    new THREE.PlaneGeometry(22, 16),
+    new THREE.MeshBasicMaterial({ color: 0xfff1d6 })
+  );
+  keyPanel.position.set(14, 12, 16);
+  keyPanel.lookAt(0, 2, 0);
+  envScene.add(keyPanel);
+
+  // Холодный контровой софт-бокс.
+  var rimPanel = new THREE.Mesh(
+    new THREE.PlaneGeometry(18, 14),
+    new THREE.MeshBasicMaterial({ color: 0xbfe4ff })
+  );
+  rimPanel.position.set(-16, 9, -18);
+  rimPanel.lookAt(0, 2, 0);
+  envScene.add(rimPanel);
+
+  var target = pmremGenerator.fromScene(envScene, 0.04);
+  environmentTexture = target.texture;
+
+  domeGeo.dispose();
+  domeMat.dispose();
+  envScene.traverse(function (child) {
+    if (child.isMesh) {
+      child.geometry.dispose();
+      child.material.dispose();
+    }
+  });
+
+  return environmentTexture;
+}
+
+/**
+ * Назначить процедурную IBL-среду переданной сцене (основной или сравнения).
+ * @private
+ */
+function _applyEnvironmentLighting(targetScene) {
+  if (!targetScene) return;
+  var envTex = _buildEnvironmentTexture();
+  if (envTex) {
+    targetScene.environment = envTex;
+  }
 }
 
 function _buildEnvironmentDecor() {
@@ -1068,6 +4048,20 @@ function _buildEnvironmentDecor() {
   floorBase.rotation.x = -Math.PI / 2;
   floorBase.position.y = -0.001;
   environmentRoot.add(floorBase);
+
+  if (shadowsEnabled) {
+    // Невидимый "ловец теней": ShadowMaterial рисует только падающую тень,
+    // оставляя прозрачным остальной canvas. Это заземляет установку, не
+    // закрывая декоративный пол и halo под ней.
+    shadowCatcher = new THREE.Mesh(
+      new THREE.PlaneGeometry(40, 40),
+      new THREE.ShadowMaterial({ opacity: 0.32 })
+    );
+    shadowCatcher.rotation.x = -Math.PI / 2;
+    shadowCatcher.position.y = 0;
+    shadowCatcher.receiveShadow = true;
+    environmentRoot.add(shadowCatcher);
+  }
 
   floorGlow = new THREE.Mesh(
     new THREE.RingGeometry(4.5, 11.5, 128),
@@ -1207,9 +4201,23 @@ function _onResize() {
   var maxPixelRatio = ((sceneMeta.performance_budget || {}).max_pixel_ratio || 2.0);
   var widthBudget = width >= 1600 ? 1.15 : width >= 1280 ? 1.28 : width >= 960 ? 1.45 : maxPixelRatio;
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, maxPixelRatio, widthBudget));
-  camera.aspect = width / height;
-  camera.updateProjectionMatrix();
+
+  // Update camera aspect based on comparison mode
+  if (comparisonMode) {
+    _updateComparisonViewport();
+  } else {
+    camera.aspect = width / height;
+    camera.updateProjectionMatrix();
+  }
+
   renderer.setSize(width, height);
+  if (composer) {
+    composer.setSize(width, height);
+    // Обновить размер bloom pass при изменении размера окна
+    if (bloomPass) {
+      bloomPass.resolution.set(width, height);
+    }
+  }
 }
 
 function init(containerId, meta) {
@@ -1236,6 +4244,13 @@ function init(containerId, meta) {
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.05;
+    // Мягкие контактные тени заземляют установку и резко повышают реализм.
+    // Отключаются через performance_budget.shadows === false на слабом железе.
+    shadowsEnabled = ((sceneMeta.performance_budget || {}).shadows !== false);
+    if (shadowsEnabled) {
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    }
     renderer.domElement.style.width = "100%";
     renderer.domElement.style.height = "100%";
     renderer.domElement.style.display = "block";
@@ -1267,6 +4282,7 @@ function init(containerId, meta) {
     _createInfoCard();
     _createLabelLayer();
     _createLegendOverlay();
+    _initPostProcessing();
     _onResize();
 
     renderer.domElement.addEventListener("mousemove", _onMouseMove);
@@ -1280,6 +4296,14 @@ function init(containerId, meta) {
     }
 
     isInitialized = true;
+
+    // Load flow field data asynchronously
+    loadFlowFieldData("/assets/data/visualization/flow_field.json").catch(
+      function (error) {
+        console.warn("Flow field data not available:", error);
+      }
+    );
+
     return true;
   } catch (error) {
     console.error("[PVU3D] init failed", error);
@@ -1375,7 +4399,41 @@ function _normalizeLoadedModel(rawRoot, sceneProfile, modelDescriptor) {
   rawRoot.position[upAxis === "Z" ? "z" : "y"] +=
     (_withDefault(transformProfile.lift_ratio, 0) * box.getSize(new THREE.Vector3())[upAxis === "Z" ? "z" : "y"]);
   wrapper.updateMatrixWorld(true);
+
+  // Initialize fan blades for motion blur effect
+  _initializeFanBlades(rawRoot);
+
   return wrapper;
+}
+
+function _initializeFanBlades(root) {
+  // Find fan rotor node and collect blade meshes
+  var fanRule = sceneMeta.animation_rules && sceneMeta.animation_rules.fan_rotation;
+  if (!fanRule || !fanRule.target_node) return;
+
+  root.traverse(function (child) {
+    var normalizedName = String(child.name || "").toLowerCase().replace(/\./g, "");
+
+    // Check if this is the fan rotor node
+    var targetNodeNormalized = fanRule.target_node.toLowerCase().replace(/\./g, "");
+    if (normalizedName === targetNodeNormalized) {
+      // Collect all blade meshes
+      var blades = [];
+      child.traverse(function (blade) {
+        if (blade.isMesh && blade.name && /blade/i.test(blade.name)) {
+          // Store base opacity for blur effect
+          if (blade.material) {
+            blade.userData.baseOpacity = blade.material.opacity !== undefined ? blade.material.opacity : 1.0;
+          }
+          blades.push(blade);
+        }
+      });
+
+      if (blades.length > 0) {
+        child.userData.fanBlades = blades;
+      }
+    }
+  });
 }
 
 function _normalizeRoomModel(rawRoot, roomDescriptor) {
@@ -2134,6 +5192,9 @@ function _buildSyntheticScene() {
     heater: _resolvePointFromSpec(anchorsProfile.heater, null, { long: 0.46, vertical: 0.74, side: 0.0 }),
     fan: _resolvePointFromSpec(anchorsProfile.fan, null, { long: 0.68, vertical: 0.74, side: 0.14 }),
     duct: _resolvePointFromSpec(anchorsProfile.duct, null, { long: 0.88, vertical: 0.72, side: 0.24 }),
+    filter_fine: _resolvePointFromSpec(anchorsProfile.filter_fine, null, { long: 0.78, vertical: 0.72, side: 0.2 }),
+    cooler: _resolvePointFromSpec(anchorsProfile.cooler, null, { long: 0.55, vertical: 0.56, side: -0.18 }),
+    silencer: _resolvePointFromSpec(anchorsProfile.silencer, null, { long: 0.98, vertical: 0.68, side: 0.28 }),
     room: _resolvePointFromSpec(anchorsProfile.room, null, { long: 1.12, vertical: 0.36, side: 0.26 }),
     room_sensor: _resolvePointFromSpec(anchorsProfile.room_sensor, null, { long: 1.12, vertical: 0.58, side: 0.26 }),
   };
@@ -2170,7 +5231,11 @@ function _buildSyntheticScene() {
   _createStageMarker("pvu.filter.bank", anchors.filter, { kind: "node", scale: 1.14 });
   _createStageMarker("pvu.heater.coil", anchors.heater, { kind: "node", scale: 1.14 });
   _createStageMarker("pvu.fan.supply", anchors.fan, { kind: "node", scale: 1.14 });
+  _createStageMarker("pvu.filter.fine", anchors.filter_fine, { kind: "node", scale: 1.02 });
+  _createStageMarker("pvu.cooler.coil", anchors.cooler, { kind: "node", scale: 1.02 });
+  _createStageMarker("pvu.silencer", anchors.silencer, { kind: "node", scale: 1.0 });
   _createStageMarker("pvu.duct.supply", anchors.duct, { kind: "node", scale: 1.1 });
+  _createStageMarker("building.room.supply_air", roomInlet, { kind: "node", scale: 1.0 });
   _createRoomZone("building.room.zone_a", roomCenter, roomZoneProfile);
 
   _createStageMarker(
@@ -2908,10 +5973,68 @@ function _animateFan(dt) {
   if (!fanRule) return;
   var fanNode = _getNode(fanRule.target_node);
   if (!fanNode) return;
+
+  // Initialize fan animation state
+  if (!fanNode.userData.fanState) {
+    fanNode.userData.fanState = {
+      currentRpm: 0,
+      targetRpm: 0,
+      blurIntensity: 0,
+    };
+  }
+
   var speedSignal = _resolveSignalPath(fanRule.speed_signal);
   var speed = typeof speedSignal === "number" ? speedSignal : 0.55;
-  var rpm = (fanRule.max_rpm || 3.0) * _clamp(speed, 0.1, 1.2);
-  fanNode.rotation[fanRule.axis.toLowerCase()] += dt * rpm * Math.PI * 2;
+  var targetRpm = (fanRule.max_rpm || 3.0) * _clamp(speed, 0.1, 1.2);
+
+  var state = fanNode.userData.fanState;
+  state.targetRpm = targetRpm;
+
+  // Smooth acceleration/deceleration with easing
+  var acceleration = fanRule.acceleration || 2.5; // RPM per second
+  var rpmDiff = state.targetRpm - state.currentRpm;
+  var maxChange = acceleration * dt;
+
+  if (Math.abs(rpmDiff) < maxChange) {
+    state.currentRpm = state.targetRpm;
+  } else {
+    // Ease-in-out curve for smooth acceleration
+    var easing = 1 - Math.pow(1 - Math.min(Math.abs(rpmDiff) / targetRpm, 1), 2);
+    state.currentRpm += Math.sign(rpmDiff) * maxChange * (0.5 + easing * 0.5);
+  }
+
+  // Apply rotation
+  var axis = fanRule.axis.toLowerCase();
+  fanNode.rotation[axis] += dt * state.currentRpm * Math.PI * 2;
+
+  // Motion blur effect at high speeds
+  var blurThreshold = (fanRule.max_rpm || 3.0) * 0.6;
+  if (state.currentRpm > blurThreshold) {
+    var blurFactor = (state.currentRpm - blurThreshold) / (fanRule.max_rpm - blurThreshold);
+    state.blurIntensity = _clamp(blurFactor, 0, 1);
+  } else {
+    state.blurIntensity = 0;
+  }
+
+  // Apply blur effect to fan materials
+  if (state.blurIntensity > 0.1 && fanNode.userData.fanBlades) {
+    fanNode.userData.fanBlades.forEach(function (blade) {
+      if (blade.material && blade.material.opacity !== undefined) {
+        // Reduce opacity for motion blur effect
+        var baseOpacity = blade.userData.baseOpacity || 1.0;
+        blade.material.opacity = baseOpacity * (1 - state.blurIntensity * 0.4);
+        blade.material.transparent = true;
+      }
+    });
+  } else if (fanNode.userData.fanBlades) {
+    // Restore full opacity when not blurring
+    fanNode.userData.fanBlades.forEach(function (blade) {
+      if (blade.material && blade.material.opacity !== undefined) {
+        var baseOpacity = blade.userData.baseOpacity || 1.0;
+        blade.material.opacity = baseOpacity;
+      }
+    });
+  }
 }
 
 function _animateDamperPosition(dt) {
@@ -3291,13 +6414,232 @@ function _startAnimation() {
     _animateRoomEffects(time);
     _animateSeasonalEnvironment(time);
     _animateAlarmFlash(time);
+    _updateHeatmapAnimation();
+    _updateLOD();
+    _updateFlowFieldAnimation(dt);
     if (floorGlow) {
       floorGlow.rotation.z = time * 0.045;
     }
-    renderer.render(scene, camera);
+
+    // Sync cameras in comparison mode when enabled
+    if (comparisonMode && comparisonSyncCameras) {
+      _syncCameras();
+    }
+
+    // Render: split-screen mode or normal mode
+    if (comparisonMode) {
+      _renderSplitScreen();
+    } else {
+      // Используем composer для рендеринга с post-processing эффектами
+      if (composer) {
+        composer.render();
+      } else {
+        renderer.render(scene, camera);
+      }
+    }
+
     _updateLabels();
   }
   loop();
+}
+
+/**
+ * Рендеринг в split-screen режиме.
+ * @private
+ */
+function _renderSplitScreen() {
+  if (!renderer || !camera || !scene) return;
+
+  const width = renderer.domElement.width;
+  const height = renderer.domElement.height;
+
+  // Enable scissor test for viewport clipping
+  renderer.setScissorTest(true);
+  renderer.autoClear = false;
+  renderer.clear();
+
+  if (comparisonOrientation === "vertical") {
+    // Vertical split (left/right)
+    const leftWidth = Math.floor(width * comparisonSplit);
+    const rightWidth = width - leftWidth;
+
+    // Render left viewport ("before" state - main scene)
+    renderer.setViewport(0, 0, leftWidth, height);
+    renderer.setScissor(0, 0, leftWidth, height);
+    camera.aspect = leftWidth / height;
+    camera.updateProjectionMatrix();
+
+    if (composer) {
+      composer.render();
+    } else {
+      renderer.render(scene, camera);
+    }
+
+    // Render right viewport ("after" state - comparison scene)
+    if (comparisonSceneAfter) {
+      renderer.setViewport(leftWidth, 0, rightWidth, height);
+      renderer.setScissor(leftWidth, 0, rightWidth, height);
+
+      // Use synced camera or separate camera
+      const activeCamera = comparisonSyncCameras ? camera : (comparisonCameraAfter || camera);
+      activeCamera.aspect = rightWidth / height;
+      activeCamera.updateProjectionMatrix();
+
+      // Render "after" scene (no composer for comparison scene to keep it simple)
+      renderer.render(comparisonSceneAfter, activeCamera);
+    }
+
+    // Draw divider line
+    _drawSplitDivider(leftWidth, 0, 2, height);
+  } else {
+    // Horizontal split (top/bottom)
+    const topHeight = Math.floor(height * comparisonSplit);
+    const bottomHeight = height - topHeight;
+
+    // Render top viewport ("before" state - main scene)
+    renderer.setViewport(0, bottomHeight, width, topHeight);
+    renderer.setScissor(0, bottomHeight, width, topHeight);
+    camera.aspect = width / topHeight;
+    camera.updateProjectionMatrix();
+
+    if (composer) {
+      composer.render();
+    } else {
+      renderer.render(scene, camera);
+    }
+
+    // Render bottom viewport ("after" state - comparison scene)
+    if (comparisonSceneAfter) {
+      renderer.setViewport(0, 0, width, bottomHeight);
+      renderer.setScissor(0, 0, width, bottomHeight);
+
+      // Use synced camera or separate camera
+      const activeCamera = comparisonSyncCameras ? camera : (comparisonCameraAfter || camera);
+      activeCamera.aspect = width / bottomHeight;
+      activeCamera.updateProjectionMatrix();
+
+      // Render "after" scene
+      renderer.render(comparisonSceneAfter, activeCamera);
+    }
+
+    // Draw divider line
+    _drawSplitDivider(0, bottomHeight, width, 2);
+  }
+
+  // Restore full viewport
+  renderer.setScissorTest(false);
+  renderer.autoClear = true;
+  camera.aspect = width / height;
+  camera.updateProjectionMatrix();
+}
+
+/**
+ * Нарисовать линию-разделитель между viewport.
+ * @private
+ */
+function _drawSplitDivider(x, y, w, h) {
+  if (!renderer) return;
+
+  // Create or update divider overlay
+  let divider = document.getElementById('pvu3d-comparison-divider');
+  if (!divider) {
+    divider = document.createElement('div');
+    divider.id = 'pvu3d-comparison-divider';
+    divider.style.position = 'absolute';
+    divider.style.backgroundColor = 'rgba(255, 255, 255, 0.3)';
+    divider.style.pointerEvents = 'none';
+    divider.style.zIndex = '1000';
+    divider.style.boxShadow = '0 0 8px rgba(255, 255, 255, 0.5)';
+    renderer.domElement.parentElement.appendChild(divider);
+  }
+
+  // Update divider position and size
+  const canvas = renderer.domElement;
+  const rect = canvas.getBoundingClientRect();
+  divider.style.left = x + 'px';
+  divider.style.top = y + 'px';
+  divider.style.width = w + 'px';
+  divider.style.height = h + 'px';
+  divider.style.display = 'block';
+}
+
+/**
+ * Создать или обновить labels для comparison mode.
+ * @private
+ */
+function _updateComparisonLabels() {
+  if (!comparisonMode || !renderer) {
+    // Remove labels if comparison mode is off
+    const beforeLabel = document.getElementById('pvu3d-comparison-label-before');
+    const afterLabel = document.getElementById('pvu3d-comparison-label-after');
+    if (beforeLabel) beforeLabel.remove();
+    if (afterLabel) afterLabel.remove();
+    return;
+  }
+
+  const canvas = renderer.domElement;
+  const width = canvas.width;
+  const height = canvas.height;
+
+  // Create or update "Before" label
+  let beforeLabel = document.getElementById('pvu3d-comparison-label-before');
+  if (!beforeLabel) {
+    beforeLabel = document.createElement('div');
+    beforeLabel.id = 'pvu3d-comparison-label-before';
+    beforeLabel.style.position = 'absolute';
+    beforeLabel.style.padding = '8px 16px';
+    beforeLabel.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+    beforeLabel.style.color = 'white';
+    beforeLabel.style.fontSize = '14px';
+    beforeLabel.style.fontWeight = 'bold';
+    beforeLabel.style.borderRadius = '4px';
+    beforeLabel.style.pointerEvents = 'none';
+    beforeLabel.style.zIndex = '1001';
+    beforeLabel.style.fontFamily = 'system-ui, -apple-system, sans-serif';
+    canvas.parentElement.appendChild(beforeLabel);
+  }
+
+  // Create or update "After" label
+  let afterLabel = document.getElementById('pvu3d-comparison-label-after');
+  if (!afterLabel) {
+    afterLabel = document.createElement('div');
+    afterLabel.id = 'pvu3d-comparison-label-after';
+    afterLabel.style.position = 'absolute';
+    afterLabel.style.padding = '8px 16px';
+    afterLabel.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+    afterLabel.style.color = 'white';
+    afterLabel.style.fontSize = '14px';
+    afterLabel.style.fontWeight = 'bold';
+    afterLabel.style.borderRadius = '4px';
+    afterLabel.style.pointerEvents = 'none';
+    afterLabel.style.zIndex = '1001';
+    afterLabel.style.fontFamily = 'system-ui, -apple-system, sans-serif';
+    canvas.parentElement.appendChild(afterLabel);
+  }
+
+  // Update label text
+  const beforeText = comparisonBeforeData ? comparisonBeforeData.display_label : 'До';
+  const afterText = comparisonAfterData ? comparisonAfterData.display_label : 'После';
+  beforeLabel.textContent = beforeText;
+  afterLabel.textContent = afterText;
+
+  // Position labels based on orientation
+  if (comparisonOrientation === 'vertical') {
+    const leftWidth = Math.floor(width * comparisonSplit);
+    beforeLabel.style.left = '16px';
+    beforeLabel.style.top = '16px';
+    afterLabel.style.left = (leftWidth + 16) + 'px';
+    afterLabel.style.top = '16px';
+  } else {
+    const topHeight = Math.floor(height * comparisonSplit);
+    beforeLabel.style.left = '16px';
+    beforeLabel.style.top = '16px';
+    afterLabel.style.left = '16px';
+    afterLabel.style.top = (topHeight + 16) + 'px';
+  }
+
+  beforeLabel.style.display = 'block';
+  afterLabel.style.display = 'block';
 }
 
 function _stopAnimation() {
@@ -3368,6 +6710,32 @@ function _onClick(event) {
   mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
   mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
   raycaster.setFromCamera(mouse, camera);
+
+  // Режим измерения: добавляем точки и создаём линии/углы
+  if (measurementMode) {
+    var intersects = raycaster.intersectObjects(scene.children, true);
+    if (intersects.length > 0) {
+      var point = intersects[0].point;
+
+      if (measurementType === "angle") {
+        _addAnglePoint(point);
+      } else {
+        _createMeasurementPoint(point);
+
+        // Если есть предыдущая точка, создаём линию
+        if (measurementPoints.length >= 2) {
+          var p1 = measurementPoints[measurementPoints.length - 2];
+          var p2 = measurementPoints[measurementPoints.length - 1];
+          var distance = p1.position.distanceTo(p2.position);
+          _createMeasurementLine(p1, p2, distance);
+        }
+        _persistMeasurements();
+      }
+    }
+    return;
+  }
+
+  // Обычный режим: выбор объектов
   var intersects = raycaster.intersectObjects(interactiveObjects, true);
 
   if (selectedObject) {
@@ -3622,11 +6990,28 @@ function dispose() {
   _clearLoadedRoom();
   _disposeCachedModels();
   _disposeCachedRooms();
+  _disposeComparisonSceneAfter();
   if (scene) {
     scene.remove(environmentRoot);
     scene.remove(atmosphereRoot);
     _disposeObject(environmentRoot);
     _disposeObject(atmosphereRoot);
+    scene.environment = null;
+  }
+  if (environmentTexture) {
+    environmentTexture.dispose();
+    environmentTexture = null;
+  }
+  if (pmremGenerator) {
+    pmremGenerator.dispose();
+    pmremGenerator = null;
+  }
+  shadowCatcher = null;
+  if (ssaoPass) {
+    if (typeof ssaoPass.dispose === "function") {
+      ssaoPass.dispose();
+    }
+    ssaoPass = null;
   }
   if (controls) {
     controls.dispose();
@@ -3694,6 +7079,116 @@ function _projectNode(nodeName) {
   };
 }
 
+function captureViews(requestedViews, options) {
+  if (!renderer || !scene || !camera || !controls) {
+    return Promise.reject(new Error("viewer is not initialized"));
+  }
+  var views = Array.isArray(requestedViews) && requestedViews.length
+    ? requestedViews
+    : [{ preset: currentCameraPreset || "hero", label: "Current view" }];
+  var previousPreset = currentCameraPreset;
+  var previousCamera = _captureCameraState();
+  var captures = [];
+  try {
+    views.forEach(function (view) {
+      var preset = typeof view === "string" ? view : view.preset;
+      preset = preset || currentCameraPreset || "hero";
+      setCameraPreset(preset);
+      controls.update();
+      // Используем composer если доступен
+      if (composer) {
+        composer.render();
+      } else {
+        renderer.render(scene, camera);
+      }
+      captures.push({
+        preset: preset,
+        label: typeof view === "string" ? preset : (view.label || preset),
+        capturedAt: new Date().toISOString(),
+        mimeType: (options && options.mimeType) || "image/png",
+        width: renderer.domElement.width,
+        height: renderer.domElement.height,
+        camera: camera.position.toArray(),
+        target: controls.target.toArray(),
+        dataUrl: renderer.domElement.toDataURL((options && options.mimeType) || "image/png"),
+      });
+    });
+  } finally {
+    currentCameraPreset = previousPreset || currentCameraPreset;
+    _restoreCameraState(previousCamera);
+    if (composer) {
+      composer.render();
+    } else {
+      renderer.render(scene, camera);
+    }
+  }
+  return Promise.resolve({
+    schemaVersion: "pvu-3d-capture.v1",
+    generatedAt: new Date().toISOString(),
+    captures: captures,
+  });
+}
+
+function setBloomEnabled(enabled) {
+  if (!bloomPass) return false;
+  bloomPass.enabled = enabled === true;
+  return true;
+}
+
+function setBloomParams(params) {
+  if (!bloomPass) return false;
+  if (params.strength !== undefined) {
+    bloomPass.strength = _clamp(params.strength, 0, 3);
+  }
+  if (params.radius !== undefined) {
+    bloomPass.radius = _clamp(params.radius, 0, 1);
+  }
+  if (params.threshold !== undefined) {
+    bloomPass.threshold = _clamp(params.threshold, 0, 1);
+  }
+  return true;
+}
+
+function getBloomParams() {
+  if (!bloomPass) return null;
+  return {
+    enabled: bloomPass.enabled,
+    strength: bloomPass.strength,
+    radius: bloomPass.radius,
+    threshold: bloomPass.threshold,
+  };
+}
+
+function setSSAOEnabled(enabled) {
+  if (!ssaoPass) return false;
+  ssaoPass.enabled = enabled === true;
+  return true;
+}
+
+function setSSAOParams(params) {
+  if (!ssaoPass || !params) return false;
+  if (params.kernelRadius !== undefined) {
+    ssaoPass.kernelRadius = _clamp(params.kernelRadius, 0, 4);
+  }
+  if (params.minDistance !== undefined) {
+    ssaoPass.minDistance = _clamp(params.minDistance, 0, 0.1);
+  }
+  if (params.maxDistance !== undefined) {
+    ssaoPass.maxDistance = _clamp(params.maxDistance, 0, 1);
+  }
+  return true;
+}
+
+function getSSAOParams() {
+  if (!ssaoPass) return null;
+  return {
+    enabled: ssaoPass.enabled,
+    kernelRadius: ssaoPass.kernelRadius,
+    minDistance: ssaoPass.minDistance,
+    maxDistance: ssaoPass.maxDistance,
+  };
+}
+
 window.pvu3d = {
   init: init,
   loadModel: loadModel,
@@ -3701,8 +7196,47 @@ window.pvu3d = {
   applySignals: applySignals,
   setDisplayMode: setDisplayMode,
   setCameraPreset: setCameraPreset,
+  captureViews: captureViews,
   setRoomTemplate: setRoomTemplate,
   setScaleTuning: setScaleTuning,
+  setBloomEnabled: setBloomEnabled,
+  setBloomParams: setBloomParams,
+  getBloomParams: getBloomParams,
+  setSSAOEnabled: setSSAOEnabled,
+  setSSAOParams: setSSAOParams,
+  getSSAOParams: getSSAOParams,
+  setMeasurementMode: setMeasurementMode,
+  setMeasurementType: setMeasurementType,
+  getMeasurements: getMeasurements,
+  getMeasurementAngles: getMeasurementAngles,
+  getAllMeasurements: getAllMeasurements,
+  clearMeasurements: clearMeasurements,
+  saveMeasurementsToSession: saveMeasurementsToSession,
+  loadMeasurementsFromSession: loadMeasurementsFromSession,
+  restoreMeasurementsFromSession: restoreMeasurementsFromSession,
+  exportMeasurements: exportMeasurements,
+  captureScreenshot: captureScreenshot,
+  downloadScreenshot: downloadScreenshot,
+  setHeatmapMode: setHeatmapMode,
+  updateHeatmapData: updateHeatmapData,
+  getHeatmapData: getHeatmapData,
+  setClippingMode: setClippingMode,
+  addClippingPlane: addClippingPlane,
+  updateClippingPlane: updateClippingPlane,
+  removeClippingPlane: removeClippingPlane,
+  getClippingPlanes: getClippingPlanes,
+  clearClippingPlanes: clearClippingPlanes,
+  applyClippingPreset: applyClippingPreset,
+  setLODMode: setLODMode,
+  getLODStats: getLODStats,
+  applyLODPreset: applyLODPreset,
+  loadFlowFieldData: loadFlowFieldData,
+  setFlowFieldMode: setFlowFieldMode,
+  getFlowFieldStats: getFlowFieldStats,
+  loadComparisonData: loadComparisonData,
+  setComparisonMode: setComparisonMode,
+  getComparisonStats: getComparisonStats,
+  updateComparisonDiffMode: updateComparisonDiffMode,
   dispose: dispose,
   isInitialized: function () { return isInitialized; },
   hasFallback: function () { return window.__pvu3d_fallback === true; },
@@ -3772,6 +7306,17 @@ window.pvu3d = {
         : null,
       seasonalProfile: _scenarioAtmosphereProfile(currentSignals || {}).id,
       nodeNames: Object.keys(nodeMap).sort(),
+      rendering: {
+        shadowsEnabled: shadowsEnabled,
+        shadowMapEnabled: renderer ? renderer.shadowMap.enabled : null,
+        keyLightCastsShadow: keyLight ? keyLight.castShadow === true : null,
+        environmentApplied: scene ? scene.environment !== null && scene.environment !== undefined : null,
+        toneMappingExposure: renderer ? renderer.toneMappingExposure : null,
+        shadowCatcher: shadowCatcher !== null,
+        ssaoSupported: ssaoPass !== null,
+        ssaoEnabled: ssaoPass ? ssaoPass.enabled : null,
+        ssaoKernelRadius: ssaoPass ? ssaoPass.kernelRadius : null,
+      },
     };
   },
   getProjectedNode: function (nodeName) {

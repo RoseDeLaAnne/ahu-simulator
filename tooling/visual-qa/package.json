@@ -1,0 +1,16 @@
+{
+  "name": "concept03-visual-qa",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Headless screenshot + pixel-diff harness for concept-03 defense-ready digital twin visual QA.",
+  "scripts": {
+    "shot": "node screenshot.mjs",
+    "diff": "node diff.mjs"
+  },
+  "dependencies": {
+    "pixelmatch": "^6.0.0",
+    "playwright": "^1.49.0",
+    "pngjs": "^7.0.0"
+  }
+}

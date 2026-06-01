@@ -30,6 +30,7 @@ def test_status_service_projects_warning_and_alarm_metrics_from_result() -> None
     manual_mode = simulation_service.preview_scenario("manual_mode")
     manual_metrics = status_service.build_metric_status_map(manual_mode)
 
+    # manual_mode now has increased filter contamination (0.75) to trigger airflow WARNING
     assert manual_metrics["airflow"].status == OperationStatus.WARNING
     assert manual_metrics["total_power"].status == OperationStatus.WARNING
     assert status_service.build_alert_block_status(manual_mode) == OperationStatus.WARNING

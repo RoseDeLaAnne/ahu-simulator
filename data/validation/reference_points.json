@@ -54,18 +54,18 @@
       "supply_temp_setpoint_c": 20.0,
       "heat_recovery_efficiency": 0.55,
       "heater_power_kw": 28.0,
-      "filter_contamination": 0.38,
+      "filter_contamination": 0.80,
       "fan_speed_ratio": 0.68,
       "room_temp_c": 21.0,
       "room_heat_gain_kw": 5.0
     },
     "expected": {
-      "status": "alarm",
+      "status": "warning",
       "supply_temp_c": [19.9, 20.1],
       "room_temp_c": [20.9, 21.1],
-      "actual_airflow_m3_h": [1531.0, 1535.0],
-      "total_power_kw": [5.6, 5.9],
-      "alarm_codes": ["AIRFLOW_CRITICAL"]
+      "actual_airflow_m3_h": [1271.0, 1275.0],
+      "total_power_kw": [4.7, 4.8],
+      "alarm_codes": ["AIRFLOW_WARNING", "FILTER_SERVICE_SOON"]
     }
   },
   {
@@ -100,7 +100,7 @@
       "supply_temp_setpoint_c": 22.0,
       "heat_recovery_efficiency": 0.5,
       "heater_power_kw": 20.0,
-      "filter_contamination": 0.35,
+      "filter_contamination": 0.75,
       "fan_speed_ratio": 0.82,
       "room_temp_c": 21.0,
       "room_heat_gain_kw": 2.5,
@@ -110,9 +110,9 @@
       "status": "warning",
       "supply_temp_c": [21.9, 22.1],
       "room_temp_c": [20.9, 21.1],
-      "actual_airflow_m3_h": [2301.0, 2305.0],
-      "total_power_kw": [16.6, 16.9],
-      "alarm_codes": ["AIRFLOW_WARNING", "MANUAL_MODE"]
+      "actual_airflow_m3_h": [1933.0, 1937.0],
+      "total_power_kw": [13.9, 14.2],
+      "alarm_codes": ["AIRFLOW_WARNING", "FILTER_SERVICE_SOON", "MANUAL_MODE"]
     }
   }
 ]

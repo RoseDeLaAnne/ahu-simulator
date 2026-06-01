@@ -63,3 +63,9 @@ ui:
   theme: "legacy"
   concept03_enabled: false
   defense_day_variant: false
+academic:
+  program: "ВКР 2026"
+  speciality: "09.04.01 Информатика и вычислительная техника"
+  profile: "Информационное и программное обеспечение вычислительной техники и автоматизированных систем"
+  department: "Информационные технологии и системы управления"
+  model_version: "1.3.2"

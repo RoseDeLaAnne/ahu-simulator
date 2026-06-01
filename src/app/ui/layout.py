@@ -60,6 +60,13 @@ from app.ui.viewmodels.concept03_header import (
     build_concept03_header_view,
     build_header_state_payload,
 )
+from app.ui.viewmodels.concept03_config import build_concept03_config_view
+from app.ui.viewmodels.concept03_central import build_concept03_central_view
+from app.ui.viewmodels.concept03_bottom import build_concept03_bottom_view
+from app.ui.viewmodels.concept03_health import build_concept03_health_view
+from app.ui.viewmodels.concept03_kpi import build_concept03_kpi_view
+from app.ui.viewmodels.concept03_modes import build_concept03_modes_view
+from app.ui.viewmodels.concept03_scenarios import build_concept03_scenarios_view
 from app.ui.viewmodels.run_comparison import (
     RunComparisonEntryView,
     RunComparisonView,
@@ -171,10 +178,38 @@ def build_dashboard_layout(
         current_result=current_result,
         demo_readiness=demo_readiness,
     )
+    concept03_scenarios_view = build_concept03_scenarios_view(
+        scenarios,
+        active_scenario_id=current_result.scenario_id,
+    )
+    concept03_modes_view = build_concept03_modes_view(
+        current_result.parameters.control_mode,
+    )
+    concept03_config_view = build_concept03_config_view(
+        project_baseline=project_baseline,
+        current_result=current_result,
+    )
+    scene_model_catalog = build_scene_model_catalog()
+    concept03_central_view = build_concept03_central_view(
+        current_session,
+        bindings=bindings,
+        scene_model_catalog=scene_model_catalog,
+    )
+    concept03_kpi_view = build_concept03_kpi_view(
+        current_result, history=current_session.history if current_session else None
+    )
+    concept03_health_view = build_concept03_health_view(current_result)
+    concept03_bottom_view = build_concept03_bottom_view(
+        session=current_session,
+        demo_readiness=demo_readiness,
+        comparison_snapshot=comparison_snapshot,
+        event_log_snapshot=event_log_snapshot,
+        export_snapshot=export_snapshot,
+        active_page=DEFAULT_PAGE.value,
+    )
     browser_profile_view = build_browser_profile_view(browser_profile)
     demo_browser_view = build_demo_browser_readiness_view(None, browser_profile)
     control_mode_view = build_control_mode_view(current_result.control)
-    scene_model_catalog = build_scene_model_catalog()
     room_catalog = build_room_catalog()
     developer_tools_enabled = get_settings().developer_tools_enabled
     selected_scene_model = next(
@@ -220,6 +255,14 @@ def build_dashboard_layout(
             dcc.Store(id="scenario-preset-version", data=0),
             dcc.Store(id="dashboard-page", data=DEFAULT_PAGE.value),
             dcc.Store(id="central-canvas-tab", data="3d"),
+            dcc.Store(id="concept03-bottom-metric", data="supply_temp_c"),
+            dcc.Store(
+                id="concept03-bottom-comparison-pair",
+                data={
+                    "before_reference_id": None,
+                    "after_reference_id": None,
+                },
+            ),
             dcc.Store(
                 id="concept03-header-state",
                 data=build_header_state_payload(current_result),
@@ -276,6 +319,14 @@ def build_dashboard_layout(
                 active_page=DEFAULT_PAGE.value,
                 root_id="concept03-shell",
                 header_view=concept03_header_view,
+                scenarios_view=concept03_scenarios_view,
+                modes_view=concept03_modes_view,
+                config_view=concept03_config_view,
+                central_view=concept03_central_view,
+                kpi_view=concept03_kpi_view,
+                health_view=concept03_health_view,
+                bottom_view=concept03_bottom_view,
+                footer_nav_view=concept03_bottom_view.footer_nav,
             ),
             html.Nav(
                 className="site-nav",
@@ -694,7 +745,9 @@ def build_dashboard_layout(
                                         id="control-mode",
                                         options=[
                                             {"label": "Авто", "value": ControlMode.AUTO.value},
+                                            {"label": "Полуавто", "value": ControlMode.SEMI_AUTO.value},
                                             {"label": "Ручной", "value": ControlMode.MANUAL.value},
+                                            {"label": "Тест", "value": ControlMode.TEST.value},
                                         ],
                                         value=default_scenario.parameters.control_mode.value,
                                         clearable=False,

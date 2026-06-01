@@ -40,9 +40,14 @@ class RunComparisonSnapshotSaveRequest(BaseModel):
 def get_run_comparison_snapshot(
     comparison_service: Annotated[RunComparisonService, Depends(get_comparison_service)],
     simulation_service: Annotated[SimulationService, Depends(get_simulation_service)],
+    metric: Annotated[str | None, Query(min_length=1)] = None,
 ) -> RunComparisonSnapshot:
     session = simulation_service.get_session()
-    return comparison_service.build_snapshot(session.current_result, session)
+    return comparison_service.build_snapshot(
+        session.current_result,
+        session,
+        metric_id=metric,
+    )
 
 
 @router.post("/runs/before", response_model=RunComparisonSnapshotSaveResult)

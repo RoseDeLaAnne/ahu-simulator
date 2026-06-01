@@ -213,6 +213,40 @@ class EventLogService:
             entry=entry,
         )
 
+    def record_comparison_export_event(
+        self,
+        result: SimulationResult,
+        *,
+        before_label: str,
+        after_label: str,
+        manifest_path: str,
+        source_type: str,
+    ) -> EventLogRecordResult:
+        entry = self._write_entry(
+            category=EventCategory.EXPORT,
+            level=self._level_from_status(result.state.status),
+            title="Собран сравнительный отчёт",
+            summary=(
+                f"Пара {before_label} -> {after_label} сохранена в CSV/PDF "
+                "с манифестом для защиты."
+            ),
+            source_type=source_type,
+            source_label=self._source_label(result),
+            result=result,
+            details=[
+                f"До: {before_label}.",
+                f"После: {after_label}.",
+                f"Статус активного режима: {self._status_label(result.state.status)}.",
+                f"Манифест: {manifest_path}.",
+            ],
+            artifact_path=manifest_path,
+        )
+        return EventLogRecordResult(
+            generated_at=entry.captured_at,
+            summary=f"{entry.title}: {entry.summary}",
+            entry=entry,
+        )
+
     def record_archive_event(
         self,
         result: SimulationResult,
@@ -444,7 +478,9 @@ class EventLogService:
     def _control_mode_label(self, control_mode: ControlMode) -> str:
         control_mode_labels = {
             ControlMode.AUTO: "Авто",
+            ControlMode.SEMI_AUTO: "Полуавтоматический",
             ControlMode.MANUAL: "Ручной",
+            ControlMode.TEST: "Тестовый",
         }
         return control_mode_labels.get(control_mode, control_mode.value)
 

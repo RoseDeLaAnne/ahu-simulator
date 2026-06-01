@@ -11,6 +11,7 @@
       "heat_recovery_efficiency=0.62"
     ],
     "expected_effect": "Нагреватель работает в рабочем диапазоне, а температура притока удерживается около уставки.",
+    "icon": "snowflake",
     "parameters": {
       "outdoor_temp_c": -22.0,
       "airflow_m3_h": 3600.0,
@@ -35,6 +36,7 @@
       "filter_contamination=0.12"
     ],
     "expected_effect": "Потребление нагревателя близко к минимуму, а приток стабилизируется за счет рекуперации и уставки.",
+    "icon": "sun",
     "parameters": {
       "outdoor_temp_c": 30.0,
       "airflow_m3_h": 3300.0,
@@ -59,6 +61,7 @@
       "fan_speed_ratio=1.12"
     ],
     "expected_effect": "Растут суммарная мощность и потери на фильтре, режим может переходить в зону предупреждений.",
+    "icon": "gauge",
     "parameters": {
       "outdoor_temp_c": -8.0,
       "airflow_m3_h": 6500.0,
@@ -83,6 +86,7 @@
       "fan_speed_ratio=0.86"
     ],
     "expected_effect": "Установка работает близко к номиналу с умеренным энергопотреблением и без критических тревог.",
+    "icon": "layout-grid",
     "parameters": {
       "outdoor_temp_c": 6.0,
       "airflow_m3_h": 3000.0,
@@ -104,16 +108,17 @@
       "fan_speed_ratio=0.68",
       "airflow_m3_h=2600 м³/ч",
       "outdoor_temp_c=-4.0 °C",
-      "filter_contamination=0.38"
+      "filter_contamination=0.80"
     ],
     "expected_effect": "Расход и мощность вентилятора снижаются, а температура помещения становится более чувствительной к теплопритокам.",
+    "icon": "wind",
     "parameters": {
       "outdoor_temp_c": -4.0,
       "airflow_m3_h": 2600.0,
       "supply_temp_setpoint_c": 20.0,
       "heat_recovery_efficiency": 0.55,
       "heater_power_kw": 28.0,
-      "filter_contamination": 0.38,
+      "filter_contamination": 0.80,
       "fan_speed_ratio": 0.68,
       "room_temp_c": 21.0,
       "room_heat_gain_kw": 5.0
@@ -131,6 +136,7 @@
       "heater_power_kw=34.0 кВт"
     ],
     "expected_effect": "Перепад давления на фильтре заметно возрастает, а в диагностике появляются профильные тревоги.",
+    "icon": "filter",
     "parameters": {
       "outdoor_temp_c": -12.0,
       "airflow_m3_h": 3400.0,
@@ -155,17 +161,144 @@
       "outdoor_temp_c=-18.0 °C"
     ],
     "expected_effect": "Сценарий фиксируется как ручной, появляется предупреждение MANUAL_MODE и снижается целевой расход.",
+    "icon": "hand",
     "parameters": {
       "outdoor_temp_c": -18.0,
       "airflow_m3_h": 3200.0,
       "supply_temp_setpoint_c": 22.0,
       "heat_recovery_efficiency": 0.5,
       "heater_power_kw": 20.0,
-      "filter_contamination": 0.35,
+      "filter_contamination": 0.75,
       "fan_speed_ratio": 0.82,
       "room_temp_c": 21.0,
       "room_heat_gain_kw": 2.5,
       "control_mode": "manual"
+    }
+  },
+  {
+    "id": "baseline_office_winter",
+    "title": "Базовый офис (зима)",
+    "description": "Номинальный зимний режим для офисной зоны: умеренный расход, холодный наружный воздух и штатный нагрев.",
+    "purpose": "Базовая точка concept03 для открытия демо и сравнения остальных сценариев.",
+    "key_parameters": [
+      "outdoor_temp_c=-16.0 °C",
+      "airflow_m3_h=3600 м³/ч",
+      "supply_temp_setpoint_c=21.0 °C",
+      "heat_recovery_efficiency=0.60"
+    ],
+    "expected_effect": "ПВУ удерживает приток около уставки без аварий, показывая понятный номинальный контур.",
+    "icon": "layout-grid",
+    "parameters": {
+      "outdoor_temp_c": -16.0,
+      "airflow_m3_h": 3600.0,
+      "supply_temp_setpoint_c": 21.0,
+      "heat_recovery_efficiency": 0.6,
+      "heater_power_kw": 40.0,
+      "filter_contamination": 0.2,
+      "fan_speed_ratio": 0.98,
+      "room_temp_c": 21.0,
+      "room_heat_gain_kw": 4.0
+    }
+  },
+  {
+    "id": "summer_eco",
+    "title": "Лето. Экономичный",
+    "description": "Экономичный летний режим с теплым наружным воздухом, сниженной потребностью в нагреве и спокойной вентиляцией.",
+    "purpose": "Показать энергосберегающий режим без зимней тепловой нагрузки.",
+    "key_parameters": [
+      "outdoor_temp_c=28.0 °C",
+      "airflow_m3_h=3000 м³/ч",
+      "heater_power_kw=6.0 кВт",
+      "fan_speed_ratio=0.82"
+    ],
+    "expected_effect": "Нагреватель почти не используется, суммарная мощность ниже зимнего базового сценария.",
+    "icon": "sun",
+    "parameters": {
+      "outdoor_temp_c": 28.0,
+      "airflow_m3_h": 3000.0,
+      "supply_temp_setpoint_c": 18.5,
+      "heat_recovery_efficiency": 0.35,
+      "heater_power_kw": 6.0,
+      "filter_contamination": 0.14,
+      "fan_speed_ratio": 0.82,
+      "room_temp_c": 24.0,
+      "room_heat_gain_kw": 5.5
+    }
+  },
+  {
+    "id": "night_min_airflow",
+    "title": "Ночь. Минимум воздуха",
+    "description": "Ночной режим с минимальным расходом и пониженной скоростью вентилятора.",
+    "purpose": "Показать снижение расхода и энергии при малой загрузке помещения.",
+    "key_parameters": [
+      "airflow_m3_h=1600 м³/ч",
+      "fan_speed_ratio=0.55",
+      "room_heat_gain_kw=1.2 кВт",
+      "step_minutes=10 мин"
+    ],
+    "expected_effect": "Энергопотребление вентилятора снижается, а температура помещения реагирует медленнее из-за малой подачи.",
+    "icon": "moon",
+    "parameters": {
+      "outdoor_temp_c": -6.0,
+      "airflow_m3_h": 1600.0,
+      "supply_temp_setpoint_c": 19.0,
+      "heat_recovery_efficiency": 0.5,
+      "heater_power_kw": 22.0,
+      "filter_contamination": 0.18,
+      "fan_speed_ratio": 0.55,
+      "room_temp_c": 20.5,
+      "room_heat_gain_kw": 1.2
+    }
+  },
+  {
+    "id": "freeze_protection",
+    "title": "Защита от замерзания",
+    "description": "Защитный холодный режим с повышенным запасом нагревателя и контролем рекуперации.",
+    "purpose": "Показать, как цифровой двойник обнаруживает риск насыщения нагрева и удерживает безопасный контур.",
+    "key_parameters": [
+      "outdoor_temp_c=-32.0 °C",
+      "heater_power_kw=58.0 кВт",
+      "heat_recovery_efficiency=0.68",
+      "airflow_m3_h=3200 м³/ч"
+    ],
+    "expected_effect": "Система сохраняет рабочий приток, но демонстрирует повышенную тепловую нагрузку и защитную интерпретацию.",
+    "icon": "refresh-cw",
+    "parameters": {
+      "outdoor_temp_c": -32.0,
+      "airflow_m3_h": 3200.0,
+      "supply_temp_setpoint_c": 20.0,
+      "heat_recovery_efficiency": 0.68,
+      "heater_power_kw": 58.0,
+      "filter_contamination": 0.26,
+      "fan_speed_ratio": 0.9,
+      "room_temp_c": 20.0,
+      "room_heat_gain_kw": 2.6
+    }
+  },
+  {
+    "id": "airflow_check_100",
+    "title": "Проверка 100% расхода",
+    "description": "Проверочный режим полного расхода для демонстрации аэродинамической нагрузки.",
+    "purpose": "Показать максимальный расход, рост мощности вентилятора и готовность системы к сравнительному прогону.",
+    "key_parameters": [
+      "airflow_m3_h=6250 м³/ч",
+      "fan_speed_ratio=1.0",
+      "filter_contamination=0.32",
+      "control_mode=test"
+    ],
+    "expected_effect": "Расход достигает номинальной проверки, а режим маркируется как тестовый прогон.",
+    "icon": "flame",
+    "parameters": {
+      "outdoor_temp_c": -10.0,
+      "airflow_m3_h": 6250.0,
+      "supply_temp_setpoint_c": 21.0,
+      "heat_recovery_efficiency": 0.52,
+      "heater_power_kw": 64.0,
+      "filter_contamination": 0.32,
+      "fan_speed_ratio": 1.0,
+      "room_temp_c": 21.4,
+      "room_heat_gain_kw": 8.0,
+      "control_mode": "test"
     }
   }
 ]

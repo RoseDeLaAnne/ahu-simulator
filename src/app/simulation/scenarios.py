@@ -24,6 +24,7 @@ class ScenarioDefinition(BaseModel):
     purpose: str
     key_parameters: list[str] = Field(default_factory=list, min_length=1)
     expected_effect: str
+    icon: str = "layout-grid"
     parameters: SimulationParameters
     source: ScenarioPresetSource = "system"
     locked: bool = True

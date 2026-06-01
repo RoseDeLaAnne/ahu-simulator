@@ -122,6 +122,34 @@ def test_export_service_creates_csv_pdf_and_manifest(tmp_path: Path) -> None:
     assert manifest["artifacts"][0]["size_bytes"] == csv_path.stat().st_size
 
 
+def test_export_service_builds_defense_export_package_manifest(tmp_path: Path) -> None:
+    simulation_service = _build_simulation_service()
+    export_service = ExportService(project_root=tmp_path)
+    _write_file(tmp_path / "src" / "app" / "ui" / "assets" / "pvu_mnemonic.svg", "<svg />\n")
+    _write_file(tmp_path / "data" / "visualization" / "scene3d.json", "{}\n")
+
+    build_result = export_service.export_result(
+        simulation_service.preview_scenario("midseason"),
+        simulation_service.get_session(),
+    )
+    package_result = export_service.build_defense_export_package(
+        scenario_manifest_path=build_result.entry.manifest_path,
+    )
+
+    manifest_path = tmp_path / package_result.manifest_path
+    payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+    artifacts = {artifact["artifact_id"]: artifact for artifact in payload["artifacts"]}
+
+    assert manifest_path.exists()
+    assert payload["schema_version"] == "defense-export-package.v1"
+    assert payload["source_report_manifest_path"] == build_result.entry.manifest_path
+    assert artifacts["scenario-report"]["exists"] is True
+    assert artifacts["mnemonic-svg"]["exists"] is True
+    assert artifacts["scene-bindings"]["exists"] is True
+    assert artifacts["scene-capture-png"]["required"] is False
+    assert artifacts["scene-capture-png"]["path"].startswith("browser-download:")
+
+
 def test_export_service_builds_preview_without_writing_files(tmp_path: Path) -> None:
     simulation_service = _build_simulation_service()
     export_service = ExportService(project_root=tmp_path)
@@ -163,3 +191,8 @@ def test_export_service_respects_runtime_directory_override(
 
 def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _write_file(path: Path, content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding="utf-8")

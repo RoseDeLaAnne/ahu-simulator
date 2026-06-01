@@ -40,6 +40,7 @@ class TrendPoint(BaseModel):
     heating_power_kw: float
     total_power_kw: float
     airflow_m3_h: float
+    demanded_airflow_m3_h: float
     filter_pressure_drop_pa: float
 
 
@@ -94,6 +95,7 @@ class SimulationState(BaseModel):
     timestamp: datetime
     control_mode: ControlMode
     actual_airflow_m3_h: float
+    demanded_airflow_m3_h: float
     mixed_air_temp_c: float
     recovered_air_temp_c: float
     supply_temp_c: float

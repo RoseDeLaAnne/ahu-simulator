@@ -1,4 +1,4 @@
-from dash import Dash, Input, Output, State, ctx, html, no_update
+from dash import ALL, Dash, Input, Output, State, ctx, html, no_update
 from dash.dependencies import ClientsideFunction
 import json
 import plotly.graph_objects as go
@@ -7,7 +7,6 @@ from urllib.parse import parse_qs
 
 from app.services.browser_capability_service import BrowserCapabilityService
 from app.services.comparison_service import (
-    ACTIVE_RUN_REFERENCE_ID,
     ComparisonMetricDelta,
     RunComparison,
     RunComparisonService,
@@ -43,11 +42,53 @@ from app.ui.layout import (
     build_manual_check_panel_content,
 )
 from app.ui.concept03.header_callbacks import register_header_callbacks
-from app.ui.concept03.page_router import select_page
+from app.ui.concept03.page_router import DEFAULT_PAGE, select_page
+from app.ui.concept03.bottom_strip import build_bottom_strip_content
+from app.ui.concept03.central_canvas import (
+    DEFAULT_CENTRAL_TAB,
+    build_alarms_panel_content,
+    build_callout_items_content,
+    build_parameters_panel_content,
+    build_trends_panel_content,
+    central_panel_class_name,
+    central_tab_class_name,
+)
+from app.ui.concept03.defense_variant.central_canvas import (
+    build_balances_panel_content,
+)
+from app.ui.concept03.mobile_components import (
+    MOBILE_NAV_ITEMS,
+    mobile_nav_class_name,
+)
+from app.ui.concept03.right_rail import build_right_rail_content
+from app.ui.viewmodels.concept03_bottom import (
+    FOOTER_NAV_ITEMS,
+    build_concept03_bottom_view,
+    footer_nav_class_name,
+    resolve_concept03_comparison_metric,
+)
+from app.ui.viewmodels.concept03_central import (
+    CENTRAL_CANVAS_TABS,
+    build_concept03_central_view,
+)
+from app.ui.viewmodels.concept03_health import build_concept03_health_view
+from app.ui.viewmodels.concept03_kpi import build_concept03_kpi_view
+from app.ui.viewmodels.concept03_modes import mode_card_class_name
+from app.ui.viewmodels.concept03_scenarios import (
+    CONCEPT03_SCENARIO_IDS,
+    build_concept03_scenarios_view,
+    scenario_card_class_name,
+)
 from app.ui.render_modes.scene3d import (
     SCENE3D_TRANSFORM_CONTROLS,
+    SCENE3D_BLOOM_CONTROLS,
+    SCENE3D_SSAO_CONTROLS,
     scene3d_transform_input_id,
     scene3d_transform_slider_id,
+    scene3d_bloom_input_id,
+    scene3d_bloom_slider_id,
+    scene3d_ssao_input_id,
+    scene3d_ssao_slider_id,
 )
 from app.ui.viewmodels.control_modes import build_control_mode_view
 from app.ui.scene.bindings import load_scene_bindings
@@ -63,6 +104,7 @@ from app.ui.viewmodels.browser_diagnostics import (
     build_browser_profile_view,
     build_demo_browser_readiness_view,
 )
+from app.ui.viewmodels.concept03_header import build_header_state_payload
 from app.ui.viewmodels.demo_readiness import build_demo_package_view
 from app.ui.viewmodels.event_log import build_event_log_view
 from app.ui.viewmodels.export_pack import build_result_export_view
@@ -124,7 +166,8 @@ def register_callbacks(
     def current_scenario_map() -> dict[str, ScenarioDefinition]:
         return {scenario.id: scenario for scenario in service.list_scenarios()}
 
-    bindings_version = load_scene_bindings().version
+    bindings = load_scene_bindings()
+    bindings_version = bindings.version
     browser_profile = browser_capability_service.build_profile()
     scene_model_catalog = build_scene_model_catalog()
     scene_model_map = {model.id: model for model in scene_model_catalog.models}
@@ -723,6 +766,351 @@ def register_callbacks(
         return selected_scenario_id, selected_scenario_id
 
     @app.callback(
+        Output("scenario-select", "value", allow_duplicate=True),
+        Output("scene3d-scenario-select", "value", allow_duplicate=True),
+        Input({"type": "concept03-scenario-card", "scenario_id": ALL}, "n_clicks"),
+        State("simulation-session-state", "data"),
+        prevent_initial_call=True,
+    )
+    def apply_concept03_scenario_card(_clicks, session_payload):
+        if _session_is_running(session_payload):
+            return no_update, no_update
+        selected_scenario_id = _resolve_concept03_triggered_id(
+            ctx.triggered_id,
+            key="scenario_id",
+        )
+        scenario_map = current_scenario_map()
+        if selected_scenario_id is None or selected_scenario_id not in scenario_map:
+            return no_update, no_update
+        return selected_scenario_id, selected_scenario_id
+
+    @app.callback(
+        Output("control-mode", "value", allow_duplicate=True),
+        Output("scene3d-control-mode", "value", allow_duplicate=True),
+        Input({"type": "concept03-mode-card", "mode_id": ALL}, "n_clicks"),
+        State("simulation-session-state", "data"),
+        prevent_initial_call=True,
+    )
+    def apply_concept03_mode_card(_clicks, session_payload):
+        if _session_is_running(session_payload):
+            return no_update, no_update
+        selected_mode_id = _resolve_concept03_triggered_id(
+            ctx.triggered_id,
+            key="mode_id",
+        )
+        try:
+            mode = ControlMode(selected_mode_id)
+        except (TypeError, ValueError):
+            return no_update, no_update
+        return mode.value, mode.value
+
+    @app.callback(
+        Output({"type": "concept03-scenario-card", "scenario_id": ALL}, "className"),
+        Input("scenario-select", "value"),
+        State({"type": "concept03-scenario-card", "scenario_id": ALL}, "id"),
+    )
+    def sync_concept03_scenario_card_state(selected_scenario_id, card_ids):
+        active_id = (
+            selected_scenario_id
+            if selected_scenario_id in CONCEPT03_SCENARIO_IDS
+            else None
+        )
+        scenario_map = current_scenario_map()
+        return [
+            scenario_card_class_name(
+                is_active=card_id.get("scenario_id") == active_id,
+                is_user_preset=(
+                    scenario_map.get(str(card_id.get("scenario_id"))) is not None
+                    and scenario_map[str(card_id.get("scenario_id"))].source == "user"
+                ),
+            )
+            for card_id in card_ids
+        ]
+
+    @app.callback(
+        Output({"type": "concept03-mode-card", "mode_id": ALL}, "className"),
+        Input("control-mode", "value"),
+        State({"type": "concept03-mode-card", "mode_id": ALL}, "id"),
+    )
+    def sync_concept03_mode_card_state(selected_mode_id, card_ids):
+        try:
+            active_mode = ControlMode(selected_mode_id).value
+        except (TypeError, ValueError):
+            active_mode = ControlMode.AUTO.value
+        return [
+            mode_card_class_name(is_active=card_id.get("mode_id") == active_mode)
+            for card_id in card_ids
+        ]
+
+    @app.callback(
+        Output("right-rail", "children"),
+        Input("simulation-session-state", "data"),
+    )
+    def sync_concept03_right_rail(session_payload):
+        if not session_payload:
+            return no_update
+        try:
+            session = SimulationSession.model_validate(session_payload)
+        except ValueError:
+            return no_update
+        result = session.current_result
+        return build_right_rail_content(
+            kpis=build_concept03_kpi_view(
+                result, status_service, history=session.history if session else None
+            ),
+            health=build_concept03_health_view(result, status_service),
+            session=session,
+            event_log_snapshot=event_log_service.build_snapshot(),
+        )
+
+    @app.callback(
+        Output("concept03-bottom-metric", "data"),
+        Input("concept03-comparison-metric", "value"),
+        State("concept03-bottom-metric", "data"),
+        prevent_initial_call=True,
+    )
+    def sync_concept03_bottom_metric(selected_metric, current_metric):
+        resolved_metric = resolve_concept03_comparison_metric(selected_metric)
+        if resolved_metric == current_metric:
+            return current_metric
+        return resolved_metric
+
+    @app.callback(
+        Output("concept03-bottom-comparison-pair", "data"),
+        Input("concept03-comparison-before", "value"),
+        Input("concept03-comparison-after", "value"),
+        State("concept03-bottom-comparison-pair", "data"),
+        prevent_initial_call=True,
+    )
+    def sync_concept03_bottom_pair(
+        before_reference_id,
+        after_reference_id,
+        current_pair,
+    ):
+        next_pair = {
+            "before_reference_id": before_reference_id,
+            "after_reference_id": after_reference_id,
+        }
+        if next_pair == (current_pair or {}):
+            return current_pair
+        return next_pair
+
+    @app.callback(
+        Output("bottom-strip", "children"),
+        Input("simulation-session-state", "data"),
+        Input("concept03-report-build", "n_clicks"),
+        Input("concept03-defense-report-build", "n_clicks", allow_optional=True),
+        Input("event-log-generated", "children"),
+        Input("export-pack-generated", "children"),
+        Input("comparison-generated", "children"),
+        Input("concept03-bottom-metric", "data"),
+        Input("concept03-bottom-comparison-pair", "data"),
+        State("dashboard-page", "data"),
+    )
+    def sync_concept03_bottom_strip(
+        session_payload,
+        _report_build_clicks,
+        _defense_report_build_clicks,
+        _event_log_generated,
+        _export_pack_generated,
+        _comparison_generated,
+        selected_metric_id,
+        selected_pair,
+        active_page,
+    ):
+        if not session_payload:
+            return no_update
+        try:
+            session = SimulationSession.model_validate(session_payload)
+        except ValueError:
+            return no_update
+
+        comparison_snapshot = comparison_service.build_snapshot(
+            session.current_result,
+            session,
+            metric_id=resolve_concept03_comparison_metric(selected_metric_id),
+        )
+        selected_pair = selected_pair or {}
+        selected_before = _resolve_selected_comparison_reference(
+            selected_pair.get("before_reference_id"),
+            comparison_snapshot,
+            fallback_reference_id=comparison_snapshot.default_before_reference_id,
+        )
+        selected_after = _resolve_selected_comparison_reference(
+            selected_pair.get("after_reference_id"),
+            comparison_snapshot,
+            fallback_reference_id=comparison_snapshot.default_after_reference_id,
+        )
+        comparison = _build_run_comparison(
+            comparison_service,
+            session,
+            selected_before,
+            selected_after,
+        )
+
+        if ctx.triggered_id in {"concept03-report-build", "concept03-defense-report-build"}:
+            _build_concept03_quick_report_package(
+                export_service=export_service,
+                comparison_service=comparison_service,
+                event_log_service=event_log_service,
+                session=session,
+                comparison=comparison,
+            )
+            comparison_snapshot = comparison_service.build_snapshot(
+                session.current_result,
+                session,
+                metric_id=resolve_concept03_comparison_metric(selected_metric_id),
+            )
+            selected_before = _resolve_selected_comparison_reference(
+                selected_before,
+                comparison_snapshot,
+                fallback_reference_id=comparison_snapshot.default_before_reference_id,
+            )
+            selected_after = _resolve_selected_comparison_reference(
+                selected_after,
+                comparison_snapshot,
+                fallback_reference_id=comparison_snapshot.default_after_reference_id,
+            )
+            comparison = _build_run_comparison(
+                comparison_service,
+                session,
+                selected_before,
+                selected_after,
+            )
+
+        view = build_concept03_bottom_view(
+            session=session,
+            demo_readiness=demo_readiness_service.build_readiness(),
+            comparison_snapshot=comparison_snapshot,
+            comparison=comparison,
+            selected_before_reference_id=selected_before,
+            selected_after_reference_id=selected_after,
+            event_log_snapshot=event_log_service.build_snapshot(limit=5),
+            export_snapshot=export_service.build_snapshot(limit=4),
+            active_page=active_page or DEFAULT_PAGE.value,
+        )
+        return build_bottom_strip_content(
+            view,
+            include_defense=True,
+            scenarios_view=build_concept03_scenarios_view(
+                service.list_scenarios(),
+                active_scenario_id=session.current_result.scenario_id,
+            ),
+        )
+
+    @app.callback(
+        [
+            Output(f"footer-nav-{page_id}", "className")
+            for page_id, _label, _icon in FOOTER_NAV_ITEMS
+        ]
+        + [
+            Output(mobile_id, "className")
+            for page_id, mobile_id, _label, _icon in MOBILE_NAV_ITEMS
+        ],
+        Input("dashboard-page", "data"),
+    )
+    def sync_concept03_footer_nav(active_page):
+        active = active_page or DEFAULT_PAGE.value
+        return [
+            footer_nav_class_name(page_id, active)
+            for page_id, _label, _icon in FOOTER_NAV_ITEMS
+        ] + [
+            mobile_nav_class_name(page_id, active)
+            for page_id, _mobile_id, _label, _icon in MOBILE_NAV_ITEMS
+        ]
+
+    @app.callback(
+        Output("central-canvas-tab", "data"),
+        Input({"type": "concept03-central-tab", "tab_id": ALL}, "n_clicks"),
+        State({"type": "concept03-central-tab", "tab_id": ALL}, "id"),
+        State("central-canvas-tab", "data"),
+        prevent_initial_call=True,
+    )
+    def select_concept03_central_tab(_clicks, tab_ids, current_tab):
+        del tab_ids
+        tab_id = _resolve_concept03_triggered_id(ctx.triggered_id, key="tab_id")
+        allowed_tabs = {tab.tab_id for tab in CENTRAL_CANVAS_TABS}
+        if tab_id in allowed_tabs:
+            return tab_id
+        return current_tab or DEFAULT_CENTRAL_TAB
+
+    @app.callback(
+        Output({"type": "concept03-central-tab", "tab_id": ALL}, "className"),
+        Output("concept03-panel-3d", "className"),
+        Output("concept03-panel-2d", "className"),
+        Output("concept03-panel-parameters", "className"),
+        Output("concept03-panel-trends", "className"),
+        Output("concept03-panel-alarms", "className"),
+        Output("concept03-panel-docs", "className"),
+        Input("central-canvas-tab", "data"),
+        State({"type": "concept03-central-tab", "tab_id": ALL}, "id"),
+    )
+    def sync_concept03_central_tab_state(active_tab, tab_ids):
+        rendered_tab_ids = {str(tab_id.get("tab_id")) for tab_id in tab_ids}
+        active = active_tab if active_tab in rendered_tab_ids else DEFAULT_CENTRAL_TAB
+        return (
+            [
+                central_tab_class_name(str(tab_id.get("tab_id")), active)
+                + (" c03-operator-only" if tab_id.get("tab_id") == "docs" else "")
+                for tab_id in tab_ids
+            ],
+            central_panel_class_name("3d", active),
+            central_panel_class_name("2d", active),
+            central_panel_class_name("parameters", active),
+            central_panel_class_name("trends", active),
+            central_panel_class_name("alarms", active),
+            central_panel_class_name("docs", active),
+        )
+
+    @app.callback(
+        Output("concept03-callout-layer", "children"),
+        Output("concept03-central-params", "children"),
+        Output("concept03-central-trends", "children"),
+        Output("concept03-central-alarms", "children"),
+        Input("simulation-session-state", "data"),
+        Input("url", "search"),
+    )
+    def sync_concept03_central_content(session_payload, search):
+        if not session_payload:
+            return no_update, no_update, no_update, no_update
+        try:
+            session = SimulationSession.model_validate(session_payload)
+        except ValueError:
+            return no_update, no_update, no_update, no_update
+        view = build_concept03_central_view(
+            session,
+            bindings=bindings,
+            scene_model_catalog=scene_model_catalog,
+            status_service=status_service,
+        )
+        return (
+            build_callout_items_content(view),
+            build_parameters_panel_content(view),
+            build_trends_panel_content(view),
+            (
+                build_balances_panel_content(view)
+                if _is_defense_variant_search(search)
+                else build_alarms_panel_content(view)
+            ),
+        )
+
+    app.clientside_callback(
+        ClientsideFunction(
+            namespace="concept03Overlay",
+            function_name="syncOverlay",
+        ),
+        Output("concept03-overlay-sync", "children"),
+        Input("visualization-signals", "data"),
+        Input("central-canvas-tab", "data"),
+        Input("viewer3d-sync", "children"),
+        Input("scene3d-room-config", "data"),
+        Input("scene3d-scale-config", "data"),
+        Input("concept03-scene-model-select", "value"),
+        Input("concept03-scene-mode-select", "value"),
+        State("scene3d-meta", "data"),
+    )
+
+    @app.callback(
         Output("scene3d-room-config", "data", allow_duplicate=True),
         Output("scene3d-outdoor-temp", "value", allow_duplicate=True),
         Output("scene3d-airflow", "value", allow_duplicate=True),
@@ -980,6 +1368,242 @@ def register_callbacks(
             *transform_outputs,
             *transform_inputs,
         )
+
+        # Bloom post-processing controls
+        bloom_outputs = []
+        bloom_inputs = []
+        for bloom_control in SCENE3D_BLOOM_CONTROLS:
+            bloom_key = str(bloom_control["key"])
+            bloom_input_id = scene3d_bloom_input_id(bloom_key)
+            bloom_slider_id = scene3d_bloom_slider_id(bloom_key)
+            bloom_outputs.extend(
+                [
+                    Output(bloom_input_id, "value"),
+                    Output(bloom_slider_id, "value"),
+                ]
+            )
+            bloom_inputs.extend(
+                [
+                    Input(bloom_input_id, "value"),
+                    Input(bloom_slider_id, "value"),
+                ]
+            )
+        bloom_inputs.append(Input("scene3d-bloom-enabled", "value"))
+
+        app.clientside_callback(
+            ClientsideFunction(
+                namespace="pvu3dBridge",
+                function_name="syncBloomControls",
+            ),
+            *bloom_outputs,
+            *bloom_inputs,
+        )
+
+        # SSAO post-processing controls
+        ssao_outputs = []
+        ssao_inputs = []
+        for ssao_control in SCENE3D_SSAO_CONTROLS:
+            ssao_key = str(ssao_control["key"])
+            ssao_input_id = scene3d_ssao_input_id(ssao_key)
+            ssao_slider_id = scene3d_ssao_slider_id(ssao_key)
+            ssao_outputs.extend(
+                [
+                    Output(ssao_input_id, "value"),
+                    Output(ssao_slider_id, "value"),
+                ]
+            )
+            ssao_inputs.extend(
+                [
+                    Input(ssao_input_id, "value"),
+                    Input(ssao_slider_id, "value"),
+                ]
+            )
+        ssao_inputs.append(Input("scene3d-ssao-enabled", "value"))
+
+        app.clientside_callback(
+            ClientsideFunction(
+                namespace="pvu3dBridge",
+                function_name="syncSSAOControls",
+            ),
+            *ssao_outputs,
+            *ssao_inputs,
+        )
+
+        # Measurement tools controls
+        app.clientside_callback(
+            ClientsideFunction(
+                namespace="pvu3dBridge",
+                function_name="syncMeasurementMode",
+            ),
+            Output("scene3d-measurement-mode", "value"),
+            Output("scene3d-measurement-list", "children"),
+            Output("scene3d-measurement-status", "children"),
+            Input("scene3d-measurement-mode", "value"),
+            Input("scene3d-measurement-clear", "n_clicks"),
+            Input("scene3d-measurement-type", "value"),
+            Input("scene3d-measurement-save", "n_clicks"),
+            Input("scene3d-measurement-restore", "n_clicks"),
+            Input("scene3d-measurement-export-json", "n_clicks"),
+            Input("scene3d-measurement-export-csv", "n_clicks"),
+        )
+
+        # Screenshot capture controls
+        app.clientside_callback(
+            ClientsideFunction(
+                namespace="pvu3dBridge",
+                function_name="captureScreenshotAction",
+            ),
+            Output("scene3d-screenshot-status", "children"),
+            Input("scene3d-screenshot-capture", "n_clicks"),
+            State("scene3d-screenshot-scale", "value"),
+            State("scene3d-screenshot-format", "value"),
+            State("scene3d-screenshot-metadata", "value"),
+        )
+
+        # Heatmap controls
+        app.clientside_callback(
+            ClientsideFunction(
+                namespace="pvu3dBridge",
+                function_name="syncHeatmapMode",
+            ),
+            Output("scene3d-heatmap-enabled", "value"),
+            Input("scene3d-heatmap-enabled", "value"),
+            Input("scene3d-heatmap-min-temp", "value"),
+            Input("scene3d-heatmap-max-temp", "value"),
+            Input("visualization-signals", "data"),
+        )
+
+        # Clipping planes controls
+        app.clientside_callback(
+            ClientsideFunction(
+                namespace="pvu3dBridge",
+                function_name="syncClippingMode",
+            ),
+            Output("scene3d-clipping-enabled", "value"),
+            Output("scene3d-clipping-plane-index", "options"),
+            Output("scene3d-clipping-normal-x", "value"),
+            Output("scene3d-clipping-normal-y", "value"),
+            Output("scene3d-clipping-normal-z", "value"),
+            Output("scene3d-clipping-constant", "value"),
+            Output("scene3d-clipping-inverted", "value"),
+            Input("scene3d-clipping-enabled", "value"),
+            Input("scene3d-clipping-preset-x", "n_clicks"),
+            Input("scene3d-clipping-preset-y", "n_clicks"),
+            Input("scene3d-clipping-preset-z", "n_clicks"),
+            Input("scene3d-clipping-preset-diagonal", "n_clicks"),
+            Input("scene3d-clipping-preset-cross", "n_clicks"),
+            Input("scene3d-clipping-plane-index", "value"),
+            Input("scene3d-clipping-normal-x", "value"),
+            Input("scene3d-clipping-normal-y", "value"),
+            Input("scene3d-clipping-normal-z", "value"),
+            Input("scene3d-clipping-constant", "value"),
+            Input("scene3d-clipping-inverted", "value"),
+            Input("scene3d-clipping-add", "n_clicks"),
+            Input("scene3d-clipping-remove", "n_clicks"),
+            Input("scene3d-clipping-clear", "n_clicks"),
+        )
+
+        app.clientside_callback(
+            ClientsideFunction(
+                namespace="pvu3dBridge",
+                function_name="syncLODMode",
+            ),
+            Output("scene3d-lod-enabled", "value"),
+            Output("scene3d-lod-distance-medium", "value"),
+            Output("scene3d-lod-distance-low", "value"),
+            Output("scene3d-lod-stats-display", "children"),
+            Input("scene3d-lod-enabled", "value"),
+            Input("scene3d-lod-preset-performance", "n_clicks"),
+            Input("scene3d-lod-preset-balanced", "n_clicks"),
+            Input("scene3d-lod-preset-quality", "n_clicks"),
+            Input("scene3d-lod-distance-high", "value"),
+            Input("scene3d-lod-distance-medium", "value"),
+            Input("scene3d-lod-distance-low", "value"),
+        )
+
+        # Flow field visualization callback
+        app.clientside_callback(
+            ClientsideFunction(
+                namespace="pvu3dBridge",
+                function_name="syncFlowField",
+            ),
+            Output("scene3d-flow-enabled", "value"),
+            Output("scene3d-flow-mode", "value"),
+            Output("scene3d-flow-density", "value"),
+            Output("scene3d-flow-animation-speed", "value"),
+            Output("scene3d-flow-color-scheme", "value"),
+            Output("scene3d-flow-stats-display", "children"),
+            Input("scene3d-flow-enabled", "value"),
+            Input("scene3d-flow-mode", "value"),
+            Input("scene3d-flow-density", "value"),
+            Input("scene3d-flow-animation-speed", "value"),
+            Input("scene3d-flow-color-scheme", "value"),
+        )
+
+        # Comparison mode (side-by-side) callback
+        app.clientside_callback(
+            ClientsideFunction(
+                namespace="pvu3dBridge",
+                function_name="syncComparisonMode",
+            ),
+            Output("scene3d-comparison-enabled", "value"),
+            Output("scene3d-comparison-before-source", "value"),
+            Output("scene3d-comparison-after-source", "value"),
+            Output("scene3d-comparison-split", "value"),
+            Output("scene3d-comparison-orientation", "value"),
+            Output("scene3d-comparison-sync-cameras", "value"),
+            Output("scene3d-comparison-diff-mode", "value"),
+            Output("scene3d-comparison-compatibility", "children"),
+            Output("scene3d-comparison-stats", "children"),
+            Input("scene3d-comparison-enabled", "value"),
+            Input("scene3d-comparison-before-source", "value"),
+            Input("scene3d-comparison-after-source", "value"),
+            Input("scene3d-comparison-split", "value"),
+            Input("scene3d-comparison-orientation", "value"),
+            Input("scene3d-comparison-sync-cameras", "value"),
+            Input("scene3d-comparison-diff-mode", "value"),
+        )
+
+        # Populate comparison sources from API
+        @app.callback(
+            Output("scene3d-comparison-before-source", "options"),
+            Output("scene3d-comparison-after-source", "options"),
+            Output("scene3d-comparison-before-source", "value", allow_duplicate=True),
+            Output("scene3d-comparison-after-source", "value", allow_duplicate=True),
+            Input("visualization-signals", "data"),
+            prevent_initial_call=True,
+        )
+        def populate_comparison_sources(signals):
+            """Populate comparison source dropdowns with available sources."""
+            if not comparison_service or not service:
+                return [], [], None, None
+
+            try:
+                session = service.get_session()
+                snapshot = comparison_service.build_snapshot(
+                    session.current_result,
+                    session,
+                    limit=8,
+                )
+
+                # Build dropdown options from available sources
+                options = [
+                    {
+                        "label": source.display_label,
+                        "value": source.reference_id,
+                    }
+                    for source in snapshot.available_sources
+                ]
+
+                # Set default values
+                default_before = snapshot.default_before_reference_id
+                default_after = snapshot.default_after_reference_id
+
+                return options, options, default_before, default_after
+
+            except Exception as e:
+                print(f"[Callbacks] Failed to populate comparison sources: {e}")
+                return [], [], None, None
 
     @app.callback(
         Output("scene3d-room-co2", "children"),
@@ -1374,10 +1998,10 @@ def register_callbacks(
         session = _coerce_session(session_payload)
         if ctx.triggered_id == "comparison-save-before":
             comparison_service.save_before(session.current_result)
-            before_reference_id = f"snapshot:before"
+            before_reference_id = "snapshot:before"
         elif ctx.triggered_id == "comparison-save-after":
             comparison_service.save_after(session.current_result)
-            after_reference_id = f"snapshot:after"
+            after_reference_id = "snapshot:after"
 
         snapshot = comparison_service.build_snapshot(session.current_result, session)
         selected_before = _resolve_selected_comparison_reference(
@@ -1494,6 +2118,7 @@ def register_callbacks(
         Output("event-log-generated", "children"),
         Output("event-log-entries", "children"),
         Output("manual-check-content", "children"),
+        Output("concept03-header-state", "data"),
         Output("simulation-session-state", "data"),
         Input("scenario-select", "value"),
         Input("outdoor-temp", "value"),
@@ -1512,6 +2137,10 @@ def register_callbacks(
         Input("simulation-pause", "n_clicks"),
         Input("simulation-step", "n_clicks"),
         Input("simulation-reset", "n_clicks"),
+        Input("header-btn-start", "n_clicks", allow_optional=True),
+        Input("header-btn-pause", "n_clicks", allow_optional=True),
+        Input("header-btn-stop", "n_clicks", allow_optional=True),
+        Input("header-btn-reset", "n_clicks", allow_optional=True),
         Input("simulation-speed", "value"),
         Input("simulation-interval", "n_intervals"),
     )
@@ -1533,6 +2162,10 @@ def register_callbacks(
         _pause_clicks,
         _step_clicks,
         _reset_clicks,
+        _header_start_clicks,
+        _header_pause_clicks,
+        _header_stop_clicks,
+        _header_reset_clicks,
         playback_speed,
         _n_intervals,
     ):
@@ -1554,25 +2187,29 @@ def register_callbacks(
         )
         triggered_id = ctx.triggered_id
         try:
-            if triggered_id == "simulation-start":
+            if triggered_id in {"simulation-start", "header-btn-start"}:
                 session = service.start()
                 event_log_service.record_session_event(
                     session,
-                    trigger="simulation.start",
+                    trigger=_session_trigger_label(str(triggered_id)),
                     source_type="dashboard",
                 )
-            elif triggered_id == "simulation-pause":
+            elif triggered_id in {
+                "simulation-pause",
+                "header-btn-pause",
+                "header-btn-stop",
+            }:
                 session = service.pause()
                 event_log_service.record_session_event(
                     session,
-                    trigger="simulation.pause",
+                    trigger=_session_trigger_label(str(triggered_id)),
                     source_type="dashboard",
                 )
-            elif triggered_id == "simulation-reset":
+            elif triggered_id in {"simulation-reset", "header-btn-reset"}:
                 session = service.reset()
                 event_log_service.record_session_event(
                     session,
-                    trigger="simulation.reset",
+                    trigger=_session_trigger_label(str(triggered_id)),
                     source_type="dashboard",
                 )
             elif triggered_id == "simulation-speed":
@@ -1644,6 +2281,7 @@ def register_callbacks(
             ],
         ) + (
             build_manual_check_panel_content(build_manual_check_view(manual_check)),
+            build_header_state_payload(result),
             session.model_dump(mode="json"),
         )
 
@@ -1752,6 +2390,33 @@ def _resolve_preset_shortcut(triggered_id: str | None) -> str | None:
     if triggered_id is None:
         return None
     return PRESET_SHORTCUT_SCENARIO_IDS.get(str(triggered_id))
+
+
+def _resolve_concept03_triggered_id(triggered_id, *, key: str) -> str | None:
+    if not isinstance(triggered_id, dict):
+        return None
+    value = triggered_id.get(key)
+    return str(value) if value is not None else None
+
+
+def _is_defense_variant_search(search: str | None) -> bool:
+    parsed_query = parse_qs((search or "").lstrip("?"), keep_blank_values=False)
+    theme = (parsed_query.get("theme") or [""])[0].strip().lower()
+    defense = (parsed_query.get("defense") or [""])[0].strip().lower()
+    return theme == "concept03" and defense in {"1", "true", "yes", "on"}
+
+
+def _session_trigger_label(triggered_id: str) -> str:
+    labels = {
+        "simulation-start": "simulation.start",
+        "simulation-pause": "simulation.pause",
+        "simulation-reset": "simulation.reset",
+        "header-btn-start": "defense.header.start",
+        "header-btn-pause": "defense.header.pause",
+        "header-btn-stop": "defense.header.stop",
+        "header-btn-reset": "defense.header.reset",
+    }
+    return labels.get(triggered_id, triggered_id)
 
 
 def _scenario_selection_options(service: SimulationService) -> list[dict[str, str]]:
@@ -1866,6 +2531,43 @@ def _build_run_comparison(
         )
     except KeyError:
         return None
+
+
+def _build_concept03_quick_report_package(
+    *,
+    export_service: ExportService,
+    comparison_service: RunComparisonService,
+    event_log_service: EventLogService,
+    session: SimulationSession,
+    comparison: RunComparison | None,
+) -> tuple[str, str | None]:
+    result = session.current_result
+    scenario_export = export_service.export_result(result, session)
+    event_log_service.record_export_event(
+        result,
+        manifest_path=scenario_export.entry.manifest_path,
+        source_type="concept03",
+    )
+
+    if comparison is None or not comparison.compatibility.is_compatible:
+        export_service.build_defense_export_package(
+            scenario_manifest_path=scenario_export.entry.manifest_path,
+        )
+        return scenario_export.entry.manifest_path, None
+
+    comparison_export = comparison_service.export_comparison(comparison)
+    event_log_service.record_comparison_export_event(
+        result,
+        before_label=comparison.before_source.display_label,
+        after_label=comparison.after_source.display_label,
+        manifest_path=comparison_export.entry.manifest_path,
+        source_type="concept03",
+    )
+    export_service.build_defense_export_package(
+        scenario_manifest_path=scenario_export.entry.manifest_path,
+        comparison_manifest_path=comparison_export.entry.manifest_path,
+    )
+    return scenario_export.entry.manifest_path, comparison_export.entry.manifest_path
 
 
 def _resolve_selected_comparison_reference(
@@ -2138,7 +2840,6 @@ def _render_result(
     metric_map = status_service.build_metric_status_map(result)
     alarms = _build_alarm_items(result, status_service)
 
-    state = result.state
     visualization = build_visualization_signal_map(
         result,
         bindings_version=bindings_version,

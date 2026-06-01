@@ -36,8 +36,16 @@ def test_event_log_service_records_simulation_and_artifact_events(tmp_path: Path
         manifest_path="artifacts/exports/2026-04-04/pvu-export.manifest.json",
         source_type="dashboard",
     )
+    comparison_event = event_log_service.record_comparison_export_event(
+        result,
+        before_label="До",
+        after_label="После",
+        manifest_path="artifacts/exports/2026-04-04/pvu-comparison.manifest.json",
+        source_type="concept03",
+    )
 
     snapshot = event_log_service.build_snapshot()
     assert export_event.entry.category.value == "export"
-    assert snapshot.total_entries == 2
-    assert snapshot.entries[0].artifact_path == export_event.entry.artifact_path
+    assert comparison_event.entry.title == "Собран сравнительный отчёт"
+    assert snapshot.total_entries == 3
+    assert snapshot.entries[0].artifact_path == comparison_event.entry.artifact_path

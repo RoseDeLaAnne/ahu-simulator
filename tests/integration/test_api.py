@@ -125,6 +125,8 @@ def test_demo_readiness_endpoint_returns_preflight_snapshot() -> None:
     assert body["endpoints"][-1]["path"] == "/exports/result"
     assert body["checks"][-1]["item_id"] == "demo-pc-verification"
     assert body["checks"][-1]["status"] == "normal"
+    assert body["secured_loop"]["state"] == "active"
+    assert body["secured_loop"]["external_dependencies"] == 0
 
 
 def test_project_baseline_endpoint_returns_locked_scope() -> None:
@@ -350,11 +352,13 @@ def test_run_comparison_snapshot_endpoint_returns_active_source(tmp_path: Path) 
     )
 
     with TestClient(app) as client:
-        response = client.get("/comparison/runs")
+        response = client.get("/comparison/runs?metric=total_power_kw")
 
     body = response.json()
     assert response.status_code == 200
     assert body["overall_status"] == "warning"
+    assert body["selected_metric_id"] == "total_power_kw"
+    assert body["selected_metric_title"] == "Суммарная мощность, кВт"
     assert body["default_before_reference_id"] is None
     assert body["default_after_reference_id"] == "active-run"
     assert body["available_sources"][0]["reference_id"] == "active-run"
@@ -830,7 +834,7 @@ def test_visualization_state_endpoint_returns_signal_map() -> None:
 
     body = response.json()
     assert response.status_code == 200
-    assert body["bindings_version"] == 2
+    assert body["bindings_version"] == 3
     assert body["status"] in {"normal", "warning", "alarm"}
     assert "filter_bank" in body["nodes"]
     assert "flow_fan_to_room" in body["flows"]

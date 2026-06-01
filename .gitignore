@@ -9,4 +9,17 @@ artifacts/playwright/ci/
 config/local.env
 3d-references/
 tooling/bin/
-artifacts/demo-packages/
+artifacts/demo-packages/*
+!artifacts/demo-packages/README.md
+
+# Agent tooling / local state (ephemeral, not for VCS)
+.omc/
+.omx/
+
+# Generated artifacts (event logs, screenshots) — keep demo-packages README only
+artifacts/event-log/
+artifacts/playwright/
+
+# Stray root screenshots from QA sessions
+/concept03-phase*.png
+/concept03-phase*.jpeg

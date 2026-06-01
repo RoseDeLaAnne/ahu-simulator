@@ -158,9 +158,10 @@ def supply_temp_status(
 def airflow_status(
     parameters: SimulationParameters,
     actual_airflow_m3_h: float,
+    demanded_airflow_m3_h: float,
     thresholds: StatusThresholds,
 ) -> OperationStatus:
-    airflow_ratio = actual_airflow_m3_h / max(parameters.airflow_m3_h, 1.0)
+    airflow_ratio = actual_airflow_m3_h / max(demanded_airflow_m3_h, 1.0)
     return evaluate_lower_threshold(airflow_ratio, thresholds.airflow_ratio)
 
 

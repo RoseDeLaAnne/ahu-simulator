@@ -32,7 +32,7 @@ def build_control_mode_view(control: ControlDiagnostics | None) -> ControlModeVi
         )
 
     return ControlModeView(
-        mode_text="Ручной" if control.mode == ControlMode.MANUAL else "Автоматический",
+        mode_text=_control_mode_text(control.mode),
         target_status_text=_target_status_text(control.target_state),
         target_status_class_name=_target_status_class_name(control.target_state),
         summary=control.summary,
@@ -47,6 +47,16 @@ def build_control_mode_view(control: ControlDiagnostics | None) -> ControlModeVi
             f"{control.requested_airflow_m3_h:.0f} м³/ч"
         ),
     )
+
+
+def _control_mode_text(mode: ControlMode) -> str:
+    mapping = {
+        ControlMode.AUTO: "Автоматический",
+        ControlMode.SEMI_AUTO: "Полуавтоматический",
+        ControlMode.MANUAL: "Ручной",
+        ControlMode.TEST: "Тестовый",
+    }
+    return mapping[mode]
 
 
 def _target_status_text(state: ControlTargetState) -> str:

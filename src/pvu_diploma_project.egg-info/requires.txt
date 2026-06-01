@@ -1,0 +1,13 @@
+a2wsgi<2.0,>=1.10
+dash<4.0,>=3.2
+fastapi<1.0,>=0.128
+numpy<3.0,>=2.3
+plotly<7.0,>=6.3
+pydantic<3.0,>=2.12
+PyYAML<7.0,>=6.0
+uvicorn<1.0,>=0.37
+
+[dev]
+httpx<1.0,>=0.28
+pyinstaller<7.0,>=6.16
+pytest<9.0,>=8.4

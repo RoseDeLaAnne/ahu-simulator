@@ -72,15 +72,18 @@ def test_status_thresholds_cover_all_metric_boundaries() -> None:
         thresholds,
     ) == OperationStatus.ALARM
 
-    assert airflow_status(parameters, parameters.airflow_m3_h * 0.76, thresholds) == OperationStatus.NORMAL
+    demanded = parameters.airflow_m3_h * parameters.fan_speed_ratio
+    assert airflow_status(parameters, demanded * 0.76, demanded, thresholds) == OperationStatus.NORMAL
     assert airflow_status(
         parameters,
-        parameters.airflow_m3_h * thresholds.airflow_ratio.warning,
+        demanded * thresholds.airflow_ratio.warning,
+        demanded,
         thresholds,
     ) == OperationStatus.WARNING
     assert airflow_status(
         parameters,
-        parameters.airflow_m3_h * thresholds.airflow_ratio.alarm,
+        demanded * thresholds.airflow_ratio.alarm,
+        demanded,
         thresholds,
     ) == OperationStatus.ALARM
 
