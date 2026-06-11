@@ -70,6 +70,6 @@ def test_get_feature_flags_returns_settings_defaults() -> None:
     finally:
         get_settings.cache_clear()
 
-    assert flags.theme == UITheme.LEGACY
-    assert flags.concept03_enabled is False
+    assert flags.theme == UITheme.CONCEPT03
+    assert flags.concept03_enabled is True
     assert flags.defense_day_variant is False

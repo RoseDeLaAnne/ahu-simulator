@@ -35,6 +35,8 @@ const SECTION_PALETTE = {
   heater: new THREE.Color(0xfb7185),    // калорифер (нагреватель) — тёпло-розовый
   fan: new THREE.Color(0x22d3ee),       // приточный вентилятор — бирюзовый
   duct: new THREE.Color(0x94a3b8),      // воздуховод подачи — стальной
+  recuperator: new THREE.Color(0x34d399), // пластинчатый рекуператор — изумрудный
+  exhaust: new THREE.Color(0x64748b),   // вытяжная ветвь — шиферный серый
   outdoor: new THREE.Color(0x60a5fa),   // наружный/выбросной канал — синий
   enclosure: new THREE.Color(0x475569), // корпус секций — графит
   frame: new THREE.Color(0x6b7280),     // рамы и крепления — холодный серый
@@ -77,6 +79,7 @@ const FILTER_PRESSURE_VISUAL_IDS = {
 const PRIORITY_LABELS = [
   { node: "pvu.intake.outdoor_air", text: "Забор", type: "section" },
   { node: "pvu.filter.bank", text: "Фильтр", type: "section" },
+  { node: "pvu.recuperator.core", text: "Рекуператор", type: "section" },
   { node: "pvu.heater.coil", text: "Калорифер", type: "section" },
   { node: "pvu.fan.supply", text: "Вентилятор", type: "section" },
   { node: "pvu.duct.supply", text: "Подача", type: "section" },
@@ -178,6 +181,13 @@ function _classifyAhuRole(meshName) {
     if (/scroll_housing/.test(name)) return { kind: "fan_housing", section: "fan" };
     if (/inlet/.test(name)) return { kind: "fan_inlet", section: "fan" };
     return { kind: "fan_other", section: "fan" };
+  }
+  if (/^pvurecuperator/.test(name)) {
+    if (/plate/.test(name)) return { kind: "recuperator_plate", section: "recuperator" };
+    return { kind: "recuperator_other", section: "recuperator" };
+  }
+  if (/^pvuexhaust/.test(name)) {
+    return { kind: "duct", section: "exhaust" };
   }
   if (/^pvuduct/.test(name)) {
     if (/status_shell/.test(name)) return { kind: "status_shell", section: "duct" };
@@ -1103,9 +1113,9 @@ function _initPostProcessing() {
   bloomPass.enabled = true;
   composer.addPass(bloomPass);
 
-  // Add OutputPass (финальный проход для корректного цветового пространства)
-  var outputPass = new OutputPass();
-  composer.addPass(outputPass);
+  // OutputPass удалён: RenderPass уже применяет ACESFilmicToneMapping
+  // через renderer.render(scene, camera). Двойное тонирование (RenderPass
+  // ACES + OutputPass ACES) дробило midtones/тени в почти-чёрный.
 }
 
 function _createSphereMarker(position, color) {
@@ -3910,6 +3920,8 @@ function _updateLabels() {
 
 function _createSceneScaffold() {
   scene = new THREE.Scene();
+  // Сплошной фон сцены — убирает просвечивание тёмного CSS-градиента через прозрачные области
+  scene.background = new THREE.Color(0x0a1119);
   environmentRoot = new THREE.Group();
   atmosphereRoot = new THREE.Group();
   overlayRoot = new THREE.Group();
@@ -4237,7 +4249,7 @@ function init(containerId, meta) {
     sharedLoader = new GLTFLoader();
     renderer = new THREE.WebGLRenderer({
       antialias: ((sceneMeta.performance_budget || {}).antialias !== false),
-      alpha: true,
+      alpha: false,  // Непрозрачный canvas — устраняет просвечивание тёмного CSS-фона
       powerPreference: "high-performance",
     });
     renderer.setSize(container.clientWidth || 800, container.clientHeight || 540);
@@ -4837,22 +4849,34 @@ function _createStageMarker(sceneNode, labelPoint, options) {
   ring.rotation.x = Math.PI / 2;
   group.add(ring);
 
-  var coreGeometry = options.kind === "sensor"
-    ? new THREE.SphereGeometry(radius * 0.72, 24, 24)
-    : new THREE.OctahedronGeometry(radius * 0.82, 0);
-  var core = new THREE.Mesh(
-    coreGeometry,
-    new THREE.MeshStandardMaterial({
-      color: STATUS_COLORS.inactive,
-      emissive: new THREE.Color(0x0b1220),
-      emissiveIntensity: 0.18,
-      roughness: options.kind === "sensor" ? 0.18 : 0.34,
-      metalness: options.kind === "sensor" ? 0.24 : 0.1,
-      transparent: true,
-      opacity: 0.95,
-    })
-  );
-  group.add(core);
+  // Мини-модель оборудования вместо абстрактного октаэдра (замечание
+  // рецензента editing-3 про «жёлтые/зелёные шары»). Сенсорная ветка и
+  // fallback на октаэдр (нет options.model / неизвестное имя) — без изменений.
+  var miniModel = options.kind === "sensor"
+    ? null
+    : _buildStageMiniModel(options.model, radius);
+  var core = null;
+  if (miniModel) {
+    miniModel.userData.overlayKind = "mini-model";
+    group.add(miniModel);
+  } else {
+    var coreGeometry = options.kind === "sensor"
+      ? new THREE.SphereGeometry(radius * 0.72, 24, 24)
+      : new THREE.OctahedronGeometry(radius * 0.82, 0);
+    core = new THREE.Mesh(
+      coreGeometry,
+      new THREE.MeshStandardMaterial({
+        color: STATUS_COLORS.inactive,
+        emissive: new THREE.Color(0x0b1220),
+        emissiveIntensity: 0.18,
+        roughness: options.kind === "sensor" ? 0.18 : 0.34,
+        metalness: options.kind === "sensor" ? 0.24 : 0.1,
+        transparent: true,
+        opacity: 0.95,
+      })
+    );
+    group.add(core);
+  }
 
   var halo = new THREE.Mesh(
     new THREE.SphereGeometry(radius * 1.45, 24, 24),
@@ -4866,13 +4890,264 @@ function _createStageMarker(sceneNode, labelPoint, options) {
   group.add(halo);
   group.add(_createVerticalConnector(labelPoint, STATUS_COLORS.inactive));
 
-  group.userData.colorMaterials.push(ring.material, core.material, halo.material);
-  group.userData.glowMaterials.push(ring.material, core.material);
+  // Тела мини-моделей НАМЕРЕННО не попадают в colorMaterials/glowMaterials:
+  // _applyNodeSignal перекрашивает эти массивы целиком в цвет статуса, и
+  // оборудование снова стало бы одноцветным «шаром». Статус читается по
+  // кольцу + гало + коннектору.
+  group.userData.colorMaterials.push(ring.material, halo.material);
+  group.userData.glowMaterials.push(ring.material);
+  if (core) {
+    group.userData.colorMaterials.push(core.material);
+    group.userData.glowMaterials.push(core.material);
+  }
   if (group.children[3] && group.children[3].material) {
     group.userData.colorMaterials.push(group.children[3].material);
   }
   _registerNode(sceneNode, group, true);
   overlayRoot.add(group);
+  return group;
+}
+
+// --- Процедурные мини-модели секций ПВУ (замечание рецензента editing-3) ---
+// Узнаваемые силуэты оборудования вместо абстрактных октаэдров. Материалы
+// статичны (палитра SECTION_PALETTE) и не регистрируются в статусных
+// массивах — см. комментарий в _createStageMarker.
+
+function _buildStageMiniModel(modelName, radius) {
+  switch (modelName) {
+    case "intake": return _buildIntakeModel(radius);
+    case "filter": return _buildFilterModel(radius, false);
+    case "filter_fine": return _buildFilterModel(radius, true);
+    case "heater": return _buildHeaterModel(radius);
+    case "fan": return _buildFanModel(radius);
+    case "cooler": return _buildCoolerModel(radius);
+    case "silencer": return _buildSilencerModel(radius);
+    case "duct": return _buildDuctModel(radius);
+    case "recuperator": return _buildRecuperatorModel(radius);
+    default: return null;
+  }
+}
+
+function _miniModelMaterial(colorHex, options) {
+  var settings = options || {};
+  return new THREE.MeshStandardMaterial({
+    color: colorHex,
+    emissive: new THREE.Color(settings.emissive || 0x0b1220),
+    emissiveIntensity: _withDefault(settings.emissiveIntensity, 0.18),
+    roughness: _withDefault(settings.roughness, 0.38),
+    metalness: _withDefault(settings.metalness, 0.22),
+    transparent: true,
+    opacity: _withDefault(settings.opacity, 0.96),
+  });
+}
+
+// Билдеры строят модель с осью потока вдоль локальной Z; затем группа
+// поворачивается так, чтобы локальная Z совпала с длинной осью установки.
+function _orientAlongLongAxis(object) {
+  if (!viewMetrics) return;
+  if (viewMetrics.longAxis === "x") {
+    object.rotation.y = Math.PI / 2;
+  } else if (viewMetrics.longAxis === "y") {
+    object.rotation.x = -Math.PI / 2;
+  }
+}
+
+function _buildIntakeModel(radius) {
+  var group = new THREE.Group();
+  var frame = new THREE.Mesh(
+    new THREE.BoxGeometry(radius * 1.6, radius * 1.6, radius * 0.22),
+    _miniModelMaterial(SECTION_PALETTE.frame.getHex(), { metalness: 0.34 })
+  );
+  group.add(frame);
+  for (var i = 0; i < 4; i += 1) {
+    var louver = new THREE.Mesh(
+      new THREE.BoxGeometry(radius * 1.34, radius * 0.14, radius * 0.4),
+      _miniModelMaterial(SECTION_PALETTE.intake.getHex(), { metalness: 0.3 })
+    );
+    louver.position.y = (i - 1.5) * radius * 0.36;
+    louver.position.z = radius * 0.16;
+    louver.rotation.x = -0.6;
+    group.add(louver);
+  }
+  _orientAlongLongAxis(group);
+  return group;
+}
+
+function _buildFilterModel(radius, fine) {
+  var group = new THREE.Group();
+  var mediaColor = fine ? 0xbae6fd : SECTION_PALETTE.filter.getHex();
+  var frame = new THREE.Mesh(
+    new THREE.BoxGeometry(radius * 1.7, radius * 1.7, radius * 0.3),
+    _miniModelMaterial(SECTION_PALETTE.frame.getHex(), { metalness: 0.34 })
+  );
+  group.add(frame);
+  var pleats = fine ? 9 : 7;
+  for (var i = 0; i < pleats; i += 1) {
+    var pleat = new THREE.Mesh(
+      new THREE.BoxGeometry(radius * 0.16, radius * 1.46, radius * 0.52),
+      _miniModelMaterial(mediaColor, { roughness: 0.6, metalness: 0.05 })
+    );
+    pleat.position.x = (i - (pleats - 1) / 2) * ((radius * 1.4) / pleats);
+    pleat.rotation.y = i % 2 === 0 ? 0.5 : -0.5;
+    group.add(pleat);
+  }
+  _orientAlongLongAxis(group);
+  return group;
+}
+
+function _buildHeaterModel(radius) {
+  var group = new THREE.Group();
+  var frame = new THREE.Mesh(
+    new THREE.BoxGeometry(radius * 1.7, radius * 1.7, radius * 0.34),
+    _miniModelMaterial(SECTION_PALETTE.frame.getHex(), { metalness: 0.3 })
+  );
+  group.add(frame);
+  // ТЭНы электрокалорифера светятся статично (не зависят от статуса).
+  for (var i = 0; i < 4; i += 1) {
+    var element = new THREE.Mesh(
+      new THREE.CylinderGeometry(radius * 0.09, radius * 0.09, radius * 1.42, 12),
+      _miniModelMaterial(0xff6a3d, {
+        emissive: 0xff6a3d,
+        emissiveIntensity: 0.85,
+        roughness: 0.3,
+        metalness: 0.1,
+      })
+    );
+    element.rotation.z = Math.PI / 2;
+    element.position.y = (i - 1.5) * radius * 0.4;
+    element.position.z = radius * 0.2;
+    group.add(element);
+  }
+  _orientAlongLongAxis(group);
+  return group;
+}
+
+function _buildFanModel(radius) {
+  var group = new THREE.Group();
+  var shroud = new THREE.Mesh(
+    new THREE.TorusGeometry(radius * 0.92, radius * 0.14, 14, 42),
+    _miniModelMaterial(SECTION_PALETTE.frame.getHex(), { metalness: 0.4, roughness: 0.3 })
+  );
+  group.add(shroud);
+  var hub = new THREE.Mesh(
+    new THREE.CylinderGeometry(radius * 0.24, radius * 0.24, radius * 0.34, 18),
+    _miniModelMaterial(SECTION_PALETTE.fan.getHex(), { metalness: 0.4 })
+  );
+  hub.rotation.x = Math.PI / 2;
+  group.add(hub);
+  for (var i = 0; i < 6; i += 1) {
+    var angle = (Math.PI * 2 * i) / 6;
+    var blade = new THREE.Mesh(
+      new THREE.BoxGeometry(radius * 0.2, radius * 0.66, radius * 0.07),
+      _miniModelMaterial(SECTION_PALETTE.fan.getHex(), { metalness: 0.3, opacity: 0.94 })
+    );
+    blade.position.x = Math.cos(angle) * radius * 0.5;
+    blade.position.y = Math.sin(angle) * radius * 0.5;
+    blade.rotation.z = angle;
+    blade.rotation.y = 0.42;
+    group.add(blade);
+  }
+  _orientAlongLongAxis(group);
+  return group;
+}
+
+function _buildCoolerModel(radius) {
+  var group = new THREE.Group();
+  var frame = new THREE.Mesh(
+    new THREE.BoxGeometry(radius * 1.6, radius * 1.6, radius * 0.3),
+    _miniModelMaterial(SECTION_PALETTE.frame.getHex(), { metalness: 0.3 })
+  );
+  group.add(frame);
+  for (var i = 0; i < 6; i += 1) {
+    var fin = new THREE.Mesh(
+      new THREE.BoxGeometry(radius * 0.06, radius * 1.36, radius * 0.5),
+      _miniModelMaterial(0x7dd3fc, { roughness: 0.3, metalness: 0.5 })
+    );
+    fin.position.x = (i - 2.5) * radius * 0.24;
+    group.add(fin);
+  }
+  var header = new THREE.Mesh(
+    new THREE.CylinderGeometry(radius * 0.1, radius * 0.1, radius * 1.5, 12),
+    _miniModelMaterial(0x0ea5e9, { metalness: 0.5 })
+  );
+  header.rotation.z = Math.PI / 2;
+  header.position.y = -radius * 0.86;
+  group.add(header);
+  _orientAlongLongAxis(group);
+  return group;
+}
+
+function _buildSilencerModel(radius) {
+  var group = new THREE.Group();
+  var shellMaterial = _miniModelMaterial(SECTION_PALETTE.silencer.getHex(), {
+    opacity: 0.62,
+    roughness: 0.5,
+    metalness: 0.12,
+  });
+  shellMaterial.side = THREE.DoubleSide;
+  var shell = new THREE.Mesh(
+    new THREE.CylinderGeometry(radius * 0.8, radius * 0.8, radius * 1.9, 20, 1, true),
+    shellMaterial
+  );
+  shell.rotation.x = Math.PI / 2;
+  group.add(shell);
+  for (var i = 0; i < 3; i += 1) {
+    var baffle = new THREE.Mesh(
+      new THREE.BoxGeometry(radius * 0.14, radius * 1.3, radius * 1.66),
+      _miniModelMaterial(0xc4b5fd, { roughness: 0.66, metalness: 0.04 })
+    );
+    baffle.position.x = (i - 1) * radius * 0.46;
+    group.add(baffle);
+  }
+  _orientAlongLongAxis(group);
+  return group;
+}
+
+function _buildDuctModel(radius) {
+  var group = new THREE.Group();
+  var duct = new THREE.Mesh(
+    new THREE.BoxGeometry(radius * 1.2, radius * 1.2, radius * 2.0),
+    _miniModelMaterial(SECTION_PALETTE.duct.getHex(), { metalness: 0.42, roughness: 0.3, opacity: 0.9 })
+  );
+  group.add(duct);
+  for (var i = -1; i <= 1; i += 1) {
+    var flange = new THREE.Mesh(
+      new THREE.BoxGeometry(radius * 1.34, radius * 1.34, radius * 0.08),
+      _miniModelMaterial(SECTION_PALETTE.frame.getHex(), { metalness: 0.4 })
+    );
+    flange.position.z = i * radius * 0.92;
+    group.add(flange);
+  }
+  _orientAlongLongAxis(group);
+  return group;
+}
+
+function _buildRecuperatorModel(radius) {
+  var group = new THREE.Group();
+  // Пластинчатый перекрёстноточный теплообменник: ромб (куб, повёрнутый на
+  // 45°) с пакетом пластин — классическое обозначение на схемах ОВиК.
+  var core = new THREE.Group();
+  core.rotation.z = Math.PI / 4;
+  var shellMaterial = _miniModelMaterial(SECTION_PALETTE.recuperator.getHex(), {
+    opacity: 0.42,
+    roughness: 0.4,
+  });
+  shellMaterial.depthWrite = false;
+  var shell = new THREE.Mesh(
+    new THREE.BoxGeometry(radius * 1.3, radius * 1.3, radius * 1.3),
+    shellMaterial
+  );
+  core.add(shell);
+  for (var i = 0; i < 6; i += 1) {
+    var plate = new THREE.Mesh(
+      new THREE.BoxGeometry(radius * 1.18, radius * 0.05, radius * 1.18),
+      _miniModelMaterial(0x6ee7b7, { roughness: 0.5, metalness: 0.26 })
+    );
+    plate.position.y = (i - 2.5) * radius * 0.2;
+    core.add(plate);
+  }
+  group.add(core);
+  _orientAlongLongAxis(group);
   return group;
 }
 
@@ -5189,6 +5464,7 @@ function _buildSyntheticScene() {
   var anchors = {
     outdoor: _resolvePointFromSpec(anchorsProfile.outdoor, null, { long: 0.06, vertical: 0.72, side: -0.28 }),
     filter: _resolvePointFromSpec(anchorsProfile.filter, null, { long: 0.24, vertical: 0.74, side: -0.12 }),
+    recuperator: _resolvePointFromSpec(anchorsProfile.recuperator, null, { long: 0.35, vertical: 0.74, side: -0.06 }),
     heater: _resolvePointFromSpec(anchorsProfile.heater, null, { long: 0.46, vertical: 0.74, side: 0.0 }),
     fan: _resolvePointFromSpec(anchorsProfile.fan, null, { long: 0.68, vertical: 0.74, side: 0.14 }),
     duct: _resolvePointFromSpec(anchorsProfile.duct, null, { long: 0.88, vertical: 0.72, side: 0.24 }),
@@ -5227,14 +5503,15 @@ function _buildSyntheticScene() {
     occupiedZone.clone().add(_vectorWithAxis(viewMetrics.verticalAxis, viewMetrics.markerSize * 0.8))
   );
 
-  _createStageMarker("pvu.intake.outdoor_air", anchors.outdoor, { kind: "node", scale: 1.18 });
-  _createStageMarker("pvu.filter.bank", anchors.filter, { kind: "node", scale: 1.14 });
-  _createStageMarker("pvu.heater.coil", anchors.heater, { kind: "node", scale: 1.14 });
-  _createStageMarker("pvu.fan.supply", anchors.fan, { kind: "node", scale: 1.14 });
-  _createStageMarker("pvu.filter.fine", anchors.filter_fine, { kind: "node", scale: 1.02 });
-  _createStageMarker("pvu.cooler.coil", anchors.cooler, { kind: "node", scale: 1.02 });
-  _createStageMarker("pvu.silencer", anchors.silencer, { kind: "node", scale: 1.0 });
-  _createStageMarker("pvu.duct.supply", anchors.duct, { kind: "node", scale: 1.1 });
+  _createStageMarker("pvu.intake.outdoor_air", anchors.outdoor, { kind: "node", scale: 1.18, model: "intake" });
+  _createStageMarker("pvu.filter.bank", anchors.filter, { kind: "node", scale: 1.14, model: "filter" });
+  _createStageMarker("pvu.recuperator.core", anchors.recuperator, { kind: "node", scale: 1.06, model: "recuperator" });
+  _createStageMarker("pvu.heater.coil", anchors.heater, { kind: "node", scale: 1.14, model: "heater" });
+  _createStageMarker("pvu.fan.supply", anchors.fan, { kind: "node", scale: 1.14, model: "fan" });
+  _createStageMarker("pvu.filter.fine", anchors.filter_fine, { kind: "node", scale: 1.02, model: "filter_fine" });
+  _createStageMarker("pvu.cooler.coil", anchors.cooler, { kind: "node", scale: 1.02, model: "cooler" });
+  _createStageMarker("pvu.silencer", anchors.silencer, { kind: "node", scale: 1.0, model: "silencer" });
+  _createStageMarker("pvu.duct.supply", anchors.duct, { kind: "node", scale: 1.1, model: "duct" });
   _createStageMarker("building.room.supply_air", roomInlet, { kind: "node", scale: 1.0 });
   _createRoomZone("building.room.zone_a", roomCenter, roomZoneProfile);
 
@@ -5329,6 +5606,36 @@ function _buildSyntheticScene() {
     "building.flow.room_supply_context",
     [anchors.duct, roomInlet, occupiedZone],
     0x7dd3fc
+  );
+  // Вытяжная ветвь контура рекуперации (замечание рецензента editing-2):
+  // воздух из помещения проходит через пластинчатый рекуператор и
+  // выбрасывается наружу. Сигналов у этих потоков нет (auxiliary_nodes),
+  // поэтому они анимируются с интенсивностью по умолчанию.
+  _createFlowNode(
+    "building.flow.room_to_recuperator",
+    _resolvePathSpecs(
+      flowProfile.room_to_recuperator,
+      Object.assign({}, anchors, { room: roomCenter }),
+      [
+        { anchor: "room", vertical_delta: 0.2, side_delta: -0.1 },
+        { long: 0.72, vertical: 0.6, side: -0.2 },
+        { anchor: "recuperator", vertical_delta: -0.04, side_delta: -0.04 },
+      ]
+    ),
+    0x94a3b8
+  );
+  _createFlowNode(
+    "pvu.flow.recuperator_to_exhaust",
+    _resolvePathSpecs(
+      flowProfile.recuperator_to_exhaust,
+      anchors,
+      [
+        { anchor: "recuperator", vertical_delta: -0.06, side_delta: -0.08 },
+        { long: 0.16, vertical: 0.62, side: -0.26 },
+        { long: 0.04, vertical: 0.5, side: -0.3 },
+      ]
+    ),
+    0x64748b
   );
 
   _createFanRotor(
@@ -5931,6 +6238,8 @@ function _resolveSignalPath(path) {
 }
 
 function _animateFlowNodes(time) {
+  // Early exit: не сканируем nodeMap когда визуализация потока выключена
+  if (!flowFieldEnabled) return;
   Object.keys(nodeMap).forEach(function (key) {
     var node = nodeMap[key];
     if (!node || node.userData.__flowAnimated || node.userData.overlayKind !== "flow") return;
@@ -6398,11 +6707,20 @@ function _animateAlarmFlash(time) {
   });
 }
 
+// Константы производительности
+var TARGET_FPS = 30;
+var FRAME_INTERVAL_MS = 1000 / TARGET_FPS;
+
 function _startAnimation() {
   if (animationId !== null) return;
-  function loop() {
+  var lastFrameTime = 0;
+  function loop(timestamp) {
     animationId = requestAnimationFrame(loop);
-    var dt = clock.getDelta();
+    // Кеп 30 FPS — пропускаем кадр если интервал не вышел
+    if (timestamp - lastFrameTime < FRAME_INTERVAL_MS) return;
+    lastFrameTime = timestamp;
+
+    var dt = Math.min(clock.getDelta(), 0.1);  // clamp для предотвращения спирали смерти
     var time = clock.getElapsedTime();
     if (controls) controls.update();
     _animateFan(dt);
@@ -6439,8 +6757,12 @@ function _startAnimation() {
     }
 
     _updateLabels();
+    // Overlay callouts обновляются в главном цикле вместо отдельного RAF
+    if (window.concept03Overlay && window.concept03Overlay.requestOverlayUpdate) {
+      window.concept03Overlay.requestOverlayUpdate();
+    }
   }
-  loop();
+  requestAnimationFrame(loop);
 }
 
 /**

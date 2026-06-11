@@ -834,7 +834,7 @@ def test_visualization_state_endpoint_returns_signal_map() -> None:
 
     body = response.json()
     assert response.status_code == 200
-    assert body["bindings_version"] == 3
+    assert body["bindings_version"] == 4
     assert body["status"] in {"normal", "warning", "alarm"}
     assert "filter_bank" in body["nodes"]
     assert "flow_fan_to_room" in body["flows"]

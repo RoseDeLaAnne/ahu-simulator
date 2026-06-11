@@ -36,7 +36,8 @@ def test_central_canvas_renders_phase5_regions_without_legacy_id_collision() -> 
     assert "concept03-scene-mode-select" in payload
     assert "concept03-scene-model-select" in payload
     assert "scene-3d-canvas" not in ids
-    assert payload.count("c03-callout") >= 9
+    assert payload.count("c03-callout") >= 10
+    assert "Пластинчатый рекуператор" in payload
     assert "concept03-mnemonic-svg-object" in payload
 
 
@@ -95,6 +96,7 @@ def test_central_canvas_view_builds_operator_callouts_and_tabs() -> None:
     assert operator_callouts == {
         "outdoor_air",
         "filter_bank",
+        "recuperator_core",
         "heater_coil",
         "supply_fan",
         "filter_fine",
@@ -103,10 +105,46 @@ def test_central_canvas_view_builds_operator_callouts_and_tabs() -> None:
         "room_supply",
     }
     assert defense_callouts == {"room_zone"}
-    assert len(view.callouts) == 9
+    assert len(view.callouts) == 10
     assert view.parameter_rows
     assert view.trend_rows
     assert view.doc_links
+
+
+def test_central_canvas_renders_visible_installation_description() -> None:
+    service = _build_service()
+    view = build_concept03_central_view(service.get_session())
+
+    # Viewmodel carries the installation description shown in the 3D scene.
+    assert view.scene_about.title
+    assert "рекупер" in view.scene_about.air_path.lower()
+    assert view.scene_about.notes
+    assert any("электрическ" in note.lower() for note in view.scene_about.notes)
+    assert any("схематич" in note.lower() for note in view.scene_about.notes)
+
+    canvas = build_central_canvas(view)
+    payload = str(canvas.to_plotly_json())
+
+    # Description is rendered (open by default) so it is visible on defense.
+    assert "concept03-scene-about" in payload
+    assert "c03-scene-about" in payload
+    assert "электрический калорифер" in payload
+    assert "рекуперац" in payload
+    assert "схематич" in payload
+    # Every labeled callout beside the card is accounted for in the air path.
+    assert "водяной охладитель" in view.scene_about.air_path.lower()
+    assert "тонкой очистки" in view.scene_about.air_path.lower()
+
+    # The card MUST render open by default — a collapse regression would leave
+    # all substring assertions green yet hide the description ("не увидел").
+    about_3d = _find_component(canvas, "concept03-scene-about")
+    assert about_3d is not None
+    assert getattr(about_3d, "open", None) is True
+    class_name = getattr(about_3d, "className", "") or ""
+    assert "c03-operator-only" not in class_name
+    assert "c03-defense-only" not in class_name
+    # The same description also accompanies the 2D «Схема» tab.
+    assert _find_component(canvas, "concept03-scene-about-2d") is not None
 
 
 def test_central_tab_class_names_are_stable() -> None:
@@ -114,6 +152,20 @@ def test_central_tab_class_names_are_stable() -> None:
     assert not central_tab_class_name("2d", "3d").endswith("--active")
     assert central_panel_class_name("alarms", "alarms").endswith("--active")
     assert not central_panel_class_name("docs", "alarms").endswith("--active")
+
+
+def _find_component(component, target_id: str):
+    if getattr(component, "id", None) == target_id:
+        return component
+    children = getattr(component, "children", None)
+    if isinstance(children, (list, tuple)):
+        for child in children:
+            found = _find_component(child, target_id)
+            if found is not None:
+                return found
+    elif children is not None and not isinstance(children, (str, int, float)):
+        return _find_component(children, target_id)
+    return None
 
 
 def _collect_component_ids(component) -> set[str]:

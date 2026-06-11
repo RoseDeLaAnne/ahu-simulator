@@ -11,6 +11,7 @@ Requires-Dist: numpy<3.0,>=2.3
 Requires-Dist: plotly<7.0,>=6.3
 Requires-Dist: pydantic<3.0,>=2.12
 Requires-Dist: PyYAML<7.0,>=6.0
+Requires-Dist: reportlab<5.0,>=4.2
 Requires-Dist: uvicorn<1.0,>=0.37
 Provides-Extra: dev
 Requires-Dist: httpx<1.0,>=0.28; extra == "dev"

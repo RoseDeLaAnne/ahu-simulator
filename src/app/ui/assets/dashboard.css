@@ -621,7 +621,7 @@ input[type="number"]:disabled {
 
 .mnemonic-object {
   width: 100%;
-  min-height: 430px;
+  min-height: 540px;
   border: 0;
   border-radius: 14px;
   background: var(--bg-elevated);

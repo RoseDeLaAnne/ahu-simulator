@@ -1,6 +1,5 @@
 """Tests for sparkline SVG component."""
 
-import pytest
 
 from app.ui.components.sparkline import build_sparkline_svg
 

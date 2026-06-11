@@ -4,10 +4,9 @@ import json
 import math
 import re
 from functools import lru_cache
-from pathlib import Path
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.infrastructure.settings import get_project_root
 

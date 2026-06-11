@@ -36,15 +36,28 @@ class SceneModelCatalog(BaseModel):
     models: list[SceneModelDescriptor] = Field(default_factory=list)
 
 
+_INSTALLATION_SUMMARY = (
+    "Приточная вентиляционная установка (ПВУ) с рекуперацией: воздухозабор → "
+    "фильтр → пластинчатый рекуператор (утилизация теплоты удаляемого воздуха) "
+    "→ электрический калорифер (нагрев упрощён, водяной контур не моделируется) "
+    "→ приточный вентилятор → подача в помещение. Цветные маркеры узлов — "
+    "схематичные индикаторы состояния, а не геометрия оборудования."
+)
+
+
 _MODEL_META: dict[str, dict[str, str | bool]] = {
     "ahu/master/pvu_installation.glb": {
         "id": "pvu_installation",
         "label": "Учебная ПВУ (СП 60.13330.2020)",
         "description": (
-            "Процедурная модель приточной вентиляционной установки с явной "
-            "разбивкой по секциям (воздухозабор, воздушный клапан, фильтр, "
-            "шумоглушитель, калорифер, вентилятор, воздуховод подачи). "
-            "Сохраняет иерархию узлов для режимов «Рентген» и «Схема»."
+            "Учебная модель приточной вентиляционной установки (ПВУ) с явной "
+            "разбивкой по секциям по ходу воздуха: воздухозабор → воздушный "
+            "клапан → фильтр (G4/F7) → пластинчатый рекуператор (утилизация "
+            "теплоты удаляемого воздуха) → электрический калорифер (догрев) → "
+            "приточный вентилятор → шумоглушитель → воздуховод подачи в "
+            "помещение. Нагрев упрощён до электрического калорифера, поэтому "
+            "водяной контур и обвязка не моделируются. Иерархия узлов "
+            "сохраняется для режимов «Рентген» и «Схема»."
         ),
         "preview_path": "images-of-models/0476a6.jpg",
         "accent": "#22d3ee",
@@ -55,8 +68,8 @@ _MODEL_META: dict[str, dict[str, str | bool]] = {
         "id": "modular_ahu",
         "label": "Флагманская ПВУ (детализированная)",
         "description": (
-            "Детализированная флагманская модель ПВУ для основной демонстрации "
-            "сцены установки вместо процедурного прототипа."
+            "Детализированная флагманская модель для основной демонстрации "
+            "сцены вместо процедурного прототипа. " + _INSTALLATION_SUMMARY
         ),
         "preview_path": "images-of-models/0476a6.jpg",
         "accent": "#38bdf8",
@@ -67,8 +80,8 @@ _MODEL_META: dict[str, dict[str, str | bool]] = {
         "id": "modular_ahu",
         "label": "Флагманская ПВУ (детализированная)",
         "description": (
-            "Детализированная флагманская модель ПВУ для основной демонстрации "
-            "сцены установки вместо процедурного прототипа."
+            "Детализированная флагманская модель для основной демонстрации "
+            "сцены вместо процедурного прототипа. " + _INSTALLATION_SUMMARY
         ),
         "preview_path": "images-of-models/0476a6.jpg",
         "accent": "#38bdf8",
@@ -79,8 +92,8 @@ _MODEL_META: dict[str, dict[str, str | bool]] = {
         "id": "base_variant_c",
         "label": "Базовый вариант C",
         "description": (
-            "Новый вариант базового корпуса для замены отсутствовавшего GLB "
-            "в третьем семействе базовых моделей."
+            "Базовый корпус (вариант C) для чистой визуализации тракта. "
+            + _INSTALLATION_SUMMARY
         ),
         "preview_path": "images-of-models/XXL_height.webp",
         "accent": "#06b6d4",
@@ -91,8 +104,8 @@ _MODEL_META: dict[str, dict[str, str | bool]] = {
         "id": "base_variant_c",
         "label": "Базовый вариант C",
         "description": (
-            "Новый вариант базового корпуса для замены отсутствовавшего GLB "
-            "в третьем семействе базовых моделей."
+            "Базовый корпус (вариант C) для чистой визуализации тракта. "
+            + _INSTALLATION_SUMMARY
         ),
         "preview_path": "images-of-models/XXL_height.webp",
         "accent": "#06b6d4",
@@ -103,8 +116,8 @@ _MODEL_META: dict[str, dict[str, str | bool]] = {
         "id": "industrial_hvac_unit",
         "label": "Промышленная ПВУ",
         "description": (
-            "Компактная индустриальная ПВУ для акцентной студийной сцены и "
-            "быстрой проверки режимов."
+            "Компактная индустриальная компоновка для акцентной студийной "
+            "сцены и быстрой проверки режимов. " + _INSTALLATION_SUMMARY
         ),
         "preview_path": "images-of-models/XXL_height.webp",
         "accent": "#14b8a6",
@@ -115,8 +128,8 @@ _MODEL_META: dict[str, dict[str, str | bool]] = {
         "id": "industrial_machinery_unit",
         "label": "Промышленный агрегат",
         "description": (
-            "Вытянутый агрегат с компактным сечением, подходящий для режима "
-            "рентген-визуализации потока."
+            "Вытянутый агрегат с компактным сечением для режима "
+            "рентген-визуализации потока. " + _INSTALLATION_SUMMARY
         ),
         "preview_path": "images-of-models/obaw9u5kjxb6wc04l05iuz032skbt5sb.webp",
         "accent": "#f97316",
@@ -127,8 +140,8 @@ _MODEL_META: dict[str, dict[str, str | bool]] = {
         "id": "base_classic",
         "label": "Базовый классический",
         "description": (
-            "Базовый удлинённый корпус установки для чистой визуализации "
-            "приточного тракта."
+            "Базовый удлинённый корпус для чистой визуализации приточного "
+            "тракта. " + _INSTALLATION_SUMMARY
         ),
         "preview_path": "images-of-models/XXL_height.webp",
         "accent": "#22c55e",
@@ -139,8 +152,8 @@ _MODEL_META: dict[str, dict[str, str | bool]] = {
         "id": "base_variant_b",
         "label": "Базовый вариант Б",
         "description": (
-            "Высокий вариант установки для альтернативного ракурса и "
-            "демонстрации узлов по вертикали."
+            "Высокий корпус (вариант Б) для альтернативного ракурса и показа "
+            "узлов по вертикали. " + _INSTALLATION_SUMMARY
         ),
         "preview_path": "images-of-models/obaw9u5kjxb6wc04l05iuz032skbt5sb.webp",
         "accent": "#eab308",
@@ -176,7 +189,10 @@ def build_scene_model_catalog(project_root: Path | None = None) -> SceneModelCat
             label=str(meta.get("label") or _humanize_name(model_path.stem)),
             description=str(
                 meta.get("description")
-                or "Пользовательская 3D-модель для интерактивной сцены ПВУ."
+                or (
+                    "Пользовательская 3D-модель приточной вентиляционной "
+                    "установки (ПВУ). " + _INSTALLATION_SUMMARY
+                )
             ),
             model_path=model_path.relative_to(root).as_posix(),
             model_url=f"/models/{quote(relative_model_path)}",

@@ -118,11 +118,11 @@ def _build_index_string(dashboard_prefix: str) -> str:
         </script>
         {%css%}
     </head>
-    <body class="theme-legacy">
+    <body class="theme-concept03">
         <script>
         (function applyConcept03Theme() {
             var params = new URLSearchParams(window.location.search || "");
-            var theme = params.get("theme") || "legacy";
+            var theme = params.get("theme") || "concept03";
             var defense = params.get("defense");
             var concept03 = theme === "concept03";
             var defenseActive = concept03 && ["1", "true", "yes", "on"].indexOf(String(defense).toLowerCase()) !== -1;

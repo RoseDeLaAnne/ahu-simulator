@@ -30,6 +30,7 @@ def test_visualization_signal_map_contains_stable_visual_ids() -> None:
     assert signals.all_visual_ids() == {
         "outdoor_air",
         "filter_bank",
+        "recuperator_core",
         "heater_coil",
         "supply_fan",
         "filter_fine",
@@ -74,7 +75,7 @@ def test_scene_bindings_cover_visualization_signals() -> None:
     assert {binding.visual_id for binding in bindings.bindings} == signals.all_visual_ids()
 
 
-def test_visualization_signal_map_v3_contains_phase5_callout_nodes() -> None:
+def test_visualization_signal_map_v4_contains_phase5_callout_nodes() -> None:
     service = _build_service()
     result = service.run_scenario("summer")
 
@@ -83,7 +84,9 @@ def test_visualization_signal_map_v3_contains_phase5_callout_nodes() -> None:
         bindings_version=load_scene_bindings().version,
     )
 
-    assert signals.bindings_version == 3
+    assert signals.bindings_version == 4
+    assert signals.nodes["recuperator_core"].label == "Пластинчатый рекуператор"
+    assert signals.nodes["recuperator_core"].value.endswith("%")
     assert signals.nodes["filter_fine"].label == "Фильтр тонкой очистки"
     assert signals.nodes["cooler_coil"].label == "Водяной охладитель"
     assert signals.nodes["silencer"].label == "Шумоглушитель"

@@ -13,7 +13,6 @@ import pytest
 from pydantic import ValidationError
 
 from app.ui.scene.bindings import (
-    AnimationRules,
     CameraPreset,
     DamperPositionRule,
     EmissiveHighlight,
@@ -493,11 +492,11 @@ class TestLoadRealScene3d:
         from app.ui.scene.bindings import load_scene_bindings
         load_scene_bindings.cache_clear()
         registry = load_scene_bindings()
-        assert registry.version == 3
-        assert len(registry.bindings) == 19
+        assert registry.version == 4
+        assert len(registry.bindings) == 20
         assert registry.asset is not None
         assert registry.asset.format == "glb"
-        assert len(registry.interactive_targets) == 15
+        assert len(registry.interactive_targets) == 16
         assert registry.animation_rules is not None
         assert registry.animation_rules.fan_rotation is not None
         assert registry.animation_rules.flow_pulse is not None

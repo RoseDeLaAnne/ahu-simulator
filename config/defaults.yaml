@@ -60,8 +60,8 @@ trusted_hosts:
   - "*"
 enforce_https_redirect: false
 ui:
-  theme: "legacy"
-  concept03_enabled: false
+  theme: "concept03"
+  concept03_enabled: true
   defense_day_variant: false
 academic:
   program: "ВКР 2026"

@@ -3,12 +3,12 @@ from fastapi.testclient import TestClient
 from app.main import create_app
 
 
-def test_dashboard_mount_serves_legacy_entrypoint() -> None:
+def test_dashboard_mount_serves_concept03_entrypoint() -> None:
     with TestClient(create_app()) as client:
         response = client.get("/dashboard")
 
     assert response.status_code == 200
-    assert "theme-legacy" in response.text
+    assert "theme-concept03" in response.text
 
 
 def test_dashboard_entrypoint_contains_concept03_theme_bootstrap() -> None:

@@ -71,9 +71,20 @@ def build_concept03_header_view(
 
 
 def build_header_state_payload(result: SimulationResult) -> dict[str, str]:
+    alarms = result.alarms
+    critical_count = sum(1 for a in alarms if a.level.value == "critical")
+    warning_count = sum(1 for a in alarms if a.level.value == "warning")
+    total = len(alarms)
+    highest = (
+        "critical" if critical_count > 0
+        else "warning" if warning_count > 0
+        else "normal"
+    )
     return {
         "operation_status": result.state.status.value,
         "operation_label": _operation_label(result.state.status),
+        "alarm_count": str(total),
+        "highest_alarm_level": highest,
     }
 
 

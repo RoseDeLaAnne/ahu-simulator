@@ -185,7 +185,7 @@ Mapping callout → VisualElementState (operator dashboard):
 |---|---|
 | Outdoor air | `outdoor_air` |
 | Фильтр грубой очистки | `filter_bank` (фильтр одного типа сейчас, далее можно расширить до `filter_coarse`/`filter_fine`) |
-| Водяной нагреватель | `heater_coil` |
+| Электрический калорифер | `heater_coil` |
 | Вентилятор | `supply_fan` |
 | Фильтр тонкой очистки | `filter_fine` (новый) |
 | Водяной охладитель | `cooler_coil` (новый) |

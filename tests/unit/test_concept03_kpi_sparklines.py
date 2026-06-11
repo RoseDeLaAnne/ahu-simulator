@@ -2,7 +2,6 @@
 
 from datetime import datetime, timezone
 
-import pytest
 
 from app.services.status_service import StatusService
 from app.services.trend_service import TrendService

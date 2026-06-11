@@ -54,9 +54,17 @@ _CALLOUT_LAYOUTS = (
         "y": 17.0,
     },
     {
+        "callout_id": "recuperator",
+        "visual_id": "recuperator_core",
+        "title": "Пластинчатый рекуператор",
+        "side": "top",
+        "x": 36.0,
+        "y": 17.0,
+    },
+    {
         "callout_id": "heater-coil",
         "visual_id": "heater_coil",
-        "title": "Водяной нагреватель",
+        "title": "Электрический калорифер",
         "side": "top",
         "x": 43.5,
         "y": 18.0,
@@ -308,6 +316,7 @@ def _rows_for_signal(
     labels = {
         "outdoor_air": ("T", "После рекуп."),
         "filter_bank": ("ΔP", "Загрязнение"),
+        "recuperator_core": ("КПД", "Приток"),
         "heater_coil": ("Мощн.", "Загрузка"),
         "supply_fan": ("P", "Режим"),
         "filter_fine": ("ΔP", "Класс"),

@@ -34,7 +34,7 @@ from app.ui.render_modes import (
     build_scene2d_workspace,
     build_scene3d_workspace,
 )
-from app.ui.viewmodels.control_modes import ControlModeView, build_control_mode_view
+from app.ui.viewmodels.control_modes import build_control_mode_view
 from app.ui.viewmodels.demo_readiness import (
     DemoPackageEntryView,
     DemoPackageView,
@@ -111,7 +111,6 @@ from app.ui.viewmodels.validation_basis import (
 from app.ui.viewmodels.validation_agreement import (
     ValidationAgreementCaseView,
     ValidationAgreementLinkView,
-    ValidationAgreementMetricView,
     ValidationAgreementStepView,
     ValidationAgreementView,
     build_validation_agreement_view,
@@ -269,7 +268,7 @@ def build_dashboard_layout(
             ),
             dcc.Interval(
                 id="concept03-header-clock",
-                interval=1000,
+                interval=5000,  # clientside-only, 5с достаточно для видимого обновления
                 n_intervals=0,
             ),
             dcc.Interval(
@@ -315,6 +314,7 @@ def build_dashboard_layout(
             ),
             html.Div(id="mnemonic-sync", style={"display": "none"}),
             html.Div(id="viewer3d-sync", style={"display": "none"}),
+            html.Div(id="concept03-shell-data-sync", style={"display": "none"}),
             build_concept03_shell(
                 active_page=DEFAULT_PAGE.value,
                 root_id="concept03-shell",
@@ -335,9 +335,10 @@ def build_dashboard_layout(
                         className="site-nav__inner",
                         children=[
                             html.A(
-                                "Симулятор ПВУ",
+                                "Симулятор приточной установки",
                                 href=_page_href("main"),
                                 className="site-nav__logo",
+                                title="Приточная вентиляционная установка (ПВУ)",
                             ),
                             html.Div(
                                 className="site-nav__links",
@@ -1081,15 +1082,16 @@ def build_dashboard_layout(
                                 className="studio-nav__inner",
                                 children=[
                                     html.A(
-                                        "Симулятор ПВУ",
+                                        "Симулятор приточной установки",
                                         href=_page_href("main", "section-monitoring"),
                                         className="studio-nav__logo",
+                                        title="Приточная вентиляционная установка (ПВУ)",
                                     ),
                                     html.Div(
                                         className="studio-nav__right",
                                         children=[
                                             html.Span(
-                                                "3D Студия",
+                                                "Приточная вентиляционная установка · 3D Студия",
                                                 className="studio-nav__label",
                                             ),
                                             html.A(
@@ -1477,8 +1479,9 @@ def build_dashboard_layout(
                         className="site-footer__inner",
                         children=[
                             html.Span(
-                                "Симулятор ПВУ",
+                                "Симулятор приточной установки",
                                 className="site-footer__brand",
+                                title="Приточная вентиляционная установка (ПВУ)",
                             ),
                             html.Span(
                                 "MVP-маршрут для показа модели приточной вентиляционной установки"

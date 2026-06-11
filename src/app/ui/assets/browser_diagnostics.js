@@ -188,12 +188,22 @@
     { passive: true }
   );
 
-  new MutationObserver(hardenAllDropdowns).observe(document.documentElement, {
+  var domMutationTimer = null;
+  new MutationObserver(function() {
+    // Debounce 1с — избегаем лавины вызовов при массовых DOM-изменениях
+    if (domMutationTimer) return;
+    domMutationTimer = window.setTimeout(function() {
+      domMutationTimer = null;
+      hardenAllDropdowns();
+    }, 1000);
+  }).observe(document.documentElement, {
     childList: true,
     subtree: true,
   });
 
-  window.setInterval(hardenAllDropdowns, 500);
+  // Throttled с 500ms до 5000ms — непрерывный DOM-traversal каждые 0.5с
+  // создавал ~3% main-thread нагрузки даже в idle
+  window.setInterval(hardenAllDropdowns, 5000);
 
   window.dash_clientside = Object.assign({}, window.dash_clientside, {
     pvuDiagnostics: {

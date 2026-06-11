@@ -27,7 +27,7 @@ def build_concept03_config_view(
     parameters = current_result.parameters
     subject_title = project_baseline.subject.title
     installation_type = (
-        "Учебная ПВУ"
+        "Учебная ПВУ (приточная)"
         if "приточная" in subject_title.lower()
         else subject_title[:32]
     )
@@ -40,7 +40,7 @@ def build_concept03_config_view(
         Concept03ConfigItemView("Напор (ном.)", "700 Па"),
         Concept03ConfigItemView("Класс фильтрации", "F7 + F9"),
         Concept03ConfigItemView("Рекуператор", "Пластинчатый"),
-        Concept03ConfigItemView("Нагреватель", "Водяной"),
+        Concept03ConfigItemView("Нагреватель", "Электрический"),
     )
     return Concept03ConfigView(
         title="Конфигурация установки",

@@ -12,7 +12,7 @@ body.theme-concept03 {
 
   /* Text */
   --c03-text: #e6eef7;
-  --c03-text-muted: #94a4b8;
+  --c03-text-muted: #a8b6c8; /* Lightened from #94a4b8 for WCAG AA (~6.2:1 on #131c28) */
   --c03-text-faint: #6a7c92;
   --c03-text-inverse: #0a1119;
 

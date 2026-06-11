@@ -389,7 +389,7 @@
   body.theme-concept03 .c03-left-cta {
     border: 1px solid var(--c03-line);
     border-radius: var(--c03-radius-md);
-    background: linear-gradient(180deg, var(--c03-bg-panel), var(--c03-bg-base));
+    background: var(--c03-bg-panel); /* ISA-101: solid */
     box-shadow: var(--c03-shadow-card);
   }
 
@@ -444,7 +444,7 @@
     padding: 12px;
     border: 1px solid var(--c03-line);
     border-radius: var(--c03-radius-md);
-    background: linear-gradient(180deg, var(--c03-bg-panel), var(--c03-bg-base));
+    background: var(--c03-bg-panel); /* ISA-101: solid */
     box-shadow: var(--c03-shadow-card);
     color: var(--c03-text);
     text-decoration: none;

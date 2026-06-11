@@ -57,6 +57,13 @@ class Concept03AlarmRowView:
 
 
 @dataclass(frozen=True)
+class Concept03SceneAboutView:
+    title: str
+    air_path: str
+    notes: tuple[str, ...]
+
+
+@dataclass(frozen=True)
 class Concept03DocLinkView:
     title: str
     href: str
@@ -73,6 +80,7 @@ class Concept03CentralView:
     selected_scene_model_id: str | None
     scene_mode_options: tuple[Concept03SceneModeOptionView, ...]
     selected_scene_mode_id: str
+    scene_about: Concept03SceneAboutView
     callouts: tuple[Concept03CalloutView, ...]
     parameter_rows: tuple[Concept03ParameterRowView, ...]
     trend_rows: tuple[Concept03TrendRowView, ...]
@@ -123,6 +131,7 @@ def build_concept03_central_view(
         selected_scene_model_id=scene_model_catalog.default_model_id,
         scene_mode_options=CONCEPT03_SCENE_MODE_OPTIONS,
         selected_scene_mode_id="catalog",
+        scene_about=_build_scene_about(),
         callouts=build_concept03_callouts(signals, bindings),
         parameter_rows=_build_parameter_rows(session),
         trend_rows=_build_trend_rows(session),
@@ -138,6 +147,34 @@ def _build_scene_model_options(
     return tuple(
         Concept03SceneModelOptionView(model.id, model.label)
         for model in scene_model_catalog.models
+    )
+
+
+def _build_scene_about() -> Concept03SceneAboutView:
+    """Видимое в 3D-сцене описание установки.
+
+    Закрывает замечание рецензента «описания я твоего не увидел» и поясняет
+    текстом (без замены геометрии): схематичные маркеры узлов, упрощение
+    нагрева до электрического калорифера и роль вытяжной ветки как контура
+    рекуперации. Описание относится к моделируемой ПВУ в целом и потому
+    остаётся корректным при любом выборе 3D-меша.
+    """
+    return Concept03SceneAboutView(
+        title="Приточная вентиляционная установка (ПВУ) с рекуперацией",
+        air_path=(
+            "Тракт воздуха: воздухозабор → воздушный клапан → фильтр грубой "
+            "очистки (G4) → пластинчатый рекуператор → электрический калорифер "
+            "→ приточный вентилятор → фильтр тонкой очистки (F7) → водяной "
+            "охладитель (летний контур) → шумоглушитель → подача в помещение."
+        ),
+        notes=(
+            "Цветные маркеры — схематичные индикаторы состояния узлов "
+            "(норма / предупреждение / тревога), а не геометрия оборудования.",
+            "Нагрев упрощён до электрического калорифера: водяной контур и "
+            "обвязка не моделируются.",
+            "Вытяжная ветка — контур рекуперации: утилизация теплоты "
+            "удаляемого воздуха через пластинчатый рекуператор.",
+        ),
     )
 
 

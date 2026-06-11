@@ -168,7 +168,7 @@ def _build_viewport(view: Concept03CentralView, active_tab: str) -> html.Div:
         className="c03-central-viewport",
         children=[
             _build_3d_panel(view, active_tab),
-            _build_2d_panel(active_tab),
+            _build_2d_panel(view, active_tab),
             _build_parameters_panel(view, active_tab),
             _build_trends_panel(view, active_tab),
             _build_alarms_panel(view, active_tab),
@@ -193,6 +193,7 @@ def _build_3d_panel(view: Concept03CentralView, active_tab: str) -> html.Div:
                         className="c03-scene-viewport__canvas",
                     ),
                     *build_callout_layer_content(view),
+                    _build_scene_about_card(view),
                 ],
             )
         ],
@@ -239,6 +240,41 @@ def _build_scene_controls(view: Concept03CentralView) -> html.Div:
     )
 
 
+def _build_scene_about_card(
+    view: Concept03CentralView,
+    *,
+    element_id: str = "concept03-scene-about",
+) -> html.Details:
+    about = view.scene_about
+    return html.Details(
+        id=element_id,
+        className="c03-scene-about",
+        open=True,
+        children=[
+            html.Summary(
+                children=[
+                    Icon("info", 15, class_name="c03-scene-about__icon"),
+                    html.Span(about.title, className="c03-scene-about__title"),
+                ],
+                className="c03-scene-about__summary",
+            ),
+            html.Div(
+                className="c03-scene-about__body",
+                children=[
+                    html.P(about.air_path, className="c03-scene-about__path"),
+                    html.Ul(
+                        className="c03-scene-about__notes",
+                        children=[
+                            html.Li(note, className="c03-scene-about__note")
+                            for note in about.notes
+                        ],
+                    ),
+                ],
+            ),
+        ],
+    )
+
+
 def _build_scene_dropdown(label: str, control: dcc.Dropdown) -> html.Div:
     return html.Div(
         className="c03-scene-control-field",
@@ -249,7 +285,7 @@ def _build_scene_dropdown(label: str, control: dcc.Dropdown) -> html.Div:
     )
 
 
-def _build_2d_panel(active_tab: str) -> html.Div:
+def _build_2d_panel(view: Concept03CentralView, active_tab: str) -> html.Div:
     return html.Div(
         id="concept03-panel-2d",
         className=central_panel_class_name("2d", active_tab),
@@ -260,7 +296,8 @@ def _build_2d_panel(active_tab: str) -> html.Div:
                 data="assets/pvu_mnemonic.svg",
                 type="image/svg+xml",
                 className="c03-mnemonic-object",
-            )
+            ),
+            _build_scene_about_card(view, element_id="concept03-scene-about-2d"),
         ],
     )
 

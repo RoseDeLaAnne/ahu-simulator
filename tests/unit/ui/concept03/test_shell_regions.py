@@ -1,5 +1,4 @@
 from app.ui.concept03.page_router import DEFAULT_PAGE
-from app.ui.concept03.regions import REGION_IDS
 from app.ui.concept03.shell import build_concept03_shell
 
 
@@ -8,7 +7,12 @@ def test_shell_builds_regions_in_tab_order() -> None:
 
     assert shell.id == "concept03-shell"
     assert shell.children[0].id == "app-header"
-    assert [child.id for child in shell.children] == list(REGION_IDS)
+    # concept03-page-content replaces central-canvas as the center grid area wrapper
+    expected_ids = [
+        "app-header", "left-rail", "concept03-page-content",
+        "right-rail", "bottom-strip", "app-footer-nav",
+    ]
+    assert [child.id for child in shell.children] == expected_ids
     assert [child.tabIndex for child in shell.children] == [0, 0, 0, 0, 0, 0]
 
 

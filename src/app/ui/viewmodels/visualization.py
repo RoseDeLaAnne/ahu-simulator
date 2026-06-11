@@ -28,7 +28,7 @@ class VisualizationSignalMap(BaseModel):
     scenario_title: str | None = None
     status: OperationStatus
     summary: str
-    bindings_version: int = 3
+    bindings_version: int = 4
     active_alarm_codes: list[str] = Field(default_factory=list)
     nodes: dict[str, VisualElementState] = Field(default_factory=dict)
     sensors: dict[str, VisualElementState] = Field(default_factory=dict)
@@ -42,7 +42,7 @@ class VisualizationSignalMap(BaseModel):
 
 def build_visualization_signal_map(
     result: SimulationResult,
-    bindings_version: int = 3,
+    bindings_version: int = 4,
     room_context: dict[str, object] | None = None,
     status_service: StatusService | None = None,
 ) -> VisualizationSignalMap:
@@ -86,6 +86,14 @@ def build_visualization_signal_map(
             detail=f"Загрязнение {parameters.filter_contamination * 100:.0f}%",
             state=filter_state,
             alarm_text=_alarm_marker(filter_state),
+        ),
+        "recuperator_core": VisualElementState(
+            visual_id="recuperator_core",
+            label="Пластинчатый рекуператор",
+            value=f"{parameters.heat_recovery_efficiency * 100:.0f} %",
+            detail=f"После рекуп. {_temperature(state.recovered_air_temp_c)}",
+            state=outdoor_state,
+            alarm_text=_alarm_marker(outdoor_state),
         ),
         "heater_coil": VisualElementState(
             visual_id="heater_coil",

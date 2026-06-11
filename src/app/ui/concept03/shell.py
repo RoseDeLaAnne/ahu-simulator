@@ -6,10 +6,18 @@ from dash import html
 
 from app.ui.concept03.bottom_strip import build_bottom_strip
 from app.ui.concept03.central_canvas import build_central_canvas
+from app.ui.concept03.components.icon import Icon
 from app.ui.concept03.footer_nav import build_footer_nav
 from app.ui.concept03.header import build_header
 from app.ui.concept03.left_rail import build_left_rail
 from app.ui.concept03.page_router import DEFAULT_PAGE, PAGE_IDS
+from app.ui.concept03.pages import (
+    build_analytics_content,
+    build_control_content,
+    build_equipment_content,
+    build_library_content,
+    build_settings_content,
+)
 from app.ui.concept03.regions import Region
 from app.ui.concept03.right_rail import build_right_rail
 from app.ui.viewmodels.concept03_bottom import (
@@ -74,6 +82,51 @@ def build_concept03_shell(
         if central_view is not None
         else _build_region(Region.CENTRAL_CANVAS)
     )
+    # Контейнер страниц: дашборд (central_canvas) + 5 дополнительных страниц.
+    # Занимает grid-area: center. Внутри — alarm strip + 6 панелей, видимых по data-active-page.
+    page_content = html.Div(
+        id="concept03-page-content",
+        className="c03-page-content",
+        tabIndex=0,
+        children=[
+            html.Div(
+                id="concept03-alarm-strip",
+                className="c03-alarm-strip",
+                children=[
+                    Icon("shield-check", 14, class_name="c03-alarm-strip__icon"),
+                    html.Span(
+                        "Активные тревоги: —",
+                        id="concept03-alarm-strip-text",
+                        className="c03-alarm-strip__text",
+                    ),
+                ],
+            ),
+            html.Div(
+                className="c03-page-panel c03-page-panel--dashboard",
+                children=[central_canvas],
+            ),
+            html.Div(
+                className="c03-page-panel c03-page-panel--equipment",
+                children=build_equipment_content(),
+            ),
+            html.Div(
+                className="c03-page-panel c03-page-panel--control",
+                children=build_control_content(),
+            ),
+            html.Div(
+                className="c03-page-panel c03-page-panel--analytics",
+                children=build_analytics_content(),
+            ),
+            html.Div(
+                className="c03-page-panel c03-page-panel--library",
+                children=build_library_content(),
+            ),
+            html.Div(
+                className="c03-page-panel c03-page-panel--settings",
+                children=build_settings_content(),
+            ),
+        ],
+    )
     bottom_strip = (
         build_bottom_strip(
             bottom_view,
@@ -95,7 +148,7 @@ def build_concept03_shell(
         children=[
             header,
             left_rail,
-            central_canvas,
+            page_content,
             right_rail,
             bottom_strip,
             footer,

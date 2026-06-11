@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 4,
   "asset": {
     "model_path": "data/visualization/assets/pvu_installation.glb",
     "format": "glb",
@@ -51,6 +51,7 @@
   "interactive_targets": [
     "pvu.intake.outdoor_air",
     "pvu.filter.bank",
+    "pvu.recuperator.core",
     "pvu.heater.coil",
     "pvu.fan.supply",
     "pvu.filter.fine",
@@ -69,6 +70,8 @@
     "pvu.fan.rotor",
     "pvu.flow.room_plumes",
     "building.flow.extract_context",
+    "building.flow.room_to_recuperator",
+    "pvu.flow.recuperator_to_exhaust",
     "pvu.damper.intake",
     "pvu.damper.living",
     "pvu.damper.bedroom_north",
@@ -173,6 +176,13 @@
       "signal_path": "nodes.filter_bank",
       "svg_element_id": "filter_bank",
       "scene_node": "pvu.filter.bank"
+    },
+    {
+      "visual_id": "recuperator_core",
+      "kind": "node",
+      "signal_path": "nodes.recuperator_core",
+      "svg_element_id": "recuperator_core",
+      "scene_node": "pvu.recuperator.core"
     },
     {
       "visual_id": "heater_coil",

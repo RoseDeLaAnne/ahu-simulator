@@ -181,6 +181,21 @@ def register_callbacks(
     def sync_concept03_dashboard_page(search: str | None) -> str:
         return select_page(search)
 
+    # Обновление data-active-page на shell для переключения видимости страниц через CSS
+    app.clientside_callback(
+        """
+        function(activePage) {
+            var shell = document.getElementById("concept03-shell");
+            if (shell) {
+                shell.setAttribute("data-active-page", activePage || "dashboard");
+            }
+            return "";
+        }
+        """,
+        Output("concept03-shell-data-sync", "children"),
+        Input("dashboard-page", "data"),
+    )
+
     app.clientside_callback(
         """
         function(search) {
@@ -2684,6 +2699,8 @@ def _build_run_comparison_figure(comparison: RunComparison | None) -> go.Figure:
         font={"family": "Inter, Segoe UI, sans-serif", "color": "#1f2933"},
         margin={"l": 40, "r": 30, "t": 20, "b": 40},
         legend={"orientation": "h", "y": 1.12},
+        # Стабильный uirevision: Plotly diff-обновляет трейсы вместо полной перерисовки.
+        uirevision="comparison",
     )
     figure.update_xaxes(title="Время, мин", gridcolor="#d8dee4")
     figure.update_yaxes(
@@ -2982,6 +2999,8 @@ def _build_trend_figure(
         font={"family": "Inter, Segoe UI, sans-serif", "color": "#1f2933"},
         margin={"l": 40, "r": 30, "t": 10, "b": 40},
         legend={"orientation": "h", "y": 1.12},
+        # Стабильный uirevision: при тиках Plotly не пересоздаёт график целиком.
+        uirevision="trend",
     )
     figure.update_xaxes(title="Время, мин", gridcolor="#d8dee4")
     figure.update_yaxes(

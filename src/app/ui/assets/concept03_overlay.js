@@ -379,25 +379,16 @@
     updateCompass();
   }
 
-  function startPositionLoop() {
-    if (rafId) {
-      return;
-    }
-    var tick = function () {
-      positionCallouts();
-      updateCompass();
-      rafId = window.requestAnimationFrame(tick);
-    };
-    rafId = window.requestAnimationFrame(tick);
+  // Overlay-обновления теперь в главном рендер-цикле viewer3d.mjs (один RAF вместо двух).
+  // startPositionLoop/stopPositionLoop оставлены заглушками для обратной совместимости.
+  function requestOverlayUpdate() {
+    positionCallouts();
+    updateCompass();
   }
-
-  function stopPositionLoop() {
-    if (!rafId) {
-      return;
-    }
-    window.cancelAnimationFrame(rafId);
-    rafId = null;
-  }
+  function startPositionLoop() { /* no-op: overlay теперь в главном цикле */ }
+  function stopPositionLoop()  { /* no-op */ }
+  // Экспорт для вызова из viewer3d.mjs
+  window.concept03Overlay = { requestOverlayUpdate: requestOverlayUpdate };
 
   function positionCallouts() {
     var layer = document.getElementById("concept03-callout-layer");

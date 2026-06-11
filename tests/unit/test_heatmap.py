@@ -1,6 +1,5 @@
 """Tests for heat map SVG component."""
 
-import pytest
 
 from app.ui.components.heatmap import build_heatmap_svg
 

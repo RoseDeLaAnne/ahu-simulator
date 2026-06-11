@@ -60,7 +60,10 @@ def build_mobile_offcanvas(view: Concept03FooterNavView) -> html.Div:
                         children=[
                             html.Span("КАСКАД ГРУП"),
                             html.Strong("ООО «НПО «Каскад-ГРУП»"),
-                            html.P("ВКР: Моделирование работы ПВУ"),
+                            html.P(
+                                "ВКР: Моделирование работы приточной "
+                                "вентиляционной установки (ПВУ)"
+                            ),
                             html.Code(view.version_text),
                         ],
                     ),

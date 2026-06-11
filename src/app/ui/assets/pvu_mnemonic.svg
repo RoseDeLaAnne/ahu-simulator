@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 480" role="img" aria-labelledby="svg-title svg-desc">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600" role="img" aria-labelledby="svg-title svg-desc">
   <title id="svg-title">Мнемосхема приточной вентиляционной установки</title>
-  <desc id="svg-desc">SVG-сцена ПВУ с узлами, датчиками и потоками, обновляемая через clientside callback.</desc>
+  <desc id="svg-desc">SVG-сцена ПВУ с узлами, датчиками, рекуператором и потоками, обновляемая через clientside callback.</desc>
   <defs>
     <linearGradient id="panelGradient" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#15343b" />
@@ -136,6 +136,14 @@
       color: #fb7185;
     }
 
+    .flow-line--exhaust {
+      stroke: #64748b;
+    }
+
+    .flow-arrow--exhaust {
+      color: #64748b;
+    }
+
     .flow-caption {
       fill: #8ca4a0;
       font: 600 11px Bahnschrift, "Segoe UI", sans-serif;
@@ -176,14 +184,14 @@
     }
   </style>
 
-  <rect class="scene-bg" x="0" y="0" width="1200" height="480" rx="32" />
-  <rect class="scene-frame" x="14" y="14" width="1172" height="452" rx="28" />
+  <rect class="scene-bg" x="0" y="0" width="1200" height="600" rx="32" />
+  <rect class="scene-frame" x="14" y="14" width="1172" height="572" rx="28" />
 
-  <text class="subheading" x="48" y="54">SVG mnemonic renderer</text>
-  <text class="heading" x="48" y="92">Приточная вентиляционная установка</text>
+  <text class="subheading" x="48" y="54">Мнемосхема · структура и потоки</text>
+  <text class="heading" x="48" y="92">Приточная вентиляционная установка (ПВУ)</text>
   <text class="ambient-label" id="scene-status" x="950" y="56">Статус: NORMAL</text>
   <text class="ambient-label" id="scene-bindings-version" x="950" y="80">bindings v1</text>
-  <text class="summary" id="scene-summary" x="48" y="430">Ожидание данных моделирования.</text>
+  <text class="summary" id="scene-summary" x="48" y="560">Ожидание данных моделирования.</text>
 
   <g id="flow_outdoor_to_filter" class="visual-flow is-active" data-state="normal">
     <path id="flow_outdoor_to_filter__line" class="flow-line" d="M 242 175 H 280" />
@@ -210,11 +218,23 @@
   </g>
 
   <g id="flow_fan_to_room" class="visual-flow is-active" data-state="normal">
-    <path id="flow_fan_to_room__line" class="flow-line" d="M 812 175 H 1038 V 308 H 860" />
-    <polygon class="flow-arrow" points="860,308 876,299 876,317" />
-    <text class="flow-caption" x="840" y="150">Подача в помещение</text>
-    <text id="flow_fan_to_room__value" class="flow-value" x="842" y="202">--</text>
-    <text id="flow_fan_to_room__detail" class="flow-detail" x="842" y="220">--</text>
+    <path id="flow_fan_to_room__line" class="flow-line" d="M 812 175 H 1150 V 380 H 1134" />
+    <polygon class="flow-arrow" points="1134,380 1150,371 1150,389" />
+    <text class="flow-caption" x="1056" y="150">Подача</text>
+    <text id="flow_fan_to_room__value" class="flow-value" x="1056" y="204">--</text>
+    <text id="flow_fan_to_room__detail" class="flow-detail" x="1056" y="222">--</text>
+  </g>
+
+  <g id="flow_room_to_recuperator" class="visual-flow is-active">
+    <path id="flow_room_to_recuperator__line" class="flow-line flow-line--exhaust" d="M 850 420 H 545" />
+    <polygon class="flow-arrow flow-arrow--exhaust" points="545,420 561,411 561,429" />
+    <text class="flow-caption" x="586" y="398">Вытяжка из помещения</text>
+  </g>
+
+  <g id="flow_recuperator_to_exhaust" class="visual-flow is-active">
+    <path id="flow_recuperator_to_exhaust__line" class="flow-line flow-line--exhaust" d="M 320 420 H 95" />
+    <polygon class="flow-arrow flow-arrow--exhaust" points="95,420 111,411 111,429" />
+    <text class="flow-caption" x="112" y="398">Выброс наружу</text>
   </g>
 
   <g id="outdoor_air" class="visual-node" data-state="normal" transform="translate(60 120)">
@@ -241,7 +261,7 @@
 
   <g id="heater_coil" class="visual-node" data-state="normal" transform="translate(470 100)">
     <rect class="node-shell" width="150" height="140" rx="26" />
-    <text class="node-caption" x="18" y="32">Нагреватель</text>
+    <text class="node-caption" x="18" y="32">Калорифер</text>
     <text id="heater_coil__value" class="node-value" x="18" y="82">--</text>
     <text id="heater_coil__detail" class="node-detail" x="18" y="112">--</text>
     <g id="heater_coil__alarm" class="alarm-badge" transform="translate(122 24)">
@@ -272,7 +292,18 @@
     </g>
   </g>
 
-  <g id="room_zone" class="visual-node room-node" data-state="normal" transform="translate(860 290)">
+  <g id="recuperator_core" class="visual-node" data-state="normal" transform="translate(330 360)">
+    <rect class="node-shell" width="200" height="140" rx="26" />
+    <text class="node-caption" x="18" y="32">Рекуператор · КПД</text>
+    <text id="recuperator_core__value" class="node-value" x="18" y="82">--</text>
+    <text id="recuperator_core__detail" class="node-detail" x="18" y="112">--</text>
+    <g id="recuperator_core__alarm" class="alarm-badge" transform="translate(172 24)">
+      <circle r="14" />
+      <text id="recuperator_core__alarm_text" y="6">!</text>
+    </g>
+  </g>
+
+  <g id="room_zone" class="visual-node room-node" data-state="normal" transform="translate(860 340)">
     <rect class="node-shell" width="270" height="120" rx="28" />
     <text class="node-caption" x="22" y="34">Помещение</text>
     <text id="room_zone__value" class="node-value" x="22" y="84">--</text>
@@ -283,7 +314,7 @@
     </g>
   </g>
 
-  <g id="sensor_outdoor_temp" class="visual-sensor" data-state="normal" transform="translate(118 46)">
+  <g id="sensor_outdoor_temp" class="visual-sensor" data-state="normal" transform="translate(60 262)">
     <rect class="sensor-shell" width="128" height="54" rx="18" />
     <text class="sensor-caption" x="14" y="20">T наружная</text>
     <text id="sensor_outdoor_temp__value" class="sensor-value" x="14" y="43">--</text>
@@ -294,7 +325,7 @@
     </g>
   </g>
 
-  <g id="sensor_filter_pressure" class="visual-sensor" data-state="normal" transform="translate(290 270)">
+  <g id="sensor_filter_pressure" class="visual-sensor" data-state="normal" transform="translate(290 262)">
     <rect class="sensor-shell" width="138" height="58" rx="18" />
     <text class="sensor-caption" x="14" y="22">ΔP фильтра</text>
     <text id="sensor_filter_pressure__value" class="sensor-value" x="14" y="47">--</text>
@@ -305,7 +336,7 @@
     </g>
   </g>
 
-  <g id="sensor_supply_temp" class="visual-sensor" data-state="normal" transform="translate(878 26)">
+  <g id="sensor_supply_temp" class="visual-sensor" data-state="normal" transform="translate(520 262)">
     <rect class="sensor-shell" width="146" height="58" rx="18" />
     <text class="sensor-caption" x="14" y="22">T притока</text>
     <text id="sensor_supply_temp__value" class="sensor-value" x="14" y="47">--</text>
@@ -316,7 +347,7 @@
     </g>
   </g>
 
-  <g id="sensor_airflow" class="visual-sensor" data-state="normal" transform="translate(900 255)">
+  <g id="sensor_airflow" class="visual-sensor" data-state="normal" transform="translate(750 262)">
     <rect class="sensor-shell" width="142" height="58" rx="18" />
     <text class="sensor-caption" x="14" y="22">Расход</text>
     <text id="sensor_airflow__value" class="sensor-value" x="14" y="47">--</text>
@@ -327,7 +358,7 @@
     </g>
   </g>
 
-  <g id="sensor_room_temp" class="visual-sensor" data-state="normal" transform="translate(980 230)">
+  <g id="sensor_room_temp" class="visual-sensor" data-state="normal" transform="translate(980 262)">
     <rect class="sensor-shell" width="140" height="58" rx="18" />
     <text class="sensor-caption" x="14" y="22">T помещения</text>
     <text id="sensor_room_temp__value" class="sensor-value" x="14" y="47">--</text>

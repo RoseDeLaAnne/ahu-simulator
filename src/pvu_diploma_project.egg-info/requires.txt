@@ -5,6 +5,7 @@ numpy<3.0,>=2.3
 plotly<7.0,>=6.3
 pydantic<3.0,>=2.12
 PyYAML<7.0,>=6.0
+reportlab<5.0,>=4.2
 uvicorn<1.0,>=0.37
 
 [dev]

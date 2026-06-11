@@ -948,8 +948,6 @@ class ExportService:
                 Paragraph,
                 SimpleDocTemplate,
                 Spacer,
-                Table,
-                TableStyle,
             )
         except Exception:
             return False
