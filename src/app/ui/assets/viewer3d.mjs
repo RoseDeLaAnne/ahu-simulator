@@ -6,6 +6,16 @@ import { RenderPass } from "three/addons/postprocessing/RenderPass.mjs";
 import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.mjs";
 import { OutputPass } from "three/addons/postprocessing/OutputPass.mjs";
 import { SSAOPass } from "three/addons/postprocessing/SSAOPass.mjs";
+import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.mjs";
+
+// Фабрика GLTFLoader с подключённым meshopt-декодером: оптимизированные GLB
+// используют EXT_meshopt_compression, без декодера они не загрузятся.
+// GLTFLoader r170 сам дожидается MeshoptDecoder.ready перед разбором.
+function _createGltfLoader() {
+  var loader = new GLTFLoader();
+  loader.setMeshoptDecoder(MeshoptDecoder);
+  return loader;
+}
 
 const STATUS_COLORS = {
   normal: 0x22c55e,
@@ -4246,7 +4256,7 @@ function init(containerId, meta) {
   }
 
   try {
-    sharedLoader = new GLTFLoader();
+    sharedLoader = _createGltfLoader();
     renderer = new THREE.WebGLRenderer({
       antialias: ((sceneMeta.performance_budget || {}).antialias !== false),
       alpha: false,  // Непрозрачный canvas — устраняет просвечивание тёмного CSS-фона
@@ -4256,6 +4266,8 @@ function init(containerId, meta) {
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.05;
+    // Счётчики кадра сбрасываются вручную в цикле анимации (см. lastFrameStats).
+    renderer.info.autoReset = false;
     // Мягкие контактные тени заземляют установку и резко повышают реализм.
     // Отключаются через performance_budget.shadows === false на слабом железе.
     shadowsEnabled = ((sceneMeta.performance_budget || {}).shadows !== false);
@@ -6711,6 +6723,11 @@ function _animateAlarmFlash(time) {
 var TARGET_FPS = 30;
 var FRAME_INTERVAL_MS = 1000 / TARGET_FPS;
 
+// Статистика последнего отрисованного кадра. renderer.info.autoReset выключен:
+// composer сбрасывал бы счётчики на каждом пассе, снаружи был бы виден только
+// fullscreen-треугольник OutputPass. Сбрасываем вручную раз за кадр.
+var lastFrameStats = { triangles: 0, drawCalls: 0 };
+
 function _startAnimation() {
   if (animationId !== null) return;
   var lastFrameTime = 0;
@@ -6719,6 +6736,7 @@ function _startAnimation() {
     // Кеп 30 FPS — пропускаем кадр если интервал не вышел
     if (timestamp - lastFrameTime < FRAME_INTERVAL_MS) return;
     lastFrameTime = timestamp;
+    if (renderer) renderer.info.reset();
 
     var dt = Math.min(clock.getDelta(), 0.1);  // clamp для предотвращения спирали смерти
     var time = clock.getElapsedTime();
@@ -6754,6 +6772,10 @@ function _startAnimation() {
       } else {
         renderer.render(scene, camera);
       }
+    }
+    if (renderer) {
+      lastFrameStats.triangles = renderer.info.render.triangles;
+      lastFrameStats.drawCalls = renderer.info.render.calls;
     }
 
     _updateLabels();
@@ -7131,7 +7153,7 @@ function _cacheRoomEntry(modelUrl, roomDescriptor, showProgress) {
 
   pendingRoomEntries[roomKey] = new Promise(function (resolve, reject) {
     if (!sharedLoader) {
-      sharedLoader = new GLTFLoader();
+      sharedLoader = _createGltfLoader();
     }
     sharedLoader.load(
       modelUrl,
@@ -7207,7 +7229,7 @@ function _cacheModelEntry(modelUrl, modelDescriptor, showProgress) {
 
   pendingModelEntries[modelKey] = new Promise(function (resolve, reject) {
     if (!sharedLoader) {
-      sharedLoader = new GLTFLoader();
+      sharedLoader = _createGltfLoader();
     }
     sharedLoader.load(
       modelUrl,
@@ -7638,6 +7660,14 @@ window.pvu3d = {
         ssaoSupported: ssaoPass !== null,
         ssaoEnabled: ssaoPass ? ssaoPass.enabled : null,
         ssaoKernelRadius: ssaoPass ? ssaoPass.kernelRadius : null,
+        rendererInfo: renderer
+          ? {
+              triangles: lastFrameStats.triangles,
+              drawCalls: lastFrameStats.drawCalls,
+              geometries: renderer.info.memory.geometries,
+              textures: renderer.info.memory.textures,
+            }
+          : null,
       },
     };
   },
