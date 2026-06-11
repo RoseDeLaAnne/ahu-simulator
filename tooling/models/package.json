@@ -1,0 +1,17 @@
+{
+  "name": "ahu-model-optimizer",
+  "private": true,
+  "type": "module",
+  "description": "GLB optimization pipeline for AHU simulator scene models (gltf-transform + meshoptimizer + sharp)",
+  "scripts": {
+    "optimize": "node optimize-glbs.mjs",
+    "optimize:dry": "node optimize-glbs.mjs --dry-run"
+  },
+  "dependencies": {
+    "@gltf-transform/core": "^4.2.1",
+    "@gltf-transform/extensions": "^4.2.1",
+    "@gltf-transform/functions": "^4.2.1",
+    "meshoptimizer": "^0.22.0",
+    "sharp": "^0.33.5"
+  }
+}
