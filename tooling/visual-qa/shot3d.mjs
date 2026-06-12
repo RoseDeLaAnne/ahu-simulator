@@ -43,6 +43,10 @@ async function main() {
     deviceScaleFactor: 1,
   });
   const page = await ctx.newPage();
+  // Watchdog авто-качества не должен срабатывать на swiftshader (~3 fps).
+  await page.addInitScript(() => {
+    window.__pvu3dDisableAutoQuality = true;
+  });
   const consoleErrors = [];
   page.on("console", (m) => {
     if (m.type() === "error") consoleErrors.push(m.text());

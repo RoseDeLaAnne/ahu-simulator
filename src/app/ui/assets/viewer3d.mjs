@@ -4222,7 +4222,9 @@ function _onResize() {
   var height = Math.max(container.clientHeight || 540, 320);
   var maxPixelRatio = ((sceneMeta.performance_budget || {}).max_pixel_ratio || 2.0);
   var widthBudget = width >= 1600 ? 1.15 : width >= 1280 ? 1.28 : width >= 960 ? 1.45 : maxPixelRatio;
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, maxPixelRatio, widthBudget));
+  renderer.setPixelRatio(
+    Math.min(window.devicePixelRatio || 1, maxPixelRatio, widthBudget) * qualityPixelRatioScale
+  );
 
   // Update camera aspect based on comparison mode
   if (comparisonMode) {
@@ -6723,6 +6725,177 @@ function _animateAlarmFlash(time) {
 var TARGET_FPS = 30;
 var FRAME_INTERVAL_MS = 1000 / TARGET_FPS;
 
+// ── Автокачество (FPS-watchdog) ──────────────────────────────────────────
+// Ступенчатая деградация вместо жёсткого сброса в 2D (решение пользователя):
+//   L0 → L1 (<24 fps): pixelRatio ×0.75
+//   L1 → L2 (<18 fps): тени и SSAO выключаются
+//   L2 → L3 (<14 fps): bloom выключается, частицы потока прорежены вдвое
+//   <10 fps дольше 10 с: одноразовая подсказка про 2D-режим
+// Гистерезис: восстановление уровня только после стабильного fps выше
+// порога деградации + запас в течение 5 с; между переходами пауза 3 с.
+// Снимок пользовательских намерений гарантирует, что восстановление не
+// включит то, что пользователь выключил вручную. В comparisonMode
+// watchdog не вмешивается (там свой рендер-путь и сплит-вьюпорты).
+// Отключение: performance_budget.auto_quality === false (конфиг сцены)
+// или window.__pvu3dDisableAutoQuality === true (QA-пробы на swiftshader).
+var AUTO_QUALITY_STEPS = [24, 18, 14];
+var AUTO_QUALITY_RECOVER_MARGIN = 6;
+var AUTO_QUALITY_DWELL_MS = 3000;
+var AUTO_QUALITY_RECOVER_MS = 5000;
+var AUTO_QUALITY_HINT_FPS = 10;
+var AUTO_QUALITY_HINT_MS = 10000;
+var qualityPixelRatioScale = 1.0;
+var autoQuality = {
+  level: 0,
+  fpsEma: null,
+  lastFrameAt: null,
+  lastTransitionAt: 0,
+  recoveryAccumMs: 0,
+  lowFpsSince: null,
+  hintShown: false,
+  snapshot: { shadows: null, ssao: null, bloom: null },
+};
+
+function _autoQualityEnabled() {
+  if (typeof window !== "undefined" && window.__pvu3dDisableAutoQuality === true) {
+    return false;
+  }
+  return ((sceneMeta.performance_budget || {}).auto_quality !== false);
+}
+
+function _setShadowsForQuality(enabled) {
+  if (!renderer) return;
+  renderer.shadowMap.enabled = enabled === true;
+  if (keyLight) keyLight.castShadow = enabled === true;
+  renderer.shadowMap.needsUpdate = true;
+}
+
+function _setFlowParticleDensity(density) {
+  Object.keys(nodeMap).forEach(function (key) {
+    var node = nodeMap[key];
+    if (!node || !node.userData || !node.userData.flowParticles) return;
+    node.userData.flowParticles.forEach(function (particle, index) {
+      particle.visible = density >= 1 || index % 2 === 0;
+    });
+  });
+}
+
+function _showQualityHint(text) {
+  if (!container) return;
+  var hint = document.createElement("div");
+  hint.className = "viewer3d-quality-hint";
+  hint.textContent = text;
+  hint.style.cssText =
+    "position:absolute;left:50%;bottom:18px;transform:translateX(-50%);" +
+    "background:rgba(15,23,42,0.92);color:#e2e8f0;padding:10px 16px;" +
+    "border-radius:8px;font-size:13px;z-index:30;pointer-events:none;" +
+    "max-width:80%;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,0.4);";
+  container.appendChild(hint);
+  setTimeout(function () {
+    if (hint.parentNode) hint.parentNode.removeChild(hint);
+  }, 12000);
+}
+
+function _applyQualityLevel(level) {
+  var prev = autoQuality.level;
+  if (level === prev) return;
+  autoQuality.level = level;
+
+  // L1+: уменьшенный pixelRatio (применяется в _onResize).
+  qualityPixelRatioScale = level >= 1 ? 0.75 : 1.0;
+  _onResize();
+
+  // L2+: тени и SSAO.
+  if (level >= 2 && prev < 2) {
+    autoQuality.snapshot.shadows = renderer ? renderer.shadowMap.enabled : null;
+    autoQuality.snapshot.ssao = ssaoPass ? ssaoPass.enabled : null;
+    _setShadowsForQuality(false);
+    if (ssaoPass) ssaoPass.enabled = false;
+  } else if (level < 2 && prev >= 2) {
+    if (autoQuality.snapshot.shadows === true) _setShadowsForQuality(true);
+    if (ssaoPass && autoQuality.snapshot.ssao === true) ssaoPass.enabled = true;
+  }
+
+  // L3: bloom и плотность частиц.
+  if (level >= 3 && prev < 3) {
+    autoQuality.snapshot.bloom = bloomPass ? bloomPass.enabled : null;
+    if (bloomPass) bloomPass.enabled = false;
+    _setFlowParticleDensity(0.5);
+  } else if (level < 3 && prev >= 3) {
+    if (bloomPass && autoQuality.snapshot.bloom === true) bloomPass.enabled = true;
+    _setFlowParticleDensity(1.0);
+  }
+
+  console.info(
+    "[PVU3D] auto-quality: уровень " + prev + " → " + level +
+      " (fps≈" + (autoQuality.fpsEma !== null ? autoQuality.fpsEma.toFixed(1) : "?") + ")"
+  );
+}
+
+function _sampleAutoQuality(timestamp) {
+  if (autoQuality.lastFrameAt === null) {
+    autoQuality.lastFrameAt = timestamp;
+    return;
+  }
+  var frameMs = timestamp - autoQuality.lastFrameAt;
+  autoQuality.lastFrameAt = timestamp;
+  // Вкладка спала или таймер скакнул — такой интервал не показателен.
+  // Порог 4с: кадры по 1-4с — это реальные тормоза, их нужно учитывать.
+  if (frameMs <= 0 || frameMs > 4000) {
+    autoQuality.lowFpsSince = null;
+    return;
+  }
+  var fps = 1000 / frameMs;
+  autoQuality.fpsEma = autoQuality.fpsEma === null
+    ? fps
+    : autoQuality.fpsEma * 0.92 + fps * 0.08;
+
+  if (!_autoQualityEnabled() || comparisonMode) return;
+  var ema = autoQuality.fpsEma;
+
+  // Подсказка о 2D-режиме при стабильно низком fps (один раз за сессию).
+  // Сравниваем по wall-clock, а не по сумме интервалов: при fps < 1 часть
+  // кадров отбрасывается фильтром выше и аккумулятор не добрал бы порог.
+  if (ema < AUTO_QUALITY_HINT_FPS) {
+    if (autoQuality.lowFpsSince === null) autoQuality.lowFpsSince = timestamp;
+    if (!autoQuality.hintShown && timestamp - autoQuality.lowFpsSince >= AUTO_QUALITY_HINT_MS) {
+      autoQuality.hintShown = true;
+      _showQualityHint("Низкая производительность 3D. Рекомендуем переключиться в 2D-режим.");
+    }
+  } else {
+    autoQuality.lowFpsSince = null;
+  }
+
+  if (timestamp - autoQuality.lastTransitionAt < AUTO_QUALITY_DWELL_MS) return;
+
+  // Деградация: fps ниже порога текущего уровня.
+  if (autoQuality.level < AUTO_QUALITY_STEPS.length && ema < AUTO_QUALITY_STEPS[autoQuality.level]) {
+    _applyQualityLevel(autoQuality.level + 1);
+    autoQuality.lastTransitionAt = timestamp;
+    autoQuality.recoveryAccumMs = 0;
+    return;
+  }
+
+  // Восстановление: fps стабильно выше порога + запас (с учётом капа 30 fps).
+  if (autoQuality.level > 0) {
+    var recoverAt = Math.min(
+      AUTO_QUALITY_STEPS[autoQuality.level - 1] + AUTO_QUALITY_RECOVER_MARGIN,
+      TARGET_FPS - 3
+    );
+    if (ema > recoverAt) {
+      autoQuality.recoveryAccumMs += frameMs;
+      if (autoQuality.recoveryAccumMs >= AUTO_QUALITY_RECOVER_MS) {
+        _applyQualityLevel(autoQuality.level - 1);
+        autoQuality.lastTransitionAt = timestamp;
+        autoQuality.recoveryAccumMs = 0;
+      }
+    } else {
+      autoQuality.recoveryAccumMs = 0;
+    }
+  }
+}
+
+
 // Статистика последнего отрисованного кадра. renderer.info.autoReset выключен:
 // composer сбрасывал бы счётчики на каждом пассе, снаружи был бы виден только
 // fullscreen-треугольник OutputPass. Сбрасываем вручную раз за кадр.
@@ -6736,6 +6909,7 @@ function _startAnimation() {
     // Кеп 30 FPS — пропускаем кадр если интервал не вышел
     if (timestamp - lastFrameTime < FRAME_INTERVAL_MS) return;
     lastFrameTime = timestamp;
+    _sampleAutoQuality(timestamp);
     if (renderer) renderer.info.reset();
 
     var dt = Math.min(clock.getDelta(), 0.1);  // clamp для предотвращения спирали смерти
@@ -7650,6 +7824,13 @@ window.pvu3d = {
         : null,
       seasonalProfile: _scenarioAtmosphereProfile(currentSignals || {}).id,
       nodeNames: Object.keys(nodeMap).sort(),
+      performance: {
+        fps: autoQuality.fpsEma !== null ? +autoQuality.fpsEma.toFixed(1) : null,
+        qualityLevel: autoQuality.level,
+        autoQualityEnabled: _autoQualityEnabled(),
+        pixelRatio: renderer ? renderer.getPixelRatio() : null,
+        hintShown: autoQuality.hintShown,
+      },
       rendering: {
         shadowsEnabled: shadowsEnabled,
         shadowMapEnabled: renderer ? renderer.shadowMap.enabled : null,

@@ -119,6 +119,7 @@ class PerformanceBudget(BaseModel):
     max_canvas_height: int = Field(ge=240, default=900)
     target_fps: int = Field(ge=10, le=120, default=30)
     antialias: bool = True
+    auto_quality: bool = True
     fallback_to_2d_on_fps_below: int = Field(ge=1, le=30, default=10)
 
     @model_validator(mode="after")

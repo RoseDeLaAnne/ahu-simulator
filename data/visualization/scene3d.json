@@ -46,6 +46,7 @@
     "max_canvas_height": 900,
     "target_fps": 30,
     "antialias": true,
+    "auto_quality": true,
     "fallback_to_2d_on_fps_below": 10
   },
   "interactive_targets": [
