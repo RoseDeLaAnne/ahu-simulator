@@ -7,6 +7,14 @@ import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.mjs
 import { OutputPass } from "three/addons/postprocessing/OutputPass.mjs";
 import { SSAOPass } from "three/addons/postprocessing/SSAOPass.mjs";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.mjs";
+import { MeshoptSimplifier } from "three/addons/libs/meshopt_simplifier.module.mjs";
+
+// WASM-симплификатор компилируется асинхронно; к моменту включения LOD
+// (пользовательское действие спустя секунды после загрузки) уже готов.
+var meshoptSimplifierReady = false;
+MeshoptSimplifier.ready.then(function () {
+  meshoptSimplifierReady = true;
+});
 
 // Фабрика GLTFLoader с подключённым meshopt-декодером: оптимизированные GLB
 // используют EXT_meshopt_compression, без декодера они не загрузятся.
@@ -2340,9 +2348,11 @@ function clearClippingPlanes() {
 // ============================================================================
 
 /**
- * Создать упрощённую версию геометрии.
+ * Создать упрощённую версию геометрии (meshopt simplifier, WASM).
+ * Сохраняет форму и границы меша (LockBorder) — в отличие от прежнего
+ * прореживания индексов, которое дырявило геометрию.
  * @param {THREE.BufferGeometry} geometry - исходная геометрия
- * @param {number} ratio - коэффициент упрощения (0.0-1.0)
+ * @param {number} ratio - целевая доля треугольников (0.0-1.0)
  * @returns {THREE.BufferGeometry} упрощённая геометрия
  */
 function _simplifyGeometry(geometry, ratio) {
@@ -2350,37 +2360,54 @@ function _simplifyGeometry(geometry, ratio) {
     return geometry;
   }
 
+  var posAttr = geometry.attributes.position;
+  var vertexCount = posAttr ? posAttr.count : 0;
   // Для очень простой геометрии (< 100 вершин) не упрощаем
-  var vertexCount = geometry.attributes.position ? geometry.attributes.position.count : 0;
-  if (vertexCount < 100) {
+  if (vertexCount < 100 || ratio >= 0.9) {
+    return geometry.clone();
+  }
+  if (!meshoptSimplifierReady) {
+    console.warn("[LOD] meshopt simplifier ещё не готов — уровень без упрощения");
     return geometry.clone();
   }
 
   var simplified = geometry.clone();
 
-  // Простое упрощение: прореживание вершин
-  // Для production можно использовать SimplifyModifier из three/examples
-  if (ratio >= 0.9) {
+  // Позиции переводим в Float32: getX/getY/getZ раскрывают normalized и
+  // interleaved атрибуты (оптимизированные GLB квантованы KHR_mesh_quantization).
+  var positions = new Float32Array(vertexCount * 3);
+  for (var i = 0; i < vertexCount; i++) {
+    positions[i * 3] = posAttr.getX(i);
+    positions[i * 3 + 1] = posAttr.getY(i);
+    positions[i * 3 + 2] = posAttr.getZ(i);
+  }
+
+  var srcIndex;
+  if (simplified.index) {
+    srcIndex = simplified.index.array instanceof Uint32Array
+      ? simplified.index.array
+      : new Uint32Array(simplified.index.array);
+  } else {
+    srcIndex = new Uint32Array(vertexCount);
+    for (var j = 0; j < vertexCount; j++) srcIndex[j] = j;
+  }
+
+  var targetIndexCount = Math.max(Math.floor((srcIndex.length * ratio) / 3) * 3, 12);
+  var result = MeshoptSimplifier.simplify(
+    srcIndex,
+    positions,
+    3,
+    targetIndexCount,
+    0.01, // target_error: 1% от габаритов меша
+    ["LockBorder"]
+  );
+  var newIndices = result && result[0];
+  if (!newIndices || newIndices.length === 0) {
+    // Упрощение выродило геометрию — оставляем уровень неупрощённым.
     return simplified;
   }
 
-  // Базовое упрощение через decimation
-  var targetCount = Math.max(Math.floor(vertexCount * ratio), 12);
-  var step = Math.max(1, Math.floor(vertexCount / targetCount));
-
-  if (step > 1 && simplified.index) {
-    var indices = simplified.index.array;
-    var newIndices = [];
-
-    for (var i = 0; i < indices.length; i += step * 3) {
-      if (i + 2 < indices.length) {
-        newIndices.push(indices[i], indices[i + 1], indices[i + 2]);
-      }
-    }
-
-    simplified.setIndex(newIndices);
-  }
-
+  simplified.setIndex(new THREE.BufferAttribute(newIndices, 1));
   return simplified;
 }
 
@@ -2671,6 +2698,8 @@ function _clearFlowField() {
         obj.material.dispose();
       }
     }
+    // InstancedMesh держит GPU-буферы instanceMatrix/instanceColor отдельно.
+    if (obj.isInstancedMesh) obj.dispose();
   });
   flowFieldObjects = [];
 
@@ -2711,90 +2740,115 @@ function _createFlowFieldVisualization() {
 }
 
 /**
+ * Цвет вектора по выбранной схеме (speed / direction / cyan).
+ */
+function _flowVectorColor(speed, dir, minSpeed, speedRange) {
+  if (flowFieldColorScheme === "speed") {
+    const t = (speed - minSpeed) / speedRange;
+    const color = new THREE.Color();
+    if (t < 0.25) {
+      color.setRGB(0, t * 4, 1); // blue -> cyan
+    } else if (t < 0.5) {
+      color.setRGB(0, 1, 1 - (t - 0.25) * 4); // cyan -> green
+    } else if (t < 0.75) {
+      color.setRGB((t - 0.5) * 4, 1, 0); // green -> yellow
+    } else {
+      color.setRGB(1, 1 - (t - 0.75) * 4, 0); // yellow -> red
+    }
+    return color;
+  }
+  if (flowFieldColorScheme === "direction") {
+    return new THREE.Color(Math.abs(dir.x), Math.abs(dir.y), Math.abs(dir.z));
+  }
+  return new THREE.Color(0x00ffff);
+}
+
+/**
  * Создать поле стрелок для визуализации векторов.
+ * Два InstancedMesh (стержни + наконечники) вместо ArrowHelper на точку:
+ * 2 draw call на всё поле вместо 2 на каждую стрелку.
  */
 function _createArrowField() {
   if (!flowFieldData || !scene) return;
 
   const points = flowFieldData.points;
-  const densityFactor = flowFieldDensity;
-  const step = Math.max(1, Math.floor(1 / densityFactor));
+  const step = Math.max(1, Math.floor(1 / flowFieldDensity));
 
-  // Find min/max speed for color mapping
   let minSpeed = Infinity;
   let maxSpeed = -Infinity;
   points.forEach((p) => {
     if (p.speed < minSpeed) minSpeed = p.speed;
     if (p.speed > maxSpeed) maxSpeed = p.speed;
   });
-
   const speedRange = maxSpeed - minSpeed || 1;
 
-  // Create arrows with instanced rendering for performance
+  const items = [];
   for (let i = 0; i < points.length; i += step) {
-    const point = points[i];
-    const pos = new THREE.Vector3(point.pos[0], point.pos[1], point.pos[2]);
-    const vel = new THREE.Vector3(point.vel[0], point.vel[1], point.vel[2]);
-    const speed = point.speed;
-
-    // Skip zero-velocity vectors
-    if (speed < 0.01) continue;
-
-    // Normalize velocity for direction
-    const dir = vel.clone().normalize();
-
-    // Arrow length based on speed (scaled for visibility)
-    const length = Math.max(0.1, speed * 0.3);
-
-    // Color based on speed (blue -> cyan -> green -> yellow -> red)
-    let color;
-    if (flowFieldColorScheme === "speed") {
-      const t = (speed - minSpeed) / speedRange;
-      color = new THREE.Color();
-      if (t < 0.25) {
-        // Blue to cyan
-        color.setRGB(0, t * 4, 1);
-      } else if (t < 0.5) {
-        // Cyan to green
-        const t2 = (t - 0.25) * 4;
-        color.setRGB(0, 1, 1 - t2);
-      } else if (t < 0.75) {
-        // Green to yellow
-        const t2 = (t - 0.5) * 4;
-        color.setRGB(t2, 1, 0);
-      } else {
-        // Yellow to red
-        const t2 = (t - 0.75) * 4;
-        color.setRGB(1, 1 - t2, 0);
-      }
-    } else if (flowFieldColorScheme === "direction") {
-      // Color based on direction (X=red, Y=green, Z=blue)
-      const absDir = new THREE.Vector3(
-        Math.abs(dir.x),
-        Math.abs(dir.y),
-        Math.abs(dir.z)
-      );
-      color = new THREE.Color(absDir.x, absDir.y, absDir.z);
-    } else {
-      // Default: cyan
-      color = new THREE.Color(0x00ffff);
-    }
-
-    // Create arrow
-    const arrow = new THREE.ArrowHelper(
-      dir,
-      pos,
-      length,
-      color.getHex(),
-      length * 0.2,
-      length * 0.15
-    );
-
-    scene.add(arrow);
-    flowFieldObjects.push(arrow);
+    if (points[i].speed >= 0.01) items.push(points[i]);
+  }
+  if (items.length === 0) {
+    console.log("Created 0 arrow instances");
+    return;
   }
 
-  console.log(`Created ${flowFieldObjects.length} arrows`);
+  // Единичные заготовки: основание в origin, ось +Y; размеры задаёт scale.
+  const shaftGeo = new THREE.CylinderGeometry(1, 1, 1, 5, 1);
+  shaftGeo.translate(0, 0.5, 0);
+  const headGeo = new THREE.ConeGeometry(0.5, 1, 6);
+  headGeo.translate(0, 0.5, 0);
+  const shaftMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+  const headMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+
+  const shafts = new THREE.InstancedMesh(shaftGeo, shaftMat, items.length);
+  const heads = new THREE.InstancedMesh(headGeo, headMat, items.length);
+  // Инстансы разбросаны по сцене — сфера базовой геометрии даст ложный куллинг.
+  shafts.frustumCulled = false;
+  heads.frustumCulled = false;
+
+  const UP = new THREE.Vector3(0, 1, 0);
+  const pos = new THREE.Vector3();
+  const dir = new THREE.Vector3();
+  const quat = new THREE.Quaternion();
+  const scale = new THREE.Vector3();
+  const tip = new THREE.Vector3();
+  const matrix = new THREE.Matrix4();
+
+  for (let i = 0; i < items.length; i++) {
+    const point = items[i];
+    pos.set(point.pos[0], point.pos[1], point.pos[2]);
+    dir.set(point.vel[0], point.vel[1], point.vel[2]).normalize();
+    quat.setFromUnitVectors(UP, dir);
+
+    // Пропорции как у ArrowHelper: head 20% длины, ширина 15%.
+    const length = Math.max(0.1, point.speed * 0.3);
+    const headLength = length * 0.2;
+    const headWidth = length * 0.15;
+    const shaftLength = length - headLength;
+
+    scale.set(length * 0.015, shaftLength, length * 0.015);
+    matrix.compose(pos, quat, scale);
+    shafts.setMatrixAt(i, matrix);
+
+    tip.copy(pos).addScaledVector(dir, shaftLength);
+    scale.set(headWidth, headLength, headWidth);
+    matrix.compose(tip, quat, scale);
+    heads.setMatrixAt(i, matrix);
+
+    const color = _flowVectorColor(point.speed, dir, minSpeed, speedRange);
+    shafts.setColorAt(i, color);
+    heads.setColorAt(i, color);
+  }
+
+  shafts.instanceMatrix.needsUpdate = true;
+  heads.instanceMatrix.needsUpdate = true;
+  if (shafts.instanceColor) shafts.instanceColor.needsUpdate = true;
+  if (heads.instanceColor) heads.instanceColor.needsUpdate = true;
+
+  scene.add(shafts);
+  scene.add(heads);
+  flowFieldObjects.push(shafts, heads);
+
+  console.log(`Created ${items.length} arrow instances (2 draw calls)`);
 }
 
 /**
@@ -4314,6 +4368,7 @@ function init(containerId, meta) {
     renderer.domElement.addEventListener("mousemove", _onMouseMove);
     renderer.domElement.addEventListener("click", _onClick);
     window.addEventListener("resize", _onResize);
+    document.addEventListener("visibilitychange", _onVisibilityChange);
     if (window.ResizeObserver) {
       resizeObserver = new window.ResizeObserver(function () {
         _onResize();
@@ -4323,8 +4378,10 @@ function init(containerId, meta) {
 
     isInitialized = true;
 
-    // Load flow field data asynchronously
-    loadFlowFieldData("/assets/data/visualization/flow_field.json").catch(
+    // Load flow field data asynchronously.
+    // URL относительно модуля: ассеты раздаются под /dashboard/assets/,
+    // абсолютный /assets/... давал 404.
+    loadFlowFieldData(new URL("data/visualization/flow_field.json", import.meta.url).href).catch(
       function (error) {
         console.warn("Flow field data not available:", error);
       }
@@ -7167,6 +7224,20 @@ function _stopAnimation() {
   }
 }
 
+// Пауза рендера в фоновой вкладке: rAF там и так троттлится, но WebGL-контекст
+// и таймеры продолжали жить. На возврате сбрасываем замеры fps, чтобы пауза
+// не засчиталась watchdog'у как лаг.
+function _onVisibilityChange() {
+  if (document.hidden) {
+    _stopAnimation();
+  } else if (isInitialized) {
+    autoQuality.lastFrameAt = null;
+    autoQuality.fpsEma = null;
+    autoQuality.lowFpsSince = null;
+    _startAnimation();
+  }
+}
+
 function _findInteractiveOwner(object) {
   var current = object;
   while (current) {
@@ -7500,6 +7571,7 @@ function dispose() {
     renderer.domElement.removeEventListener("webglcontextrestored", _onContextRestored);
   }
   window.removeEventListener("resize", _onResize);
+  document.removeEventListener("visibilitychange", _onVisibilityChange);
   if (resizeObserver) {
     resizeObserver.disconnect();
     resizeObserver = null;
@@ -7830,6 +7902,7 @@ window.pvu3d = {
         autoQualityEnabled: _autoQualityEnabled(),
         pixelRatio: renderer ? renderer.getPixelRatio() : null,
         hintShown: autoQuality.hintShown,
+        animationActive: animationId !== null,
       },
       rendering: {
         shadowsEnabled: shadowsEnabled,
