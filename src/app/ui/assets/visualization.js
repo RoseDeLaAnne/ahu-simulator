@@ -1,4 +1,19 @@
 (function () {
+  // Все <object> с мнемосхемой в разных лейаутах: legacy 2D, вкладка «Схема»
+  // concept03 и 2D-fallback внутри 3D-вьюпорта. ID должны совпадать с
+  // render_modes/scene2d.py, concept03/central_canvas.py и
+  // concept03/scene3d_overlay.py (есть pytest-гард).
+  var MNEMONIC_OBJECT_IDS = [
+    "mnemonic-svg-object",
+    "concept03-mnemonic-svg-object",
+    "concept03-fallback-mnemonic-object",
+  ];
+
+  // Chromium не грузит <object data=svg> внутри display:none — документ
+  // появляется только при первом показе вкладки «Схема». Храним последние
+  // сигналы и доигрываем их на событии load каждого объекта.
+  var lastSignals = null;
+
   function setText(svgDocument, elementId, value) {
     const element = svgDocument.getElementById(elementId);
     if (element) {
@@ -48,33 +63,50 @@
     );
   }
 
+  function applyToObject(objectElement) {
+    if (!lastSignals || !objectElement) {
+      return false;
+    }
+    const doc = objectElement.contentDocument;
+    if (doc && doc.documentElement && doc.getElementById("scene-summary")) {
+      renderIntoSvg(doc, lastSignals);
+      return true;
+    }
+    return false;
+  }
+
+  function watchObject(objectElement) {
+    if (objectElement.dataset.mnemonicWatched === "1") {
+      return;
+    }
+    objectElement.dataset.mnemonicWatched = "1";
+    objectElement.addEventListener("load", function () {
+      applyToObject(objectElement);
+    });
+  }
+
   function renderMnemonic(signals) {
     if (!signals) {
       return window.dash_clientside.no_update;
     }
+    lastSignals = signals;
 
-    const objectElement = document.getElementById("mnemonic-svg-object");
-    if (!objectElement) {
-      return window.dash_clientside.no_update;
-    }
-
-    const apply = function () {
-      if (objectElement.contentDocument) {
-        renderIntoSvg(objectElement.contentDocument, signals);
+    var appliedCount = 0;
+    MNEMONIC_OBJECT_IDS.forEach(function (objectId) {
+      const objectElement = document.getElementById(objectId);
+      if (!objectElement) {
+        return;
       }
-    };
+      watchObject(objectElement);
+      if (applyToObject(objectElement)) {
+        appliedCount += 1;
+      }
+    });
 
-    if (objectElement.contentDocument && objectElement.contentDocument.documentElement) {
-      apply();
-      return signals.summary;
+    if (appliedCount === 0) {
+      return "mnemonic-pending";
     }
-
-    const onLoad = function () {
-      apply();
-      objectElement.removeEventListener("load", onLoad);
-    };
-    objectElement.addEventListener("load", onLoad, { once: true });
-    return "mnemonic-pending";
+    return signals.summary;
   }
 
   window.dash_clientside = Object.assign({}, window.dash_clientside, {

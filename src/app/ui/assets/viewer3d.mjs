@@ -286,6 +286,7 @@ let rimLight = null;
 let fillLight = null;
 let pmremGenerator = null;
 let environmentTexture = null;
+let backgroundTexture = null;
 let shadowCatcher = null;
 let shadowsEnabled = false;
 let nodeMap = {};
@@ -3984,8 +3985,10 @@ function _updateLabels() {
 
 function _createSceneScaffold() {
   scene = new THREE.Scene();
-  // Сплошной фон сцены — убирает просвечивание тёмного CSS-градиента через прозрачные области
-  scene.background = new THREE.Color(0x0a1119);
+  // Студийный вертикальный градиент-бэкдроп вместо плоского тёмного фона:
+  // даёт модели «правильную» подложку (светлее сверху, глубже снизу) и
+  // привязан к теме выбранной модели. Резкий (текстура, без размытия).
+  scene.background = _buildSceneBackground();
   environmentRoot = new THREE.Group();
   atmosphereRoot = new THREE.Group();
   overlayRoot = new THREE.Group();
@@ -4029,6 +4032,47 @@ function _createSceneScaffold() {
 }
 
 /**
+ * Студийный вертикальный градиент-бэкдроп сцены из темы текущей модели.
+ * Возвращает CanvasTexture (резкий, без размытия): светлее сверху (свет «с
+ * потолка»), глубокий тёмный того же оттенка пола снизу. Пересобирается при
+ * смене темы модели (см. _applyThemeToEnvironment).
+ * @private
+ */
+function _buildSceneBackground() {
+  var floor = _themeColor("floor_color", "#0f3d4c");
+  var topColor = floor.clone().multiplyScalar(0.62).lerp(new THREE.Color(0xffffff), 0.06);
+  var bottomColor = floor.clone().multiplyScalar(0.16);
+  if (backgroundTexture) {
+    backgroundTexture.dispose();
+    backgroundTexture = null;
+  }
+  backgroundTexture = _createGradientTexture(topColor, bottomColor);
+  return backgroundTexture;
+}
+
+/**
+ * Вертикальный линейный градиент в виде CanvasTexture (sRGB).
+ * @private
+ */
+function _createGradientTexture(topColor, bottomColor) {
+  var canvas = document.createElement("canvas");
+  canvas.width = 4;
+  canvas.height = 256;
+  var ctx = canvas.getContext("2d");
+  var gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  var midColor = bottomColor.clone().lerp(topColor, 0.24);
+  gradient.addColorStop(0, "#" + topColor.getHexString());
+  gradient.addColorStop(0.6, "#" + midColor.getHexString());
+  gradient.addColorStop(1, "#" + bottomColor.getHexString());
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  var texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.needsUpdate = true;
+  return texture;
+}
+
+/**
  * Построить процедурную "студийную" среду и назначить её scene.environment
  * через PMREM. Это даёт image-based lighting: металлические корпуса и патрубки
  * установки получают правдоподобные отражения и мягкую заливку без внешних
@@ -4057,10 +4101,11 @@ function _buildEnvironmentTexture() {
   });
   envScene.add(new THREE.Mesh(domeGeo, domeMat));
 
-  // Верхняя заливка (холодный дневной свет).
+  // Верхняя заливка (холодный дневной свет). Приглушена, чтобы не выбивать
+  // светлые материалы (столешница помещения) в чистый белый через IBL.
   var ceiling = new THREE.Mesh(
     new THREE.PlaneGeometry(60, 60),
-    new THREE.MeshBasicMaterial({ color: 0xeaf4ff })
+    new THREE.MeshBasicMaterial({ color: 0xc4d2e2 })
   );
   ceiling.position.set(0, 24, 0);
   ceiling.rotation.x = Math.PI / 2;
@@ -4069,7 +4114,7 @@ function _buildEnvironmentTexture() {
   // Тёплый ключевой софт-бокс.
   var keyPanel = new THREE.Mesh(
     new THREE.PlaneGeometry(22, 16),
-    new THREE.MeshBasicMaterial({ color: 0xfff1d6 })
+    new THREE.MeshBasicMaterial({ color: 0xe4d6bd })
   );
   keyPanel.position.set(14, 12, 16);
   keyPanel.lookAt(0, 2, 0);
@@ -4108,6 +4153,11 @@ function _applyEnvironmentLighting(targetScene) {
   var envTex = _buildEnvironmentTexture();
   if (envTex) {
     targetScene.environment = envTex;
+    // Снижаем вклад IBL: зеркально-светлые поверхности (столешница помещения)
+    // переставали выбиваться в белый пересвет. Прямой свет не затрагивается.
+    if ("environmentIntensity" in targetScene) {
+      targetScene.environmentIntensity = 0.55;
+    }
   }
 }
 
@@ -4256,6 +4306,10 @@ function _applyThemeToEnvironment() {
   if (seasonAura && seasonAura.material && seasonAura.material.color) {
     seasonAura.material.color.copy(_themeColor("halo_color", DEFAULT_MODEL_ACCENT));
   }
+  // Перестроить студийный фон под тему выбранной модели.
+  if (scene) {
+    scene.background = _buildSceneBackground();
+  }
 }
 
 function _onContextLost(event) {
@@ -4275,9 +4329,12 @@ function _onResize() {
   var width = Math.max(container.clientWidth || 800, 320);
   var height = Math.max(container.clientHeight || 540, 320);
   var maxPixelRatio = ((sceneMeta.performance_budget || {}).max_pixel_ratio || 2.0);
-  var widthBudget = width >= 1600 ? 1.15 : width >= 1280 ? 1.28 : width >= 960 ? 1.45 : maxPixelRatio;
+  // Полная резкость: рендерим в девайсном pixelRatio до потолка max_pixel_ratio
+  // без занижения по ширине канваса. Прежний widthBudget (1.15–1.45 на широких/
+  // полноэкранных видах) на HiDPI-экранах (масштаб Windows 125–150 %) давал
+  // «мыло». FPS теперь спасают эффекты (тени/SSAO/блум/частицы), а не разрешение.
   renderer.setPixelRatio(
-    Math.min(window.devicePixelRatio || 1, maxPixelRatio, widthBudget) * qualityPixelRatioScale
+    Math.min(window.devicePixelRatio || 1, maxPixelRatio) * qualityPixelRatioScale
   );
 
   // Update camera aspect based on comparison mode
@@ -4465,9 +4522,29 @@ function _normalizeLoadedModel(rawRoot, sceneProfile, modelDescriptor) {
   rawRoot.rotation.x = THREE.MathUtils.degToRad(rotation.x || 0);
   rawRoot.rotation.y = THREE.MathUtils.degToRad(rotation.y || 0);
   rawRoot.rotation.z = THREE.MathUtils.degToRad(rotation.z || 0);
+  // Нормализация габарита: GLB приходят в разных единицах (родной long-размер
+  // ~1…13), поэтому сперва приводим модель к целевому горизонтальному габариту
+  // transform.target_long (детерминированный масштаб, единый для всех моделей),
+  // и только затем применяем scale_multiplier как тонкую подстройку. Это и есть
+  // «инфраструктура с запоминанием данных масштабирования» — масштаб задаётся в
+  // профиле модели и воспроизводится одинаково при каждой загрузке.
+  rawRoot.updateMatrixWorld(true);
+  var preBox = new THREE.Box3().setFromObject(rawRoot);
+  var normalizeScale = 1;
+  if (!preBox.isEmpty()) {
+    var preSize = preBox.getSize(new THREE.Vector3());
+    var horizLong = upAxis === "Z"
+      ? Math.max(preSize.x, preSize.y, 1e-4)
+      : Math.max(preSize.x, preSize.z, 1e-4);
+    var targetLong = _withDefault(transformProfile.target_long, 0);
+    if (targetLong && targetLong > 0 && horizLong > 1e-4) {
+      normalizeScale = targetLong / horizLong;
+    }
+  }
   var scaleMultiplier = _withDefault(transformProfile.scale_multiplier, 1);
-  if (scaleMultiplier !== 1) {
-    rawRoot.scale.multiplyScalar(scaleMultiplier);
+  var totalScale = normalizeScale * scaleMultiplier;
+  if (totalScale !== 1) {
+    rawRoot.scale.multiplyScalar(totalScale);
   }
   rawRoot.updateMatrixWorld(true);
   var box = new THREE.Box3().setFromObject(rawRoot);
@@ -4519,6 +4596,27 @@ function _initializeFanBlades(root) {
   });
 }
 
+function _ghostifyRoomMesh(mesh) {
+  if (!mesh || !mesh.isMesh) return;
+  var materials = _materialArray(mesh.material);
+  materials.forEach(function (material) {
+    if (!material) return;
+    material.transparent = true;
+    material.opacity = 0.16;
+    material.depthWrite = false;
+    if (material.emissive) {
+      material.emissiveIntensity = Math.min(material.emissiveIntensity || 0, 0.04);
+    }
+    material.needsUpdate = true;
+  });
+  // Контекст помещения не должен отбрасывать тяжёлые тени и перехватывать
+  // клики — он лишь обозначает обслуживаемое пространство.
+  mesh.castShadow = false;
+  mesh.receiveShadow = false;
+  mesh.raycast = function () {};
+  mesh.renderOrder = -1;
+}
+
 function _normalizeRoomModel(rawRoot, roomDescriptor) {
   var wrapper = new THREE.Group();
   wrapper.name = "loaded-room-model";
@@ -4526,6 +4624,12 @@ function _normalizeRoomModel(rawRoot, roomDescriptor) {
   rawRoot.traverse(function (child) {
     if (child.isMesh) {
       _prepareModelMesh(child, roomDescriptor);
+      // Помещение — это пространственный контекст, а не объект изучения.
+      // Делаем его полупрозрачным «призраком», чтобы установка ПВУ читалась
+      // как главный объект и не возникало ощущения «мебель больше агрегата»
+      // (замечание 13.06: scale относительно модели). Контекст также не
+      // перехватывает клики/raycast — взаимодействуют только узлы ПВУ.
+      _ghostifyRoomMesh(child);
     }
   });
   rawRoot.updateMatrixWorld(true);
@@ -4634,23 +4738,29 @@ function _lineToFloor(point) {
 }
 
 function _createVerticalConnector(point, color) {
+  // Тонкая нейтральная «нить» от парящего маркера узла к полу: даёт ощущение
+  // глубины/привязки к плоскости, но НЕ окрашивается в цвет статуса — раньше
+  // это читалось как яркие зелёные «столбы» непонятного назначения
+  // (замечание 13.06). Цвет фиксированный приглушённо-серо-синий.
   var base = _lineToFloor(point);
   var direction = new THREE.Vector3().subVectors(point, base);
   var length = direction.length();
   var connectorScale = viewMetrics.connectorScale || 1;
+  var radius = viewMetrics.markerSize * 0.045 * connectorScale;
   var geometry = new THREE.CylinderGeometry(
-    viewMetrics.markerSize * 0.09 * connectorScale,
-    viewMetrics.markerSize * 0.09 * connectorScale,
+    radius,
+    radius,
     Math.max(length, 0.01),
-    12
+    8
   );
   var material = new THREE.MeshBasicMaterial({
-    color: color,
+    color: 0x4a5a6a,
     transparent: true,
-    opacity: 0.4,
+    opacity: 0.14,
     depthWrite: false,
   });
   var mesh = new THREE.Mesh(geometry, material);
+  mesh.renderOrder = -1;
   mesh.position.copy(base.clone().add(direction.multiplyScalar(0.5)));
   mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.clone().normalize());
   return mesh;
@@ -4964,15 +5074,14 @@ function _createStageMarker(sceneNode, labelPoint, options) {
   // Тела мини-моделей НАМЕРЕННО не попадают в colorMaterials/glowMaterials:
   // _applyNodeSignal перекрашивает эти массивы целиком в цвет статуса, и
   // оборудование снова стало бы одноцветным «шаром». Статус читается по
-  // кольцу + гало + коннектору.
+  // кольцу + гало + ядру. Вертикальная нить-коннектор (children[3]) тоже
+  // намеренно НЕ в colorMaterials — она нейтральный пространственный ориентир,
+  // а не индикатор статуса (замечание 13.06 про «зелёные столбы»).
   group.userData.colorMaterials.push(ring.material, halo.material);
   group.userData.glowMaterials.push(ring.material);
   if (core) {
     group.userData.colorMaterials.push(core.material);
     group.userData.glowMaterials.push(core.material);
-  }
-  if (group.children[3] && group.children[3].material) {
-    group.userData.colorMaterials.push(group.children[3].material);
   }
   _registerNode(sceneNode, group, true);
   overlayRoot.add(group);
@@ -6114,12 +6223,14 @@ function _applyDisplayModeLighting(mode) {
     fillLight.intensity = 0.4;
     if (renderer) renderer.toneMappingExposure = 1.0;
   } else {
-    // studio: контрастная светотень, металл/стекло читаемы.
-    ambientLight.intensity = 0.95;
-    keyLight.intensity = 2.15;
-    rimLight.intensity = 1.05;
-    fillLight.intensity = 0.65;
-    if (renderer) renderer.toneMappingExposure = 1.05;
+    // studio: контрастная светотень, металл/стекло читаемы. Интенсивность
+    // ключа и экспозиция снижены, чтобы светлые материалы (напр. столешница
+    // помещения) не выбивались в чистый белый «пересвет».
+    ambientLight.intensity = 0.85;
+    keyLight.intensity = 1.4;
+    rimLight.intensity = 1.0;
+    fillLight.intensity = 0.55;
+    if (renderer) renderer.toneMappingExposure = 0.93;
   }
 }
 
@@ -6275,7 +6386,7 @@ function _applySceneMood(signals) {
     seasonAura.material.color.copy(_colorFromHex(atmosphereProfile.auraColor));
     seasonAura.material.opacity = 0.06 + atmosphereProfile.auraPulse * 0.35;
   }
-  renderer.toneMappingExposure = effectiveStatus === "alarm" ? 1.15 : 1.05;
+  renderer.toneMappingExposure = effectiveStatus === "alarm" ? 1.02 : 0.93;
 }
 
 function applySignals(signals) {
@@ -6858,9 +6969,18 @@ function _applyQualityLevel(level) {
   if (level === prev) return;
   autoQuality.level = level;
 
-  // L1+: уменьшенный pixelRatio (применяется в _onResize).
-  qualityPixelRatioScale = level >= 1 ? 0.75 : 1.0;
-  _onResize();
+  // Полная резкость в приоритете: авто-качество НИКОГДА не занижает pixelRatio
+  // (раньше level≥1 ронял его до 0.75 → размытие на HiDPI). Разрешение всегда
+  // нативное; FPS экономим за счёт эффектов.
+  qualityPixelRatioScale = 1.0;
+
+  // L1: плотность частиц потока (дёшево и почти незаметно). Раньше здесь
+  // занижалось разрешение — теперь резкость остаётся максимальной.
+  if (level >= 1 && prev < 1) {
+    _setFlowParticleDensity(0.5);
+  } else if (level < 1 && prev >= 1) {
+    _setFlowParticleDensity(1.0);
+  }
 
   // L2+: тени и SSAO.
   if (level >= 2 && prev < 2) {
@@ -6873,14 +6993,12 @@ function _applyQualityLevel(level) {
     if (ssaoPass && autoQuality.snapshot.ssao === true) ssaoPass.enabled = true;
   }
 
-  // L3: bloom и плотность частиц.
+  // L3: bloom.
   if (level >= 3 && prev < 3) {
     autoQuality.snapshot.bloom = bloomPass ? bloomPass.enabled : null;
     if (bloomPass) bloomPass.enabled = false;
-    _setFlowParticleDensity(0.5);
   } else if (level < 3 && prev >= 3) {
     if (bloomPass && autoQuality.snapshot.bloom === true) bloomPass.enabled = true;
-    _setFlowParticleDensity(1.0);
   }
 
   console.info(
@@ -6965,6 +7083,13 @@ function _startAnimation() {
     animationId = requestAnimationFrame(loop);
     // Кеп 30 FPS — пропускаем кадр если интервал не вышел
     if (timestamp - lastFrameTime < FRAME_INTERVAL_MS) return;
+    // Не тратим кадры на скрытый канвас (пользователь на другой странице —
+    // дашборд display:none). RAF продолжает крутиться и мгновенно возобновит
+    // рендер при возврате, но пока канвас невидим мы не грузим главный поток
+    // тяжёлым software/GPU-рендером — это убирает лаг переключения вкладок.
+    if (container && (container.clientWidth === 0 || container.clientHeight === 0 || container.offsetParent === null)) {
+      return;
+    }
     lastFrameTime = timestamp;
     _sampleAutoQuality(timestamp);
     if (renderer) renderer.info.reset();
@@ -7592,6 +7717,10 @@ function dispose() {
     environmentTexture.dispose();
     environmentTexture = null;
   }
+  if (backgroundTexture) {
+    backgroundTexture.dispose();
+    backgroundTexture = null;
+  }
   if (pmremGenerator) {
     pmremGenerator.dispose();
     pmremGenerator = null;
@@ -7909,6 +8038,7 @@ window.pvu3d = {
         shadowMapEnabled: renderer ? renderer.shadowMap.enabled : null,
         keyLightCastsShadow: keyLight ? keyLight.castShadow === true : null,
         environmentApplied: scene ? scene.environment !== null && scene.environment !== undefined : null,
+        backgroundIsTexture: scene && scene.background ? scene.background.isTexture === true : null,
         toneMappingExposure: renderer ? renderer.toneMappingExposure : null,
         shadowCatcher: shadowCatcher !== null,
         ssaoSupported: ssaoPass !== null,

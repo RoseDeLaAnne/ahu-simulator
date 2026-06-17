@@ -15,6 +15,12 @@
     </filter>
   </defs>
   <style>
+    /* Холст вложенного документа в &lt;object&gt; Chromium красит белым —
+       заливаем тем же цветом, что и .scene-bg, чтобы letterbox сливался. */
+    svg {
+      background-color: #09181c;
+    }
+
     .scene-bg {
       fill: #09181c;
     }
