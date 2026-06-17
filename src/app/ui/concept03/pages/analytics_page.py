@@ -1,8 +1,30 @@
 from __future__ import annotations
 
-from dash import html
+from dash import dcc, html
 
 from app.ui.concept03.components.icon import Icon
+
+# (export_kind, заголовок, иконка, описание)
+_EXPORTS = (
+    (
+        "pdf",
+        "Сценарный отчёт (PDF)",
+        "file-text",
+        "Полный отчёт по активному прогону с таблицами и выводами.",
+    ),
+    (
+        "csv",
+        "Данные прогона (CSV)",
+        "table",
+        "Временные ряды параметров для внешнего анализа.",
+    ),
+    (
+        "zip",
+        "Пакет отчёта (ZIP)",
+        "archive",
+        "Архив: PDF-отчёт, CSV-данные и манифест прогона.",
+    ),
+)
 
 
 def build_content() -> list:
@@ -10,6 +32,7 @@ def build_content() -> list:
         html.Div(
             className="c03-page c03-page--analytics",
             children=[
+                dcc.Download(id="concept03-analytics-download"),
                 html.Div(
                     className="c03-page__header",
                     children=[
@@ -43,12 +66,39 @@ def build_content() -> list:
                                             "во вкладке «Тренды» центрального холста.",
                                             className="c03-analytics-placeholder__text",
                                         ),
-                                        html.A(
+                                        dcc.Link(
                                             "Перейти к дашборду →",
                                             href="?theme=concept03&page=dashboard",
+                                            refresh=False,
                                             className="c03-analytics-placeholder__link",
                                         ),
                                     ],
+                                ),
+                            ],
+                        ),
+                        html.Section(
+                            className="c03-page-section",
+                            children=[
+                                html.Div(
+                                    className="c03-page-section__eyebrow",
+                                    children="ЭКСПОРТ",
+                                ),
+                                html.Div(
+                                    "Экспорт собирается по активному прогону. Нажмите "
+                                    "формат — файл сформируется и скачается.",
+                                    className="c03-page-section__hint",
+                                ),
+                                html.Div(
+                                    className="c03-analytics-export-grid",
+                                    children=[
+                                        _export_card(kind, title, icon, desc)
+                                        for kind, title, icon, desc in _EXPORTS
+                                    ],
+                                ),
+                                html.Div(
+                                    "Экспорт ещё не запускался.",
+                                    id="concept03-analytics-export-status",
+                                    className="c03-analytics-export-status",
                                 ),
                             ],
                         ),
@@ -61,33 +111,8 @@ def build_content() -> list:
                                 ),
                                 html.P(
                                     "Сравнение прогонов доступно в нижней панели "
-                                    "«Сравнение модель vs реальность» на главном дашборде. "
-                                    "Там же можно экспортировать результаты в CSV/PDF.",
+                                    "«Сравнение модель vs реальность» на главном дашборде.",
                                     className="c03-page-section__text",
-                                ),
-                            ],
-                        ),
-                        html.Section(
-                            className="c03-page-section",
-                            children=[
-                                html.Div(
-                                    className="c03-page-section__eyebrow",
-                                    children="ЭКСПОРТ",
-                                ),
-                                _export_card(
-                                    "Сценарный отчёт (PDF)",
-                                    "file-text",
-                                    "Полный отчёт по активному сценарию с таблицами и графиками",
-                                ),
-                                _export_card(
-                                    "Данные прогона (CSV)",
-                                    "table",
-                                    "Временные ряды всех параметров для внешнего анализа",
-                                ),
-                                _export_card(
-                                    "Defense-пакет (ZIP)",
-                                    "archive",
-                                    "Пакет для защиты: отчёт, данные, скриншоты, манифест",
                                 ),
                             ],
                         ),
@@ -98,9 +123,14 @@ def build_content() -> list:
     ]
 
 
-def _export_card(title: str, icon: str, desc: str) -> html.Div:
-    return html.Div(
+def _export_card(kind: str, title: str, icon: str, desc: str) -> html.Button:
+    return html.Button(
+        id={"type": "concept03-analytics-export", "kind": kind},
         className="c03-export-card",
+        type="button",
+        n_clicks=0,
+        title=title,
+        **{"data-export-kind": kind},
         children=[
             Icon(icon, size=24, class_name="c03-export-card__icon"),
             html.Div(
@@ -110,5 +140,6 @@ def _export_card(title: str, icon: str, desc: str) -> html.Div:
                     html.Span(desc, className="c03-export-card__desc"),
                 ],
             ),
+            Icon("download", size=18, class_name="c03-export-card__action"),
         ],
     )

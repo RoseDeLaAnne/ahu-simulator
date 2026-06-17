@@ -23,7 +23,8 @@ def test_concept03_kpi_view_builds_six_operator_rows() -> None:
         "kpi-row-recovery",
         "kpi-row-power",
     ]
-    assert view.rows[0].label == "Производительность"
+    # «­» — мягкий перенос для мобильной KPI-плитки.
+    assert view.rows[0].label == "Производи­тельность"
     assert view.rows[0].unit == "м³/ч"
     assert "Задание: 3 600 м³/ч" == view.rows[0].setpoint_text
     assert view.rows[3].state == "unavailable"

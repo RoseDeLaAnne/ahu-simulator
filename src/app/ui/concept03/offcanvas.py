@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dash import html
+from dash import dcc, html
 
 from app.ui.concept03.components.icon import Icon
 from app.ui.concept03.mobile_components import MOBILE_NAV_ITEMS
@@ -71,9 +71,10 @@ def build_mobile_offcanvas(view: Concept03FooterNavView) -> html.Div:
                     _build_menu_section(
                         "Защита",
                         [
-                            html.A(
+                            dcc.Link(
                                 label,
                                 href=href,
+                                refresh=False,
                                 className="c03-mobile-offcanvas__link",
                             )
                             for label, href in DEFENSE_MENU_ITEMS
@@ -92,17 +93,18 @@ def build_mobile_offcanvas(view: Concept03FooterNavView) -> html.Div:
     )
 
 
-def _navigation_links(view: Concept03FooterNavView) -> list[html.A]:
+def _navigation_links(view: Concept03FooterNavView) -> list[dcc.Link]:
     item_by_page = {item.page_id: item for item in view.items}
-    links: list[html.A] = []
+    links: list[dcc.Link] = []
     for page_id, _mobile_id, label, _icon in MOBILE_NAV_ITEMS:
         item = item_by_page.get(page_id)
         if item is None:
             continue
         links.append(
-            html.A(
+            dcc.Link(
                 label,
                 href=item.href,
+                refresh=False,
                 className="c03-mobile-offcanvas__link"
                 + (" c03-mobile-offcanvas__link--active" if item.is_active else ""),
             )
@@ -110,9 +112,10 @@ def _navigation_links(view: Concept03FooterNavView) -> list[html.A]:
     library_item = item_by_page.get("library")
     if library_item is not None:
         links.append(
-            html.A(
+            dcc.Link(
                 "Библиотека",
                 href=library_item.href,
+                refresh=False,
                 className="c03-mobile-offcanvas__link"
                 + (" c03-mobile-offcanvas__link--active" if library_item.is_active else ""),
             )
@@ -120,7 +123,7 @@ def _navigation_links(view: Concept03FooterNavView) -> list[html.A]:
     return links
 
 
-def _build_menu_section(title: str, links: list[html.A]) -> html.Section:
+def _build_menu_section(title: str, links: list[dcc.Link]) -> html.Section:
     return html.Section(
         className="c03-mobile-offcanvas__section",
         children=[

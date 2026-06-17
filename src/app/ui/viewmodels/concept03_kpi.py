@@ -80,7 +80,9 @@ def build_concept03_kpi_view(
         _build_row(
             kpi_id="kpi-row-airflow",
             icon="wind",
-            label="Производительность",
+            # U+00AD: на мобильной плитке слово не влезает целиком —
+            # мягкий перенос даёт «Производи-тельность» вместо разрыва «…ьнос/ть».
+            label="Производи­тельность",
             value_text=_format_number(state.actual_airflow_m3_h, digits=0),
             unit="м³/ч",
             setpoint_text=(

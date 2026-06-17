@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dash import html
+from dash import dcc, html
 
 from app.ui.concept03.components.icon import Icon
 from app.ui.concept03.defense_variant.header_toolbar import (
@@ -22,8 +22,9 @@ def build_header(view: Concept03HeaderView) -> html.Header:
         className="c03-header",
         tabIndex=0,
         children=[
-            html.A(
+            dcc.Link(
                 href="?page=settings",
+                refresh=False,
                 className="c03-brand",
                 children=[
                     Icon("building-2", 22, class_name="c03-brand__mark", title="Бренд"),
@@ -67,12 +68,12 @@ def build_header(view: Concept03HeaderView) -> html.Header:
                     html.Strong(view.time_text, id="concept03-clock-time"),
                 ],
             ),
-            html.A(
+            dcc.Link(
                 view.user_initials,
                 href="?page=settings",
+                refresh=False,
                 className="c03-user-avatar",
                 title="Профиль оператора",
-                **{"aria-label": "Профиль оператора"},
             ),
         ],
     )

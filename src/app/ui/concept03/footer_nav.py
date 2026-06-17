@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dash import html
+from dash import dcc, html
 
 from app.ui.concept03.defense_variant.footer import build_academic_footer
 from app.ui.concept03.mobile_layout import build_mobile_shell_overlays
@@ -22,9 +22,10 @@ def build_footer_nav(view: Concept03FooterNavView) -> html.Footer:
                 className="c03-footer-nav__items c03-operator-only",
                 **{"aria-label": "Навигация Concept03"},
                 children=[
-                    html.A(
+                    dcc.Link(
                         id=f"footer-nav-{item.page_id}",
                         href=item.href,
+                        refresh=False,
                         className=footer_nav_class_name(
                             item.page_id,
                             item.page_id if item.is_active else "",

@@ -272,6 +272,187 @@
 }
 .c03-settings-link:hover { background: var(--c03-bg-panel-strong); }
 
+/* ── Интерактивные карточки страниц (кнопки/ссылки) ── */
+.c03-page-section__hint {
+  font-size: var(--c03-fs-sm);
+  color: var(--c03-text-muted);
+  margin-bottom: var(--c03-space-2, 8px);
+  line-height: 1.5;
+}
+button.c03-equipment-card,
+button.c03-control-card-page,
+button.c03-export-card,
+button.c03-library-card,
+a.c03-library-card {
+  width: 100%;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+button.c03-equipment-card:hover,
+button.c03-control-card-page:hover,
+button.c03-export-card:hover,
+button.c03-library-card:hover,
+a.c03-library-card:hover {
+  border-color: var(--c03-accent);
+  background: var(--c03-bg-panel-strong);
+}
+button.c03-equipment-card:focus-visible,
+button.c03-control-card-page:focus-visible,
+button.c03-export-card:focus-visible,
+button.c03-library-card:focus-visible,
+a.c03-library-card:focus-visible {
+  outline: 2px solid var(--c03-accent);
+  outline-offset: 2px;
+}
+.c03-equipment-card--active,
+.c03-control-card-page--active,
+.c03-library-card--active {
+  border-color: var(--c03-accent);
+  background: var(--c03-bg-panel-strong);
+  box-shadow: inset 0 0 0 1px var(--c03-accent);
+}
+.c03-control-card-page__check,
+.c03-library-card__check {
+  margin-left: auto;
+  color: var(--c03-accent);
+  opacity: 0;
+}
+.c03-control-card-page--active .c03-control-card-page__check,
+.c03-library-card--active .c03-library-card__check {
+  opacity: 1;
+}
+.c03-control-page-status,
+.c03-library-preset-status {
+  margin-top: var(--c03-space-2, 8px);
+  font-size: var(--c03-fs-sm);
+  color: var(--c03-text-muted);
+  font-family: var(--c03-font-mono);
+}
+
+/* ── Equipment detail panel ── */
+.c03-equipment-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(240px, 1fr);
+  gap: var(--c03-space-4, 16px);
+  align-items: start;
+}
+.c03-equipment-detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--c03-space-3, 12px);
+  padding: var(--c03-space-4, 16px);
+  background: var(--c03-bg-panel);
+  border: 1px solid var(--c03-line);
+  border-radius: var(--c03-radius-md);
+  position: sticky;
+  top: var(--c03-space-2, 8px);
+}
+.c03-equipment-detail__header {
+  display: flex;
+  align-items: center;
+  gap: var(--c03-space-3, 12px);
+}
+.c03-equipment-detail__icon { color: var(--c03-accent); flex-shrink: 0; }
+.c03-equipment-detail__title {
+  display: block;
+  font-size: var(--c03-fs-lg, 16px);
+  font-weight: 600;
+  color: var(--c03-text);
+}
+.c03-equipment-detail__summary { font-size: var(--c03-fs-sm); color: var(--c03-text-muted); }
+.c03-equipment-detail__live {
+  display: flex;
+  align-items: center;
+  gap: var(--c03-space-2, 8px);
+  padding: var(--c03-space-2, 8px) var(--c03-space-3, 12px);
+  background: var(--c03-bg-panel-strong);
+  border-radius: var(--c03-radius-sm);
+  font-size: var(--c03-fs-sm);
+}
+.c03-equipment-detail__live--idle { color: var(--c03-text-muted); }
+.c03-equipment-detail__live-label { color: var(--c03-text-muted); }
+.c03-equipment-detail__live-value {
+  font-family: var(--c03-font-mono);
+  color: var(--c03-text);
+  margin-left: auto;
+}
+.c03-equipment-detail__live-state {
+  font-size: var(--c03-fs-xs, 11px);
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+.c03-equipment-detail__specs {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  margin: 0;
+}
+.c03-equipment-detail__specs dt { color: var(--c03-text-muted); font-size: var(--c03-fs-sm); }
+.c03-equipment-detail__specs dd {
+  margin: 0;
+  color: var(--c03-text);
+  font-size: var(--c03-fs-sm);
+  text-align: right;
+}
+
+/* ── Analytics export ── */
+.c03-analytics-export-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--c03-space-2, 8px);
+}
+.c03-export-card__action { margin-left: auto; color: var(--c03-accent); flex-shrink: 0; }
+.c03-analytics-export-status {
+  margin-top: var(--c03-space-2, 8px);
+  font-size: var(--c03-fs-sm);
+  color: var(--c03-text-muted);
+}
+.c03-analytics-export-status--ok { color: var(--c03-teal, #3fcb78); }
+.c03-analytics-export-status--error { color: var(--c03-danger, #ff5a6e); }
+
+/* ── Settings: переключатели, ссылки, диагностика ── */
+.c03-setting-row__options {
+  display: flex;
+  gap: var(--c03-space-2, 8px);
+  margin-top: var(--c03-space-2, 8px);
+  flex-wrap: wrap;
+}
+.c03-setting-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  font-size: var(--c03-fs-sm);
+  color: var(--c03-text);
+  text-decoration: none;
+  background: var(--c03-bg-panel-strong);
+  border: 1px solid var(--c03-line);
+  border-radius: var(--c03-radius-sm);
+}
+.c03-setting-option:hover { border-color: var(--c03-accent); }
+.c03-settings-links { display: flex; flex-wrap: wrap; gap: var(--c03-space-2, 8px); }
+.c03-settings-diagnostics {
+  margin: 0;
+  padding: var(--c03-space-3, 12px);
+  background: var(--c03-code-bg, #07151d);
+  border: 1px solid var(--c03-line);
+  border-radius: var(--c03-radius-sm);
+  font-family: var(--c03-font-mono);
+  font-size: var(--c03-fs-xs, 11px);
+  color: var(--c03-text-muted);
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-x: auto;
+}
+@media (max-width: 900px) {
+  .c03-equipment-layout { grid-template-columns: 1fr; }
+  .c03-equipment-detail { position: static; }
+}
+
 #concept03-shell {
   display: none;
 }
@@ -296,7 +477,7 @@ body.theme-concept03 #app-shell {
   padding: var(--c03-app-padding-x);
   gap: var(--c03-region-gap);
   grid-template-columns: minmax(220px, 260px) minmax(480px, 1fr) minmax(280px, 320px);
-  grid-template-rows: 72px minmax(0, 1fr) 220px 72px;
+  grid-template-rows: 72px minmax(0, 1fr) minmax(0, 220px) 72px;
   grid-template-areas:
     "header header header"
     "left center right"
@@ -368,6 +549,15 @@ body.theme-concept03 #app-shell {
   border-left: 0;
   border-radius: 0;
   transform: rotate(45deg);
+}
+
+[data-icon="chevron-down"]::before {
+  width: 58%;
+  height: 58%;
+  border-top: 0;
+  border-left: 0;
+  border-radius: 0;
+  transform: translateY(-25%) rotate(45deg);
 }
 
 [data-icon="refresh-cw"]::before {
@@ -923,6 +1113,7 @@ body.theme-concept03 #app-shell {
   align-items: stretch;
   justify-items: stretch;
   display: flex;
+  flex: 1 1 auto; /* grow to fill the flex-column page panel so the absolute 3D viewport subtree gets a definite height (else clientHeight≈0 outside fullscreen) */
   min-width: 0;
   min-height: 0;
   padding: 0;
@@ -977,10 +1168,14 @@ body.theme-concept03 #app-shell {
 }
 
 .c03-camera-tools {
-  display: inline-flex;
+  display: none; /* gated to the 3D sub-tab; shown only when #central-canvas[data-central-tab="3d"] */
   align-items: center;
   flex: 0 0 auto;
   gap: 4px;
+}
+
+#central-canvas[data-central-tab="3d"] .c03-camera-tools {
+  display: inline-flex;
 }
 
 .c03-camera-tool {
@@ -1183,7 +1378,9 @@ body.theme-concept03 #app-shell {
 
 .c03-scene-about[open] .c03-scene-about__body {
   margin-top: 4px;
-  max-height: 38vh;
+  /* Компактная высота: описание видно (прокручивается), но карточка не
+     занимает половину сцены и оставляет место выноскам. */
+  max-height: 132px;
   overflow-y: auto;
 }
 
@@ -1238,24 +1435,43 @@ body.theme-concept03 #app-shell {
   border-color: var(--c03-accent-strong) transparent transparent !important;
 }
 
-.c03-scene-select .Select-menu-outer {
+.c03-scene-select .Select-menu-outer,
+.c03-scene-select .Select-menu,
+.c03-scene-select .Select__menu,
+.c03-scene-select .Select__menu-list,
+.c03-scene-select .VirtualSelectGrid {
   z-index: 30 !important;
-  border: 1px solid rgba(79, 195, 247, 0.34) !important;
   border-radius: var(--c03-radius-sm) !important;
   background: #07151d !important;
   color: var(--c03-text) !important;
+}
+
+.c03-scene-select .Select-menu-outer {
+  border: 1px solid rgba(79, 195, 247, 0.34) !important;
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.34) !important;
   overflow: hidden !important;
 }
 
-.c03-scene-select .VirtualizedSelectOption {
+.c03-scene-select .Select-option,
+.c03-scene-select .VirtualizedSelectOption,
+.c03-scene-select .Select__option {
+  padding: 7px 10px !important;
+  background: #07151d !important;
   color: var(--c03-text) !important;
   font-size: var(--c03-fs-xs) !important;
   line-height: 1.25 !important;
 }
 
 .c03-scene-select .VirtualizedSelectFocusedOption,
-.c03-scene-select .Select-option.is-focused {
+.c03-scene-select .Select-option.is-focused,
+.c03-scene-select .Select__option--is-focused {
   background: rgba(79, 195, 247, 0.16) !important;
+}
+
+.c03-scene-select .Select-option.is-selected,
+.c03-scene-select .Select__option--is-selected {
+  background: rgba(63, 203, 120, 0.2) !important;
+  color: var(--c03-text) !important;
 }
 
 .c03-scene-viewport[data-concept03-scene-mode="catalog"] .c03-callout-layer,
@@ -1271,26 +1487,68 @@ body.theme-concept03 #app-shell {
   pointer-events: none;
 }
 
+/* Внутри concept03 информационные карточки (.c03-callout) — единственный слой
+   подписей: они несут и название узла, и живые данные. Базовый слой пилюль
+   viewer3d (PRIORITY_LABELS) дублировал бы те же узлы и сваливался бы в
+   нечитаемую кучу по центру компактной модели, поэтому он здесь скрыт. */
+.c03-scene-viewport .viewer3d-label-layer {
+  display: none !important;
+}
+
+/* SVG-слой выносных линий: соединяет карточку с её реальным узлом 3D-модели,
+   чтобы было однозначно понятно, что и где подписано. Под карточками. */
+.c03-callout-leaders {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.c03-callout-leaders__line {
+  stroke: rgba(79, 195, 247, 0.55);
+  stroke-width: 1.5;
+  fill: none;
+}
+
+.c03-callout-leaders__dot {
+  fill: var(--c03-accent);
+  stroke: var(--c03-accent-strong);
+  stroke-width: 1;
+}
+
+.c03-callout-leaders__line--warn {
+  stroke: rgba(255, 181, 71, 0.7);
+}
+
+.c03-callout-leaders__dot--warn {
+  fill: rgba(255, 181, 71, 0.95);
+  stroke: rgba(255, 181, 71, 1);
+}
+
+.c03-callout-leaders__line--alarm {
+  stroke: rgba(255, 90, 110, 0.8);
+}
+
+.c03-callout-leaders__dot--alarm {
+  fill: rgba(255, 90, 110, 0.95);
+  stroke: rgba(255, 90, 110, 1);
+}
+
 .c03-callout {
   position: absolute;
   left: var(--callout-x);
   top: var(--callout-y);
-  display: grid;
-  grid-template-columns: 10px minmax(112px, 168px);
-  align-items: center;
-  gap: 6px;
-  max-width: 190px;
+  display: block;
+  max-width: 178px;
   color: var(--c03-text);
   transform: translate(-50%, -50%);
 }
 
+/* Якорь теперь рисуется выносной линией со точкой на узле модели
+   (.c03-callout-leaders), поэтому внутренняя «пилюля» больше не нужна. */
 .c03-callout__pin {
-  width: 8px;
-  height: 8px;
-  border: 1px solid var(--c03-accent-strong);
-  border-radius: 50%;
-  background: var(--c03-accent);
-  box-shadow: 0 0 12px rgba(79, 195, 247, 0.58);
+  display: none;
 }
 
 .c03-callout__card {
@@ -1314,9 +1572,8 @@ body.theme-concept03 #app-shell {
 
 .c03-callout__title,
 .c03-callout__row strong {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: break-word;
 }
 
 .c03-callout__title {
@@ -1343,6 +1600,15 @@ body.theme-concept03 #app-shell {
   color: var(--c03-text);
   font-family: var(--c03-font-mono);
   font-weight: 700;
+}
+
+/* Строка-деталь: самодостаточная подпись на всю ширину (без ярлыка слева).
+   Не моноширинная и не жирная — это пояснение, а не числовое значение. */
+.c03-callout__row--detail {
+  display: block;
+  color: var(--c03-text-muted);
+  font-size: var(--c03-fs-xxs);
+  line-height: 1.25;
 }
 
 .c03-compass {
@@ -1421,6 +1687,26 @@ body.theme-concept03 #app-shell {
   width: 100%;
   height: 100%;
   border: 0;
+}
+
+/* Вкладка «Схема»: карточка-описание в потоке под мнемосхемой, а не поверх —
+   раскрытая absolute-карточка закрывала левые узлы SVG (повтор editing-1). */
+#concept03-panel-2d.c03-central-panel--active {
+  display: flex;
+  flex-direction: column;
+}
+
+#concept03-panel-2d .c03-mnemonic-object {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: auto;
+}
+
+#concept03-scene-about-2d.c03-scene-about {
+  position: static;
+  flex: 0 0 auto;
+  max-width: none;
+  margin: 0 12px 12px;
 }
 
 .c03-webgl-fallback__copy {
@@ -1786,9 +2072,8 @@ body.theme-concept03 #app-shell {
 
 .c03-card-copy strong,
 .c03-card-copy span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: break-word;
 }
 
 .c03-card-copy strong {
@@ -1897,12 +2182,17 @@ body.theme-concept03 #app-shell {
 .c03-config-brief__list dd {
   min-width: 0;
   margin: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+}
+
+.c03-config-brief__list dt {
+  white-space: normal;
+  overflow-wrap: break-word;
 }
 
 .c03-config-brief__list dd {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   color: var(--c03-text);
   font-family: var(--c03-font-mono);
   text-align: right;
@@ -2068,14 +2358,24 @@ body.theme-concept03 #app-shell {
   text-transform: uppercase;
 }
 
-.c03-kpi-row__topline span:last-child,
-.c03-kpi-row__meta span,
 .c03-health-tile__title,
 .c03-health-tile__sub {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.c03-kpi-row__topline span:last-child {
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: break-word;
+}
+
+.c03-kpi-row__meta span {
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: break-word;
 }
 
 .c03-kpi-row__icon {
@@ -2215,6 +2515,156 @@ body.theme-concept03 #app-shell {
   overflow: hidden;
 }
 
+/* ── Полоса-переключатель нижней панели ───────────────────────────────
+   Узкий заголовок над оперативными панелями: сворачивает нижнюю полосу,
+   отдавая высоту центральному canvas (3D/схема). См. concept03_overlay.js
+   (data-strip-toggle) и класс .c03-shell--strip-collapsed на shell. */
+.c03-strip-toggle-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+  min-height: 22px;
+  margin-bottom: 2px;
+  padding: 0 2px;
+}
+
+.c03-strip-toggle-bar__label {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--c03-text-muted);
+  font-size: var(--c03-fs-xxs);
+  letter-spacing: 0.02em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.c03-strip-toggle-bar__button {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 6px;
+  height: 22px;
+  padding: 0 9px;
+  border: 1px solid var(--c03-line);
+  border-radius: var(--c03-radius-pill);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--c03-text-muted);
+  font-family: var(--c03-font-body);
+  font-size: var(--c03-fs-xxs);
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.c03-strip-toggle-bar__button:hover {
+  border-color: var(--c03-accent-strong);
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--c03-text);
+}
+
+.c03-strip-toggle-bar__chevron {
+  width: 14px;
+  height: 14px;
+  color: currentColor;
+  transition: transform 0.2s ease;
+}
+
+.c03-strip-toggle-bar__text--collapsed {
+  display: none;
+}
+
+/* ── Свёрнутое состояние ──────────────────────────────────────────────
+   Прячем оперативные/defense-панели, оставляя только полосу-переключатель;
+   строка grid сжимается до содержимого, центральный canvas растёт. */
+#concept03-shell.c03-shell--strip-collapsed {
+  grid-template-rows: 72px minmax(0, 1fr) auto 72px;
+}
+
+#concept03-shell.c03-shell--strip-collapsed .c03-bottom-strip {
+  overflow: visible;
+}
+
+#concept03-shell.c03-shell--strip-collapsed .c03-operator-bottom,
+#concept03-shell.c03-shell--strip-collapsed .c03-defense-bottom {
+  display: none !important;
+}
+
+#concept03-shell.c03-shell--strip-collapsed .c03-strip-toggle-bar__chevron {
+  transform: rotate(180deg);
+}
+
+#concept03-shell.c03-shell--strip-collapsed
+  .c03-strip-toggle-bar__text:not(.c03-strip-toggle-bar__text--collapsed) {
+  display: none;
+}
+
+#concept03-shell.c03-shell--strip-collapsed .c03-strip-toggle-bar__text--collapsed {
+  display: inline;
+}
+
+/* ── Фокус-режим: кнопка в substrip канваса ───────────────────────────
+   Сворачивает боковые рейлы и нижнюю полосу, отдавая почти весь экран
+   центральному контенту. Обработчик — concept03_overlay.js
+   (data-focus-toggle), класс .c03-shell--focus на shell. */
+.c03-focus-toggle {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--c03-line-strong);
+  border-radius: var(--c03-radius-pill);
+  background: var(--c03-bg-overlay);
+  color: var(--c03-text-muted);
+  font-family: var(--c03-font-body);
+  font-size: var(--c03-fs-xxs);
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.c03-focus-toggle:hover,
+.c03-focus-toggle:focus-visible {
+  border-color: var(--c03-accent-strong);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--c03-text);
+}
+
+.c03-focus-toggle__icon {
+  width: 15px;
+  height: 15px;
+  color: currentColor;
+}
+
+.c03-focus-toggle__label--collapse {
+  display: none;
+}
+
+#concept03-shell.c03-shell--focus .c03-focus-toggle__icon {
+  transform: scale(0.84);
+}
+
+#concept03-shell.c03-shell--focus .c03-focus-toggle__label--expand {
+  display: none;
+}
+
+#concept03-shell.c03-shell--focus .c03-focus-toggle__label--collapse {
+  display: inline;
+}
+
+/* В фокус-режиме прячем боковые рейлы и нижнюю полосу при любой ширине.
+   Высокая специфичность (#shell.class #id) перекрывает раскладку defense
+   и адаптивные правила, которые лишь переставляют grid-area. */
+#concept03-shell.c03-shell--focus #left-rail,
+#concept03-shell.c03-shell--focus #right-rail,
+#concept03-shell.c03-shell--focus #bottom-strip {
+  display: none !important;
+}
+
 .c03-bottom-panel {
   display: flex;
   min-width: 0;
@@ -2231,10 +2681,11 @@ body.theme-concept03 #app-shell {
 .c03-bottom-panel__title,
 .c03-bottom-panel__footer {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   min-width: 0;
-  gap: 8px;
+  gap: 4px 8px;
 }
 
 .c03-bottom-panel__actions {
@@ -2248,13 +2699,12 @@ body.theme-concept03 #app-shell {
 
 .c03-bottom-panel__title strong {
   min-width: 0;
-  overflow: hidden;
   color: var(--c03-text-muted);
   font-size: var(--c03-fs-xs);
   letter-spacing: 0;
-  text-overflow: ellipsis;
   text-transform: uppercase;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: break-word;
 }
 
 .c03-bottom-panel__body {
@@ -2274,9 +2724,8 @@ body.theme-concept03 #app-shell {
 
 .c03-bottom-panel__footer > span {
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: break-word;
 }
 
 .c03-bottom-panel__footer a {
@@ -2712,9 +3161,8 @@ body.theme-concept03 #app-shell {
 
 .c03-event-log-row__message {
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: break-word;
 }
 
 .c03-report-row {
@@ -2925,7 +3373,7 @@ body.theme-concept03 #app-shell {
   }
 
   .c03-callout {
-    grid-template-columns: 8px minmax(96px, 142px);
+    max-width: 150px;
   }
 
   .c03-callout__card {
@@ -3493,10 +3941,10 @@ body.c03-defense .c03-defense-bottom {
 .c03-defense-comparison__row strong,
 .c03-defense-event-table__row span:last-child,
 .c03-readiness-checks__row strong {
-  overflow: hidden;
+  min-width: 0;
   color: var(--c03-text);
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: break-word;
 }
 
 .c03-readiness-checks {
@@ -3512,17 +3960,24 @@ body.c03-defense .c03-defense-bottom {
 }
 
 .c03-defense-panel__footer {
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   min-height: 24px;
   min-width: 0;
-  gap: 8px;
+  gap: 4px 8px;
   color: var(--c03-text-muted);
   font-size: var(--c03-fs-xxs);
 }
 
-.c03-defense-panel__footer > span,
+.c03-defense-panel__footer > span {
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: break-word;
+}
+
 .c03-defense-panel__footer > a {
+  flex: 0 0 auto;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -3595,4 +4050,22 @@ body.c03-defense .c03-defense-bottom {
   border-radius: var(--c03-radius-pill);
   background: var(--c03-status-ok-soft);
   color: var(--c03-text);
+}
+
+/* ── Фокус-режим: раскладка центральной области ────────────────────────
+   Центр занимает всю ширину окна; шапка и нижняя навигация остаются,
+   боковые рейлы и нижняя полоса скрыты (display:none выше). Селектор
+   (специфичность 1,1,1) перекрывает defense-раскладку, а позиция в конце
+   файла обеспечивает победу при равной специфичности над адаптивными
+   правилами. На мобиле (≤780px) рейлы стоят отдельными строками — их
+   display:none достаточно, отдельная сетка не требуется. */
+@media (min-width: 781px) {
+  body #concept03-shell.c03-shell--focus {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 72px minmax(0, 1fr) auto;
+    grid-template-areas:
+      "header"
+      "center"
+      "footer";
+  }
 }

@@ -1993,7 +1993,7 @@ input[type="number"]:disabled {
 
 .viewer3d-legend {
   position: absolute;
-  left: 14px;
+  right: 14px;
   bottom: 14px;
   z-index: 6;
   padding: 12px 14px;

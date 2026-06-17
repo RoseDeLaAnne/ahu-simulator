@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 from dash import html
 
 from app.simulation.state import OperationStatus
+from app.ui.asset_urls import dashboard_asset_url
 from app.ui.concept03.components.icon import Icon
 from app.ui.scene.bindings import SceneBindingRegistry
 
@@ -171,7 +172,7 @@ def build_scene3d_overlay(callouts: tuple[Concept03CalloutView, ...]) -> list:
             children=[
                 html.ObjectEl(
                     id="concept03-fallback-mnemonic-object",
-                    data="assets/pvu_mnemonic.svg",
+                    data=dashboard_asset_url("pvu_mnemonic.svg"),
                     type="image/svg+xml",
                     className="c03-fallback-mnemonic",
                 ),
@@ -292,19 +293,29 @@ def _build_callout(callout: Concept03CalloutView) -> html.Div:
                     html.Strong(callout.title, className="c03-callout__title"),
                     html.Span(
                         className="c03-callout__rows",
-                        children=[
-                            html.Span(
-                                className="c03-callout__row",
-                                children=[
-                                    html.Span(row.label),
-                                    html.Strong(row.value),
-                                ],
-                            )
-                            for row in callout.rows
-                        ],
+                        children=[_build_callout_row(row) for row in callout.rows],
                     ),
                 ],
             ),
+        ],
+    )
+
+
+def _build_callout_row(row: Concept03CalloutRowView) -> html.Span:
+    # Строка-деталь (пустой label) уже самодостаточна («После рекуперации
+    # 13.5 °C») — выводим её одной строкой без ярлыка, иначе получалось
+    # дублирование вида «После рекуп.После рекуперации 13.5 °C» (замечание
+    # пользователя: подписи «не отображают данные»/прикреплены непонятно).
+    if not row.label:
+        return html.Span(
+            row.value,
+            className="c03-callout__row c03-callout__row--detail",
+        )
+    return html.Span(
+        className="c03-callout__row",
+        children=[
+            html.Span(row.label),
+            html.Strong(row.value),
         ],
     )
 
@@ -313,19 +324,21 @@ def _rows_for_signal(
     visual_id: str,
     signal: VisualElementState,
 ) -> tuple[Concept03CalloutRowView, ...]:
-    labels = {
-        "outdoor_air": ("T", "После рекуп."),
-        "filter_bank": ("ΔP", "Загрязнение"),
-        "recuperator_core": ("КПД", "Приток"),
-        "heater_coil": ("Мощн.", "Загрузка"),
-        "supply_fan": ("P", "Режим"),
-        "filter_fine": ("ΔP", "Класс"),
-        "cooler_coil": ("ΔT", "Контур"),
-        "silencer": ("ΔP", "Секция"),
-        "room_supply": ("Подача", "Расход"),
-        "room_zone": ("T room", "Баланс"),
-    }.get(visual_id, ("Знач.", "Деталь"))
-    rows = [Concept03CalloutRowView(labels[0], signal.value)]
+    # Ярлык только для первичного измеримого значения (value). Поле detail —
+    # самодостаточная подпись, поэтому второй ярлык не задаётся.
+    primary_label = {
+        "outdoor_air": "T",
+        "filter_bank": "ΔP",
+        "recuperator_core": "КПД",
+        "heater_coil": "Мощн.",
+        "supply_fan": "P",
+        "filter_fine": "ΔP",
+        "cooler_coil": "ΔT",
+        "silencer": "ΔP",
+        "room_supply": "Подача",
+        "room_zone": "T room",
+    }.get(visual_id, "Знач.")
+    rows = [Concept03CalloutRowView(primary_label, signal.value)]
     if signal.detail:
-        rows.append(Concept03CalloutRowView(labels[1], signal.detail))
+        rows.append(Concept03CalloutRowView("", signal.detail))
     return tuple(rows[:2])

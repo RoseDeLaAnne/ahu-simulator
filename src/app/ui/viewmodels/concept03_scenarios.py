@@ -11,6 +11,8 @@ CONCEPT03_SCENARIO_IDS = (
     "night_min_airflow",
     "freeze_protection",
     "airflow_check_100",
+    "reduced_flow",
+    "dirty_filter",
 )
 
 CONCEPT03_SCENARIO_PRESENTATION = {
@@ -19,6 +21,10 @@ CONCEPT03_SCENARIO_PRESENTATION = {
     "night_min_airflow": ("Летний режим", "Ночь. Минимум воздуха", "sun"),
     "freeze_protection": ("Рециркуляция", "Защита от замерзания", "refresh-cw"),
     "airflow_check_100": ("Пожарная вентиляция", "Проверка 100% расхода", "flame"),
+    # Сценарии с тревогами: дают предупреждение/аварию, чтобы оператор видел
+    # работу панели «Аларма» и строки тревог (фильтр ≥ порога, падение расхода).
+    "reduced_flow": ("Снижение подачи", "Риск: падение расхода", "trending-down"),
+    "dirty_filter": ("Загрязнённый фильтр", "Авария: фильтр забит", "filter"),
 }
 
 

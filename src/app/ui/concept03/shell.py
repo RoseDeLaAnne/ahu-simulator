@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 
-from dash import html
+from dash import dcc, html
 
 from app.ui.concept03.bottom_strip import build_bottom_strip
 from app.ui.concept03.central_canvas import build_central_canvas
@@ -207,13 +207,14 @@ def _build_footer_nav(active_page: str) -> html.Footer:
 def _build_footer_links(
     active_page: str,
     labels: dict[str, str],
-) -> Iterable[html.A]:
+) -> Iterable[dcc.Link]:
     for page_id in PAGE_IDS:
         is_active = page_id == active_page
-        yield html.A(
+        yield dcc.Link(
             labels[page_id],
             id=f"footer-nav-{page_id}",
             href=f"?theme=concept03&page={page_id}",
+            refresh=False,
             className="c03-footer-nav__link"
             + (" c03-footer-nav__link--active" if is_active else ""),
         )

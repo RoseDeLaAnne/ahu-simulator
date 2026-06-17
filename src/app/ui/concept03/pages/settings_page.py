@@ -30,15 +30,77 @@ def build_content() -> list:
                                     className="c03-page-section__eyebrow",
                                     children="ИНТЕРФЕЙС",
                                 ),
-                                _setting_row(
+                                _toggle_row(
                                     "Тема оформления",
                                     "palette",
-                                    "Concept03 (тёмная SCADA-тема) / Legacy (янтарная)",
+                                    "Переключение между тёмной SCADA-темой и янтарной "
+                                    "(применяется сразу, страница перезагружается).",
+                                    options=(
+                                        ("Concept03", "?theme=concept03&page=settings", "moon"),
+                                        ("Legacy", "?theme=legacy&page=settings", "sun"),
+                                    ),
                                 ),
-                                _setting_row(
+                                _toggle_row(
                                     "Режим защиты",
                                     "shield-check",
-                                    "Включить defense-вариант для академической презентации",
+                                    "Defense-вариант для академической презентации "
+                                    "(скрывает операторские элементы, добавляет defense-панели).",
+                                    options=(
+                                        ("Оператор", "?theme=concept03&page=settings", "settings"),
+                                        (
+                                            "Защита",
+                                            "?theme=concept03&defense=1&page=settings",
+                                            "shield-check",
+                                        ),
+                                    ),
+                                ),
+                            ],
+                        ),
+                        html.Section(
+                            className="c03-page-section",
+                            children=[
+                                html.Div(
+                                    className="c03-page-section__eyebrow",
+                                    children="ДОКУМЕНТАЦИЯ И API",
+                                ),
+                                html.Div(
+                                    className="c03-settings-links",
+                                    children=[
+                                        _settings_link(
+                                            "Справочник проекта",
+                                            "/handbook",
+                                            "book-open",
+                                        ),
+                                        _settings_link(
+                                            "Руководство по эксплуатации",
+                                            "/handbook/44_app_operation_manual",
+                                            "file-text",
+                                        ),
+                                        _settings_link(
+                                            "Swagger API",
+                                            "/docs",
+                                            "book-marked",
+                                        ),
+                                    ],
+                                ),
+                            ],
+                        ),
+                        html.Section(
+                            className="c03-page-section",
+                            children=[
+                                html.Div(
+                                    className="c03-page-section__eyebrow",
+                                    children="ДИАГНОСТИКА",
+                                ),
+                                html.Div(
+                                    "Проверка среды выполнения (WebGL, размеры экрана, "
+                                    "браузер). При ошибках 3D-сцены проверьте поддержку WebGL.",
+                                    className="c03-page-section__text",
+                                ),
+                                html.Pre(
+                                    "Сбор данных о среде…",
+                                    id="concept03-settings-diagnostics",
+                                    className="c03-settings-diagnostics",
                                 ),
                             ],
                         ),
@@ -70,27 +132,6 @@ def build_content() -> list:
                                 ),
                             ],
                         ),
-                        html.Section(
-                            className="c03-page-section",
-                            children=[
-                                html.Div(
-                                    className="c03-page-section__eyebrow",
-                                    children="ДИАГНОСТИКА",
-                                ),
-                                html.P(
-                                    "Проверьте работоспособность сервера, 3D-рендерера "
-                                    "и доступность API. При возникновении ошибок "
-                                    "WebGL, проверьте поддержку браузером.",
-                                    className="c03-page-section__text",
-                                ),
-                                html.A(
-                                    "Swagger API →",
-                                    href="/docs",
-                                    target="_blank",
-                                    className="c03-settings-link",
-                                ),
-                            ],
-                        ),
                     ],
                 ),
             ],
@@ -98,7 +139,7 @@ def build_content() -> list:
     ]
 
 
-def _setting_row(label: str, icon: str, desc: str) -> html.Div:
+def _toggle_row(label: str, icon: str, desc: str, *, options) -> html.Div:
     return html.Div(
         className="c03-setting-row",
         children=[
@@ -108,9 +149,33 @@ def _setting_row(label: str, icon: str, desc: str) -> html.Div:
                 children=[
                     html.Strong(label, className="c03-setting-row__label"),
                     html.Span(desc, className="c03-setting-row__desc"),
+                    html.Div(
+                        className="c03-setting-row__options",
+                        children=[
+                            html.A(
+                                children=[
+                                    Icon(opt_icon, size=15),
+                                    html.Span(opt_label),
+                                ],
+                                href=opt_href,
+                                className="c03-setting-option",
+                            )
+                            for opt_label, opt_href, opt_icon in options
+                        ],
+                    ),
                 ],
             ),
         ],
+    )
+
+
+def _settings_link(label: str, href: str, icon: str) -> html.A:
+    return html.A(
+        href=href,
+        target="_blank",
+        rel="noreferrer",
+        className="c03-settings-link",
+        children=[Icon(icon, size=16), html.Span(label)],
     )
 
 

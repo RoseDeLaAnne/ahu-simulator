@@ -56,6 +56,7 @@ def build_bottom_strip_content(
             build_mobile_field_row(scenarios_view, view.readiness),
         )
     children = [
+        _build_strip_toggle_bar(),
         html.Div(
             className="c03-operator-bottom c03-operator-only",
             children=operator_children,
@@ -69,6 +70,53 @@ def build_bottom_strip_content(
             )
         )
     return children
+
+
+def _build_strip_toggle_bar() -> html.Div:
+    """Узкая полоска-заголовок над панелями нижней полосы.
+
+    Кнопка-шеврон сворачивает полосу (класс `c03-shell--strip-collapsed`
+    на shell, обработчик в concept03_overlay.js), отдавая высоту
+    центральному canvas. Состояние запоминается в localStorage.
+    """
+    return html.Div(
+        className="c03-strip-toggle-bar",
+        children=[
+            html.Span(
+                "Артефакты защиты: готовность · сравнение · журнал · отчёты",
+                className="c03-strip-toggle-bar__label",
+            ),
+            html.Button(
+                [
+                    Icon(
+                        "chevron-down",
+                        14,
+                        class_name="c03-strip-toggle-bar__chevron",
+                    ),
+                    html.Span(
+                        "Свернуть",
+                        className="c03-strip-toggle-bar__text",
+                        **{"data-strip-label-expanded": "true"},
+                    ),
+                    html.Span(
+                        "Развернуть",
+                        className=(
+                            "c03-strip-toggle-bar__text "
+                            "c03-strip-toggle-bar__text--collapsed"
+                        ),
+                    ),
+                ],
+                id="concept03-bottom-strip-toggle",
+                type="button",
+                className="c03-strip-toggle-bar__button",
+                title="Свернуть/развернуть нижнюю полосу",
+                **{
+                    "aria-label": "Свернуть или развернуть нижнюю полосу",
+                    "data-strip-toggle": "bottom",
+                },
+            ),
+        ],
+    )
 
 
 def build_mobile_field_row(

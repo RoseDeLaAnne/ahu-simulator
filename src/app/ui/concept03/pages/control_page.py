@@ -2,13 +2,37 @@ from __future__ import annotations
 
 from dash import html
 
+from app.simulation.parameters import ControlMode
 from app.ui.concept03.components.icon import Icon
 
-_CONTROL_CARDS = (
-    ("Автоматический", "cpu", "Система управляет параметрами по заданному сценарию"),
-    ("Ручной", "hand", "Оператор задаёт уставки вручную"),
-    ("По расписанию", "calendar-clock", "Режимы переключаются по недельному графику"),
-    ("Энергосберегающий", "leaf", "Оптимизация энергопотребления без ущерба комфорту"),
+# Карточки режимов привязаны к реальным значениям ControlMode, поэтому выбор
+# на этой странице меняет режим работающей модели (control-mode), как и левая
+# панель дашборда. (mode_id, заголовок, иконка, описание)
+_CONTROL_MODES = (
+    (
+        ControlMode.AUTO.value,
+        "Автоматический",
+        "cpu",
+        "Система сама поддерживает уставки по выбранному сценарию.",
+    ),
+    (
+        ControlMode.SEMI_AUTO.value,
+        "Полуавтоматический",
+        "sliders-horizontal",
+        "Часть уставок задаёт оператор, остальное держит автоматика.",
+    ),
+    (
+        ControlMode.MANUAL.value,
+        "Ручной",
+        "hand",
+        "Оператор задаёт уставки вручную; автоматика не вмешивается.",
+    ),
+    (
+        ControlMode.TEST.value,
+        "Тестовый / наладка",
+        "flask-conical",
+        "Проверочный прогон оборудования и логики управления.",
+    ),
 )
 
 
@@ -38,11 +62,21 @@ def build_content() -> list:
                                     children="РЕЖИМЫ РАБОТЫ",
                                 ),
                                 html.Div(
+                                    "Выберите режим — он сразу применяется к "
+                                    "работающей модели и отражается на дашборде.",
+                                    className="c03-page-section__hint",
+                                ),
+                                html.Div(
                                     className="c03-control-grid",
                                     children=[
-                                        _control_card(title, icon, desc)
-                                        for title, icon, desc in _CONTROL_CARDS
+                                        _control_card(mode_id, title, icon, desc)
+                                        for mode_id, title, icon, desc in _CONTROL_MODES
                                     ],
+                                ),
+                                html.Div(
+                                    "Текущий режим: —",
+                                    id="concept03-control-page-status",
+                                    className="c03-control-page-status",
                                 ),
                             ],
                         ),
@@ -54,10 +88,11 @@ def build_content() -> list:
                                     children="ПАРАМЕТРЫ СЦЕНАРИЯ",
                                 ),
                                 html.P(
-                                    "Настройка параметров выполняется через левую панель «Сценарии» "
-                                    "на главном дашборде. Выберите сценарий и режим управления, "
-                                    "затем скорректируйте значения на панели параметров "
-                                    "центрального холста.",
+                                    "Числовые уставки (наружная температура, расход, "
+                                    "уставка притока, КПД рекуперации, мощность "
+                                    "калорифера и др.) задаются на панели «Параметры» "
+                                    "центрального холста дашборда. Готовые наборы "
+                                    "параметров доступны на странице «Библиотека».",
                                     className="c03-page-section__text",
                                 ),
                             ],
@@ -69,17 +104,36 @@ def build_content() -> list:
     ]
 
 
-def _control_card(title: str, icon: str, desc: str) -> html.Div:
-    return html.Div(
+def _control_card(mode_id: str, title: str, icon: str, desc: str) -> html.Button:
+    return html.Button(
+        id={"type": "concept03-control-page-mode", "mode_id": mode_id},
         className="c03-control-card-page",
+        type="button",
+        n_clicks=0,
+        title=f"{title}: {desc}",
+        **{
+            "data-mode-id": mode_id,
+            "aria-pressed": "false",
+        },
         children=[
             html.Div(
                 className="c03-control-card-page__top",
                 children=[
                     Icon(icon, size=28, class_name="c03-control-card-page__icon"),
                     html.Strong(title, className="c03-control-card-page__title"),
+                    Icon(
+                        "check",
+                        size=16,
+                        class_name="c03-control-card-page__check",
+                    ),
                 ],
             ),
             html.P(desc, className="c03-control-card-page__desc"),
         ],
+    )
+
+
+def control_page_mode_class_name(*, is_active: bool) -> str:
+    return "c03-control-card-page" + (
+        " c03-control-card-page--active" if is_active else ""
     )

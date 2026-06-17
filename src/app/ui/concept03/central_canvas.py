@@ -15,6 +15,7 @@ from app.ui.concept03.scene3d_overlay import (
     build_pagination_dots,
     build_scene3d_overlay,
 )
+from app.ui.asset_urls import dashboard_asset_url
 from app.ui.viewmodels.concept03_central import (
     Concept03AlarmRowView,
     Concept03CentralView,
@@ -35,6 +36,7 @@ def build_central_canvas(
         id="central-canvas",
         className="c03-region c03-central-canvas",
         tabIndex=0,
+        **{"data-central-tab": active_tab or DEFAULT_CENTRAL_TAB},
         children=[
             _build_substrip(view),
             _build_tabbar(view, active_tab),
@@ -133,7 +135,39 @@ def _build_substrip(view: Concept03CentralView) -> html.Div:
                 id="concept03-camera-capture-status",
                 className="c03-camera-capture-status c03-defense-only",
             ),
+            _build_focus_toggle(),
         ],
+    )
+
+
+def _build_focus_toggle() -> html.Button:
+    """Кнопка фокус-режима центральной области.
+
+    Сворачивает боковые рейлы и нижнюю полосу (класс `c03-shell--focus`
+    на shell), отдавая почти весь экран центральному контенту любой вкладки.
+    Обработчик — в concept03_overlay.js (data-focus-toggle), состояние
+    запоминается в localStorage.
+    """
+    return html.Button(
+        [
+            Icon("maximize", 15, class_name="c03-focus-toggle__icon"),
+            html.Span(
+                "Развернуть",
+                className="c03-focus-toggle__label c03-focus-toggle__label--expand",
+            ),
+            html.Span(
+                "Свернуть",
+                className="c03-focus-toggle__label c03-focus-toggle__label--collapse",
+            ),
+        ],
+        id="concept03-focus-toggle",
+        type="button",
+        className="c03-focus-toggle",
+        title="Развернуть центральную область на весь экран",
+        **{
+            "aria-label": "Развернуть или свернуть центральную область",
+            "data-focus-toggle": "central",
+        },
     )
 
 
@@ -244,12 +278,13 @@ def _build_scene_about_card(
     view: Concept03CentralView,
     *,
     element_id: str = "concept03-scene-about",
+    open_by_default: bool = True,
 ) -> html.Details:
     about = view.scene_about
     return html.Details(
         id=element_id,
         className="c03-scene-about",
-        open=True,
+        open=open_by_default,
         children=[
             html.Summary(
                 children=[
@@ -293,11 +328,17 @@ def _build_2d_panel(view: Concept03CentralView, active_tab: str) -> html.Div:
         children=[
             html.ObjectEl(
                 id="concept03-mnemonic-svg-object",
-                data="assets/pvu_mnemonic.svg",
+                data=dashboard_asset_url("pvu_mnemonic.svg"),
                 type="image/svg+xml",
                 className="c03-mnemonic-object",
             ),
-            _build_scene_about_card(view, element_id="concept03-scene-about-2d"),
+            # Свёрнута и в потоке (CSS) — раскрытая поверх схемы карточка
+            # закрывала левые узлы мнемосхемы (повтор замечания editing-1).
+            _build_scene_about_card(
+                view,
+                element_id="concept03-scene-about-2d",
+                open_by_default=False,
+            ),
         ],
     )
 

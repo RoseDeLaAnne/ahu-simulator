@@ -1,6 +1,8 @@
-from dash import ALL, Dash, Input, Output, State, ctx, html, no_update
+from dash import ALL, Dash, Input, Output, State, ctx, dcc, html, no_update
 from dash.dependencies import ClientsideFunction
+import io
 import json
+import zipfile
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from urllib.parse import parse_qs
@@ -60,6 +62,14 @@ from app.ui.concept03.mobile_components import (
     MOBILE_NAV_ITEMS,
     mobile_nav_class_name,
 )
+from app.ui.concept03.pages.control_page import control_page_mode_class_name
+from app.ui.concept03.pages.equipment_page import (
+    DEFAULT_EQUIPMENT_ID,
+    EQUIPMENT_BY_ID,
+    build_equipment_detail,
+    equipment_card_class_name,
+)
+from app.ui.concept03.pages.library_page import library_preset_class_name
 from app.ui.concept03.right_rail import build_right_rail_content
 from app.ui.viewmodels.concept03_bottom import (
     FOOTER_NAV_ITEMS,
@@ -181,19 +191,45 @@ def register_callbacks(
     def sync_concept03_dashboard_page(search: str | None) -> str:
         return select_page(search)
 
-    # Обновление data-active-page на shell для переключения видимости страниц через CSS
+    # Переключение видимости страниц — ПОЛНОСТЬЮ на клиенте, прямо из url.search,
+    # без серверного round-trip. dcc.Link уже меняет URL без перезагрузки, а этот
+    # клиентский колбэк мгновенно выставляет data-active-page (CSS показывает нужную
+    # страницу) и подсвечивает активную ссылку в футер-навигации. Раньше переключение
+    # ждало серверный колбэк (dashboard-page.data), из-за чего контент менялся через
+    # секунды под нагрузкой; теперь смена вкладок происходит сразу.
     app.clientside_callback(
         """
-        function(activePage) {
+        function(search) {
+            var pages = ["dashboard","equipment","control","analytics","library","settings"];
+            var page = "dashboard";
+            if (search) {
+                var match = /[?&]page=([^&#]+)/.exec(search);
+                if (match) {
+                    var candidate = decodeURIComponent(match[1]).trim().toLowerCase();
+                    if (pages.indexOf(candidate) !== -1) {
+                        page = candidate;
+                    }
+                }
+            }
             var shell = document.getElementById("concept03-shell");
             if (shell) {
-                shell.setAttribute("data-active-page", activePage || "dashboard");
+                shell.setAttribute("data-active-page", page);
             }
-            return "";
+            // Мгновенно переносим активную подсветку в навигации (серверный колбэк
+            // классов отработает следом, но визуально мы уже не ждём его).
+            document.querySelectorAll("[id^='footer-nav-']").forEach(function (link) {
+                var pid = link.id.replace("footer-nav-", "");
+                link.classList.toggle("c03-footer-nav__link--active", pid === page);
+            });
+            document.querySelectorAll("[data-page-nav]").forEach(function (link) {
+                var pid = link.getAttribute("data-page-nav");
+                link.classList.toggle("c03-mobile-nav__link--active", pid === page);
+            });
+            return page;
         }
         """,
         Output("concept03-shell-data-sync", "children"),
-        Input("dashboard-page", "data"),
+        Input("url", "search"),
     )
 
     app.clientside_callback(
@@ -393,10 +429,9 @@ def register_callbacks(
         Input("scene3d-model-select", "value"),
     )
     def update_scene3d_reference(model_id: str | None):
-        fallback = (
-            scene_model_catalog.models[0]
-            if scene_model_catalog.models
-            else None
+        fallback = scene_model_map.get(
+            scene_model_catalog.default_model_id or "",
+            scene_model_catalog.models[0] if scene_model_catalog.models else None,
         )
         model = scene_model_map.get(model_id or "", fallback)
         if model is None:
@@ -434,10 +469,9 @@ def register_callbacks(
         model_id: str | None,
         display_mode: str | None,
     ):
-        fallback = (
-            scene_model_catalog.models[0]
-            if scene_model_catalog.models
-            else None
+        fallback = scene_model_map.get(
+            scene_model_catalog.default_model_id or "",
+            scene_model_catalog.models[0] if scene_model_catalog.models else None,
         )
         model = scene_model_map.get(model_id or "", fallback)
         if not signals:
@@ -1108,6 +1142,272 @@ def register_callbacks(
                 else build_alarms_panel_content(view)
             ),
         )
+
+    # ── Страница «Управление»: выбор режима работы ──────────────
+    @app.callback(
+        Output("control-mode", "value", allow_duplicate=True),
+        Output("scene3d-control-mode", "value", allow_duplicate=True),
+        Input(
+            {"type": "concept03-control-page-mode", "mode_id": ALL},
+            "n_clicks",
+        ),
+        State("simulation-session-state", "data"),
+        prevent_initial_call=True,
+    )
+    def apply_concept03_control_page_mode(_clicks, session_payload):
+        if _session_is_running(session_payload):
+            return no_update, no_update
+        selected_mode_id = _resolve_concept03_triggered_id(
+            ctx.triggered_id,
+            key="mode_id",
+        )
+        try:
+            mode = ControlMode(selected_mode_id)
+        except (TypeError, ValueError):
+            return no_update, no_update
+        return mode.value, mode.value
+
+    @app.callback(
+        Output(
+            {"type": "concept03-control-page-mode", "mode_id": ALL},
+            "className",
+        ),
+        Output("concept03-control-page-status", "children"),
+        Input("control-mode", "value"),
+        State({"type": "concept03-control-page-mode", "mode_id": ALL}, "id"),
+    )
+    def sync_concept03_control_page_mode(selected_mode_id, card_ids):
+        try:
+            active_mode = ControlMode(selected_mode_id).value
+        except (TypeError, ValueError):
+            active_mode = ControlMode.AUTO.value
+        mode_labels = {
+            ControlMode.AUTO.value: "Автоматический",
+            ControlMode.SEMI_AUTO.value: "Полуавтоматический",
+            ControlMode.MANUAL.value: "Ручной",
+            ControlMode.TEST.value: "Тестовый / наладка",
+        }
+        class_names = [
+            control_page_mode_class_name(
+                is_active=card_id.get("mode_id") == active_mode
+            )
+            for card_id in card_ids
+        ]
+        return class_names, f"Текущий режим: {mode_labels.get(active_mode, active_mode)}"
+
+    # ── Страница «Библиотека»: применение пресетов ──────────────
+    @app.callback(
+        Output("scenario-select", "value", allow_duplicate=True),
+        Output("scene3d-scenario-select", "value", allow_duplicate=True),
+        Output("concept03-library-preset-status", "children"),
+        Input(
+            {"type": "concept03-library-preset", "scenario_id": ALL},
+            "n_clicks",
+        ),
+        State("simulation-session-state", "data"),
+        prevent_initial_call=True,
+    )
+    def apply_concept03_library_preset(_clicks, session_payload):
+        if _session_is_running(session_payload):
+            return no_update, no_update, "Остановите сессию перед сменой пресета."
+        selected_scenario_id = _resolve_concept03_triggered_id(
+            ctx.triggered_id,
+            key="scenario_id",
+        )
+        scenario_map = current_scenario_map()
+        if selected_scenario_id is None or selected_scenario_id not in scenario_map:
+            return no_update, no_update, no_update
+        scenario = scenario_map[selected_scenario_id]
+        return (
+            selected_scenario_id,
+            selected_scenario_id,
+            f"Применён пресет: {scenario.title}",
+        )
+
+    @app.callback(
+        Output(
+            {"type": "concept03-library-preset", "scenario_id": ALL},
+            "className",
+        ),
+        Input("scenario-select", "value"),
+        State({"type": "concept03-library-preset", "scenario_id": ALL}, "id"),
+    )
+    def sync_concept03_library_preset(selected_scenario_id, card_ids):
+        return [
+            library_preset_class_name(
+                is_active=card_id.get("scenario_id") == selected_scenario_id
+            )
+            for card_id in card_ids
+        ]
+
+    # ── Страница «Оборудование»: выбор узла и живая карточка ────
+    @app.callback(
+        Output("concept03-equipment-selected", "data"),
+        Output(
+            {"type": "concept03-equipment-card", "equipment_id": ALL},
+            "className",
+        ),
+        Input(
+            {"type": "concept03-equipment-card", "equipment_id": ALL},
+            "n_clicks",
+        ),
+        State({"type": "concept03-equipment-card", "equipment_id": ALL}, "id"),
+        prevent_initial_call=True,
+    )
+    def select_concept03_equipment(_clicks, card_ids):
+        selected_id = _resolve_concept03_triggered_id(
+            ctx.triggered_id,
+            key="equipment_id",
+        )
+        if selected_id not in EQUIPMENT_BY_ID:
+            selected_id = DEFAULT_EQUIPMENT_ID
+        class_names = [
+            equipment_card_class_name(
+                is_active=card_id.get("equipment_id") == selected_id
+            )
+            for card_id in card_ids
+        ]
+        return selected_id, class_names
+
+    @app.callback(
+        Output("concept03-equipment-detail", "children"),
+        Input("concept03-equipment-selected", "data"),
+        Input("simulation-session-state", "data"),
+    )
+    def render_concept03_equipment_detail(selected_id, session_payload):
+        if selected_id not in EQUIPMENT_BY_ID:
+            selected_id = DEFAULT_EQUIPMENT_ID
+        item = EQUIPMENT_BY_ID[selected_id]
+        live_value = None
+        live_label = None
+        live_class = None
+        if item.visual_id and session_payload:
+            try:
+                session = SimulationSession.model_validate(session_payload)
+            except ValueError:
+                session = None
+            if session is not None:
+                signals = build_visualization_signal_map(
+                    session.current_result,
+                    status_service=status_service,
+                )
+                signal = signals.nodes.get(item.visual_id) or signals.sensors.get(
+                    item.visual_id
+                )
+                if signal is not None:
+                    live_value = signal.value
+                    live_label = status_service.status_label(signal.state)
+                    live_class = (
+                        "c03-equipment-detail__live-state "
+                        + status_service.status_class_name(signal.state)
+                    )
+        return build_equipment_detail(
+            selected_id,
+            live_value=live_value,
+            live_state_label=live_label,
+            live_state_class=live_class,
+        )
+
+    # ── Страница «Аналитика»: экспорт отчётов ───────────────────
+    @app.callback(
+        Output("concept03-analytics-download", "data"),
+        Output("concept03-analytics-export-status", "children"),
+        Output("concept03-analytics-export-status", "className"),
+        Input(
+            {"type": "concept03-analytics-export", "kind": ALL},
+            "n_clicks",
+        ),
+        prevent_initial_call=True,
+    )
+    def export_concept03_analytics(all_clicks):
+        if not any(click for click in (all_clicks or []) if click):
+            return no_update, no_update, no_update
+        export_kind = _resolve_concept03_triggered_id(ctx.triggered_id, key="kind")
+        if export_kind not in {"pdf", "csv", "zip"}:
+            return no_update, no_update, no_update
+
+        ok_class = "c03-analytics-export-status c03-analytics-export-status--ok"
+        error_class = "c03-analytics-export-status c03-analytics-export-status--error"
+        session = service.get_session()
+        result = session.current_result
+        try:
+            build_result = export_service.export_result(result, session)
+        except (OSError, RuntimeError, ValueError) as error:
+            return no_update, f"Не удалось сформировать экспорт: {error}", error_class
+
+        entry = build_result.entry
+        resolver = export_service.path_resolver
+        event_log_service.record_export_event(
+            result,
+            manifest_path=entry.manifest_path,
+            source_type="dashboard-analytics",
+        )
+
+        if export_kind == "pdf":
+            pdf_path = resolver.resolve_display_path(entry.pdf_path)
+            return (
+                dcc.send_file(str(pdf_path)),
+                "PDF-отчёт сформирован и скачан.",
+                ok_class,
+            )
+        if export_kind == "csv":
+            csv_path = resolver.resolve_display_path(entry.csv_path)
+            return (
+                dcc.send_file(str(csv_path)),
+                "CSV-данные сформированы и скачаны.",
+                ok_class,
+            )
+
+        artifact_paths = [
+            resolver.resolve_display_path(display_path)
+            for display_path in (entry.pdf_path, entry.csv_path, entry.manifest_path)
+        ]
+
+        def _write_zip(buffer: io.BytesIO) -> None:
+            with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as archive:
+                for artifact_path in artifact_paths:
+                    if artifact_path.exists():
+                        archive.write(str(artifact_path), arcname=artifact_path.name)
+
+        return (
+            dcc.send_bytes(_write_zip, f"report-{entry.report_id}.zip"),
+            "Архив отчёта сформирован и скачан.",
+            ok_class,
+        )
+
+    # ── Страница «Настройки»: живая диагностика среды ───────────
+    app.clientside_callback(
+        """
+        function(_) {
+            try {
+                var canvas = document.createElement('canvas');
+                var gl = canvas.getContext('webgl2')
+                    || canvas.getContext('webgl')
+                    || canvas.getContext('experimental-webgl');
+                var renderer = '';
+                if (gl) {
+                    var info = gl.getExtension('WEBGL_debug_renderer_info');
+                    if (info) {
+                        renderer = gl.getParameter(info.UNMASKED_RENDERER_WEBGL) || '';
+                    }
+                }
+                var lines = [
+                    'WebGL: ' + (gl ? 'доступен' : 'НЕ доступен'),
+                    renderer ? ('Рендерер: ' + renderer) : null,
+                    'Экран: ' + window.screen.width + '×' + window.screen.height,
+                    'Окно: ' + window.innerWidth + '×' + window.innerHeight,
+                    'devicePixelRatio: ' + (window.devicePixelRatio || 1),
+                    'Браузер: ' + navigator.userAgent
+                ];
+                return lines.filter(Boolean).join('\\n');
+            } catch (error) {
+                return 'Диагностика недоступна: ' + (error && error.message);
+            }
+        }
+        """,
+        Output("concept03-settings-diagnostics", "children"),
+        Input("url", "search"),
+    )
 
     app.clientside_callback(
         ClientsideFunction(

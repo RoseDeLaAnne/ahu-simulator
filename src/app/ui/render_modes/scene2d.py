@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dash import html
 
+from app.ui.asset_urls import dashboard_asset_url
 from app.ui.viewmodels.browser_diagnostics import BrowserProfileView
 
 
@@ -30,7 +31,7 @@ def build_scene2d_workspace(browser_profile_view: BrowserProfileView) -> html.Di
             ),
             html.ObjectEl(
                 id="mnemonic-svg-object",
-                data="assets/pvu_mnemonic.svg",
+                data=dashboard_asset_url("pvu_mnemonic.svg"),
                 type="image/svg+xml",
                 className="mnemonic-object",
             ),

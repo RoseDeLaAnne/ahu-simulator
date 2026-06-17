@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dash import html
+from dash import dcc, html
 
 from app.ui.concept03.components.icon import Icon
 from app.ui.viewmodels.concept03_bottom import Concept03FooterNavView
@@ -49,9 +49,10 @@ def build_mobile_bottom_nav(view: Concept03FooterNavView) -> html.Nav:
         className="c03-mobile-bottom-nav c03-mobile-only",
         **{"aria-label": "Мобильная навигация Concept03"},
         children=[
-            html.A(
+            dcc.Link(
                 id=mobile_id,
                 href=item_by_page[page_id].href,
+                refresh=False,
                 className=mobile_nav_class_name(
                     page_id,
                     _active_page_from_footer(view),

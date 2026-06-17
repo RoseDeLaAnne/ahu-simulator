@@ -57,6 +57,28 @@ def test_central_canvas_contains_defense_tab_labels_and_balances() -> None:
     assert "concept03-camera-capture-status" in payload
 
 
+def test_callout_detail_row_has_no_duplicated_caption() -> None:
+    # Регресс: поле signal.detail самодостаточно («Загрязнение 14%»), поэтому
+    # строка-деталь НЕ должна нести отдельный ярлык — иначе в подписи возникало
+    # дублирование вида «ЗагрязнениеЗагрязнение 14%» (подписи «не отображают
+    # данные»). Первая строка (числовое значение) ярлык сохраняет.
+    service = _build_service()
+    view = build_concept03_central_view(service.get_session())
+
+    detail_rows_seen = 0
+    for callout in view.callouts:
+        assert callout.rows, f"callout {callout.visual_id} has no rows"
+        # Первая строка — измеримое значение с коротким ярлыком.
+        assert callout.rows[0].label
+        for row in callout.rows[1:]:
+            detail_rows_seen += 1
+            # Строка-деталь без ярлыка → рендерится одной самодостаточной строкой.
+            assert row.label == ""
+            # Значение не должно начинаться с дублирующего ярлыка.
+            assert not row.value.startswith(callout.rows[0].label + callout.rows[0].label)
+    assert detail_rows_seen > 0
+
+
 def test_central_canvas_view_builds_operator_callouts_and_tabs() -> None:
     service = _build_service()
     session = service.get_session()
@@ -77,7 +99,10 @@ def test_central_canvas_view_builds_operator_callouts_and_tabs() -> None:
         "xray",
         "schematic",
     ]
-    assert view.selected_scene_mode_id == "catalog"
+    # «Цифровой двойник» по умолчанию: режим показывает слой подписей-выносок с
+    # живыми данными узлов. В режиме «3D модели» (catalog) этот слой скрыт по
+    # CSS, поэтому оператор не видел данные на модели.
+    assert view.selected_scene_mode_id == "digital_twin"
     assert view.selected_scene_model_id is not None
     assert any(
         option.model_id == view.selected_scene_model_id
@@ -145,6 +170,22 @@ def test_central_canvas_renders_visible_installation_description() -> None:
     assert "c03-defense-only" not in class_name
     # The same description also accompanies the 2D «Схема» tab.
     assert _find_component(canvas, "concept03-scene-about-2d") is not None
+
+
+def test_central_canvas_exposes_focus_mode_toggle() -> None:
+    service = _build_service()
+    view = build_concept03_central_view(service.get_session())
+
+    canvas = build_central_canvas(view)
+    payload = str(canvas.to_plotly_json())
+    toggle = _find_component(canvas, "concept03-focus-toggle")
+
+    # Focus-mode button lets the user maximize the central content area by
+    # hiding the side rails and bottom strip (handler in concept03_overlay.js).
+    assert toggle is not None
+    assert toggle.to_plotly_json()["props"]["data-focus-toggle"] == "central"
+    assert "c03-focus-toggle" in payload
+    assert "Развернуть" in payload
 
 
 def test_central_tab_class_names_are_stable() -> None:

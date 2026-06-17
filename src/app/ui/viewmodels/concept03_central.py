@@ -130,7 +130,10 @@ def build_concept03_central_view(
         scene_model_options=_build_scene_model_options(scene_model_catalog),
         selected_scene_model_id=scene_model_catalog.default_model_id,
         scene_mode_options=CONCEPT03_SCENE_MODE_OPTIONS,
-        selected_scene_mode_id="catalog",
+        # «Цифровой двойник» по умолчанию: режим показывает слой подписей-выносок
+        # с живыми данными узлов (T/ΔP/КПД/...). В режиме «3D модели» (catalog)
+        # этот слой скрыт по CSS, из-за чего оператор не видел данные на модели.
+        selected_scene_mode_id="digital_twin",
         scene_about=_build_scene_about(),
         callouts=build_concept03_callouts(signals, bindings),
         parameter_rows=_build_parameter_rows(session),
@@ -315,18 +318,23 @@ def _alarm_level_text(level: AlarmLevel) -> str:
 def _build_doc_links() -> tuple[Concept03DocLinkView, ...]:
     return (
         Concept03DocLinkView(
+            "Руководство по эксплуатации",
+            "/handbook/44_app_operation_manual",
+            "Установка, запуск, функционал и настройка комплекса.",
+        ),
+        Concept03DocLinkView(
             "Технологическая карта",
-            "/docs/02_functionality.md",
+            "/handbook/02_functionality",
             "Контур работы ПВУ и сценарии демонстрации.",
         ),
         Concept03DocLinkView(
             "Формулы",
-            "/docs/03_architecture.md",
+            "/handbook/03_architecture",
             "Расчётная модель, допущения и связи модулей.",
         ),
         Concept03DocLinkView(
             "Источники",
-            "/docs/10_sources.md",
+            "/handbook/10_sources",
             "Нормативная и инженерная база проекта.",
         ),
     )
