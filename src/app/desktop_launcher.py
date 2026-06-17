@@ -67,7 +67,9 @@ def _resolve_runtime_dir() -> Path:
 
 def _open_dashboard_when_ready(base_url: str, dashboard_path: str) -> None:
     health_url = f"{base_url}/health"
-    dashboard_url = f"{base_url}{dashboard_path}"
+    # Trailing slash keeps the dashboard at its canonical URL so Dash assets
+    # referenced relatively (assets/...) resolve under the mount, not the root.
+    dashboard_url = f"{base_url}{dashboard_path.rstrip('/')}/"
 
     for _ in range(120):
         try:

@@ -105,7 +105,7 @@ if ($env:AHU_SIMULATOR_PORT) {
 }
 
 Write-Host "Starting Uvicorn server on http://127.0.0.1:$port"
-$dashboardUrl = "http://127.0.0.1:$port/dashboard"
+$dashboardUrl = "http://127.0.0.1:$port/dashboard/"
 if ($OpenDashboard) {
 	$launcherCode = "Start-Sleep -Seconds 2; Start-Process '$dashboardUrl'"
 	Start-Process powershell -ArgumentList @(
