@@ -12,6 +12,7 @@ from app.api.routers import (
     comparison,
     events,
     exports,
+    handbook,
     health,
     project,
     readiness,
@@ -162,6 +163,7 @@ def include_api_routers(app: FastAPI) -> None:
     app.include_router(comparison.router)
     app.include_router(events.router)
     app.include_router(exports.router)
+    app.include_router(handbook.router)
     app.include_router(health.router)
     app.include_router(project.router)
     app.include_router(readiness.router)
