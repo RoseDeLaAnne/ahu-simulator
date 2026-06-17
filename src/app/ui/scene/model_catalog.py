@@ -171,6 +171,14 @@ _PREFERRED_SCENE_MODEL_PATH_GROUPS: tuple[tuple[str, ...], ...] = (
     ),
 )
 
+# Модель, выбираемая по умолчанию в селекторе сцены. Первый существующий id из
+# списка побеждает; если ни одного нет — берётся первый descriptor после
+# сортировки (featured → по алфавиту). «Промышленный агрегат» —
+# industrial_machinery_unit.
+_PREFERRED_DEFAULT_MODEL_IDS: tuple[str, ...] = (
+    "industrial_machinery_unit",
+)
+
 
 def build_scene_model_catalog(project_root: Path | None = None) -> SceneModelCatalog:
     root = project_root or get_project_root()
@@ -208,8 +216,20 @@ def build_scene_model_catalog(project_root: Path | None = None) -> SceneModelCat
         descriptors.append(descriptor)
 
     descriptors.sort(key=lambda item: (not item.featured, item.label.lower()))
-    default_model_id = descriptors[0].id if descriptors else None
+    default_model_id = _resolve_default_model_id(descriptors)
     return SceneModelCatalog(default_model_id=default_model_id, models=descriptors)
+
+
+def _resolve_default_model_id(
+    descriptors: list[SceneModelDescriptor],
+) -> str | None:
+    if not descriptors:
+        return None
+    available_ids = {descriptor.id for descriptor in descriptors}
+    for preferred_id in _PREFERRED_DEFAULT_MODEL_IDS:
+        if preferred_id in available_ids:
+            return preferred_id
+    return descriptors[0].id
 
 
 def _collect_scene_model_paths(

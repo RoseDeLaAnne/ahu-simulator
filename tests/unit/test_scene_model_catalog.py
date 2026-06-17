@@ -9,6 +9,15 @@ def test_scene_model_catalog_discovers_glb_assets() -> None:
     assert any(model.id == catalog.default_model_id for model in catalog.models)
 
 
+def test_scene_model_catalog_defaults_to_industrial_machinery_unit() -> None:
+    catalog = build_scene_model_catalog()
+    model_ids = {model.id for model in catalog.models}
+
+    # «Промышленный агрегат» выбран моделью по умолчанию, когда присутствует.
+    if "industrial_machinery_unit" in model_ids:
+        assert catalog.default_model_id == "industrial_machinery_unit"
+
+
 def test_scene_model_catalog_exposes_static_urls() -> None:
     catalog = build_scene_model_catalog()
     featured = next(model for model in catalog.models if model.featured)
